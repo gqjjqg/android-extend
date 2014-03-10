@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- attribute for HorizontalListView. -->
+    <declare-styleable name="HorizontalListView">
+        <attr name="itemOffsetTop" format="dimension" />  
+        <attr name="itemOffsetLeft" format="dimension"/>
+        <attr name="itemCenter" format="boolean"/>    
+    </declare-styleable>
+</resources>
