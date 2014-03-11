@@ -1,6 +1,7 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend.rotate;
 
-import com.guo.android_extend.widget.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.CustomOrientationDetector;
+import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,14 +12,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
 
 /**
  * @author gqj3375
  * @see RotatableImageButton
  */
 
-public class RotatableRelativeLayout extends RelativeLayout implements OnOrientationListener, AnimationListener {
+public class RotatableImageView extends ImageView implements OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
 	private Handler	mHandler;
@@ -33,20 +34,20 @@ public class RotatableRelativeLayout extends RelativeLayout implements OnOrienta
 	 */
 	private int mCurDegree;
 	
-	public RotatableRelativeLayout(Context context, AttributeSet attrs,
+	public RotatableImageView(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public RotatableRelativeLayout(Context context, AttributeSet attrs) {
+	public RotatableImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public RotatableRelativeLayout(Context context) {
+	public RotatableImageView(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
@@ -110,16 +111,12 @@ public class RotatableRelativeLayout extends RelativeLayout implements OnOrienta
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		if (this.getVisibility() != View.GONE) {
-			canvas.save();
-			if (!ROTATE_LAYOUT) {
-				canvas.rotate(-mCurDegree, this.getWidth() / 2, this.getHeight() / 2);
-			}
-			super.onDraw(canvas);
-			canvas.restore();
-		} else {
-			super.onDraw(canvas);
+		canvas.save();
+		if (!ROTATE_LAYOUT) {
+			canvas.rotate(-mCurDegree, this.getWidth() / 2, this.getHeight() / 2);
 		}
+		super.onDraw(canvas);
+		canvas.restore();
 	}
 	
 	/**

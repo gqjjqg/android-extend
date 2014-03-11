@@ -3,7 +3,8 @@ package com.guo.android_extend.widget;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.guo.android_extend.widget.CustomGestureDetector.OnCustomGestureListener;
+import com.guo.android_extend.CustomGestureDetector;
+import com.guo.android_extend.CustomGestureDetector.OnCustomGestureListener;
 import com.guo.android_widget_externed.R;
 
 import android.content.Context;
@@ -183,7 +184,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		Log.i(TAG, "mOffsetLeft = " + mOffsetLeft);
 		mItemCenter = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemCenter, false);
 		att.recycle();
-		//mOffsetTop = this.getPaddingTop();
 		onCreate();
 	}
 
@@ -207,7 +207,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		Log.i(TAG, "mOffsetLeft = " + mOffsetLeft);
 		mItemCenter = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemCenter, false);
 		att.recycle();
-		//mOffsetTop = this.getPaddingTop();
 		onCreate();
 	}
 

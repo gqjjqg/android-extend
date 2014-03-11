@@ -1,7 +1,8 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend.rotate;
 
 
-import com.guo.android_extend.widget.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.CustomOrientationDetector;
+import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;

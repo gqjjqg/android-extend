@@ -1,4 +1,4 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend;
 
 import java.util.ArrayList;
 import java.util.List;

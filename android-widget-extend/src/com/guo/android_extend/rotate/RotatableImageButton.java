@@ -1,6 +1,7 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend.rotate;
 
-import com.guo.android_extend.widget.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.CustomOrientationDetector;
+import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -20,7 +21,8 @@ import android.widget.ImageButton;
  * there is two method can achieve the target.
  * 1.Rotate the layout:
  * 	 before the button start animation:
- *   @see com.atc.easymemo.widget.RotateRunable
+ *   @see com.guo.android_extend.rotate.RotateRunable
+ *   API Level 11+:
  *   View.setVisibility(View.GONE);
  *	 View.setPivotX(RotatableImageButton.this.getWidth() / 2);
  *	 View.setPivotY(RotatableImageButton.this.getHeight() / 2);

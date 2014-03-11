@@ -1,4 +1,4 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend.rotate;
 
 import android.os.Build;
 import android.view.View;
