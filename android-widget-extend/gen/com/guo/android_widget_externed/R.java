@@ -45,19 +45,16 @@ containing a value of this type.
          screen margins) for sw720dp devices (e.g. 10" tablets) in landscape here.
     
          */
-        public static int activity_horizontal_margin=0x7f040000;
-        public static int activity_vertical_margin=0x7f040001;
+        public static int activity_horizontal_margin=0x7f030000;
+        public static int activity_vertical_margin=0x7f030001;
     }
     public static final class drawable {
         public static int ic_launcher=0x7f020000;
     }
-    public static final class layout {
-        public static int activity_main=0x7f030000;
-    }
     public static final class string {
-        public static int action_settings=0x7f050001;
-        public static int app_name=0x7f050000;
-        public static int hello_world=0x7f050002;
+        public static int action_settings=0x7f040001;
+        public static int app_name=0x7f040000;
+        public static int hello_world=0x7f040002;
     }
     public static final class style {
         /** 
@@ -70,11 +67,11 @@ containing a value of this type.
             backward-compatibility can go here.
         
          */
-        public static int AppBaseTheme=0x7f060000;
+        public static int AppBaseTheme=0x7f050000;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static int AppTheme=0x7f060001;
+        public static int AppTheme=0x7f050001;
     }
     public static final class styleable {
         /**  attribute for HorizontalListView. 
