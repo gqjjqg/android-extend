@@ -138,6 +138,10 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		public void OnScrollStart(AdapterView<ListAdapter> adp);
 		public void OnScrollEnd(AdapterView<ListAdapter> adp, int pos);
 		public boolean OnDraging(AdapterView<ListAdapter> adp, float dx, float dy);
+		/**
+		 * @param adp
+		 * @return true if drag is not used.
+		 */
 		public boolean OnDragingOver(AdapterView<ListAdapter> adp);
 	}
 	

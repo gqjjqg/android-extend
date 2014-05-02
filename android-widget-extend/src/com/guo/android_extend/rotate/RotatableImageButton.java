@@ -79,11 +79,11 @@ public class RotatableImageButton extends ImageButton implements OnOrientationLi
 	}
 
 	@Override
-	public void OnOrientationChanged(int degree, int offset, int flag) {
+	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		// TODO Auto-generated method stub
 		if (this.getVisibility() == View.GONE) {
 			mCurDegree = degree;
-			return ;
+			return false;
 		}
 		if (flag == CustomOrientationDetector.ROTATE_NEGATIVE) {
 			Animation mRotateNegative = new RotateAnimation (-offset, 0,
@@ -105,6 +105,7 @@ public class RotatableImageButton extends ImageButton implements OnOrientationLi
 			Log.i(TAG, "NO CHANGE");
 		}
 		mCurDegree = degree;
+		return true;
 	}
 
 	@Override
@@ -133,9 +134,7 @@ public class RotatableImageButton extends ImageButton implements OnOrientationLi
 		// TODO Auto-generated method stub
 		if(this.getVisibility() != View.GONE) {
 			canvas.save();
-			if (!ROTATE_LAYOUT) {
-				canvas.rotate(-mCurDegree, this.getWidth() / 2, this.getHeight() / 2);
-			}
+			canvas.rotate(-mCurDegree, this.getWidth() / 2, this.getHeight() / 2);
 			super.onDraw(canvas);
 			canvas.restore();
 		} else {
@@ -155,6 +154,12 @@ public class RotatableImageButton extends ImageButton implements OnOrientationLi
 	 */
 	public void setCurDegree(int mCurDegree) {
 		this.mCurDegree = mCurDegree;
+	}
+
+	@Override
+	public int getCurrentOrientationDegree() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

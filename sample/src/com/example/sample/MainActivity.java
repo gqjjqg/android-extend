@@ -1,8 +1,9 @@
 package com.example.sample;
 
+import com.guo.android_extend.CustomOrientationDetector;
 import com.guo.android_extend.widget.HorizontalListView;
 import com.guo.android_extend.widget.HorizontalListView.OnItemScrollListener;
-import com.guo.android_extend.widget.ScalableImageView;
+import com.guo.android_extend.widget.ExtImageView;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,9 +13,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	private static final String TAG = "MainActivity" ;
@@ -24,14 +27,21 @@ public class MainActivity extends Activity {
 	 */
 	float percent_add = 0.5f;
 	
+	CustomOrientationDetector mODetector;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		ViewListAdapter vla = new ViewListAdapter(this);
 		
 		HorizontalListView hv = (HorizontalListView) this.findViewById(R.id.listView1);
-		hv.setAdapter(new ViewListAdapter(this));
+		hv.setAdapter(vla);
 		hv.setOnItemScrollListener(new HScrollListener());
+		hv.setOnItemClickListener(vla);
+		
+		mODetector = new CustomOrientationDetector(this);
+		mODetector.enable();
 	}
 
 	private void scale(View v, float percent) {
@@ -41,11 +51,11 @@ public class MainActivity extends Activity {
 	}
 	
 	class Holder {
-		ScalableImageView siv;
+		ExtImageView siv;
 		TextView tv;
 	}
 	
-	class ViewListAdapter extends BaseAdapter {
+	class ViewListAdapter extends BaseAdapter implements OnItemClickListener {
 		Context mContext;
 		LayoutInflater mLInflater;
 		String[] mNames = {
@@ -91,16 +101,24 @@ public class MainActivity extends Activity {
 			} else {
 				convertView = mLInflater.inflate(R.layout.item_sample, null);
 				holder = new Holder();
-				holder.siv = (ScalableImageView) convertView.findViewById(R.id.imageView1);
+				holder.siv = (ExtImageView) convertView.findViewById(R.id.imageView1);
 				holder.tv = (TextView) convertView.findViewById(R.id.textView1);
 				convertView.setTag(holder);
 			}
 			
 			holder.tv.setText(mNames[ position ]);
-			
+			mODetector.addReceiver(holder.siv);
 			scale(convertView, 1f - percent_add);
 			
 			return convertView;
+		}
+
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			// TODO Auto-generated method stub
+			Toast t = Toast.makeText(MainActivity.this, mNames[ arg2 ], Toast.LENGTH_SHORT);
+			t.show();
 		}
 		
 	}
@@ -120,6 +138,7 @@ public class MainActivity extends Activity {
 			if (pos > 0) {
 				scale(adp.getChildAt(pos - 1), 1f - percent_add);
 			}
+			
 		}
 
 		@Override
@@ -132,6 +151,7 @@ public class MainActivity extends Activity {
 		public void OnScrollEnd(AdapterView<ListAdapter> adp, int pos) {
 			// TODO Auto-generated method stub
 			Log.i(TAG, "OnScrollEnd pos=" + pos);
+			mODetector.forceOrientationChanged();
 		}
 
 		@Override
@@ -150,4 +170,5 @@ public class MainActivity extends Activity {
 		}
 		
 	}
+	
 }

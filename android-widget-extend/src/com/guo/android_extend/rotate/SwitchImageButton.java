@@ -142,7 +142,7 @@ public class SwitchImageButton extends ImageButton implements OnOrientationListe
 	}
 
 	@Override
-	public void OnOrientationChanged(int degree, int offset, int flag) {
+	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		// TODO Auto-generated method stub
 		if (flag == CustomOrientationDetector.ROTATE_NEGATIVE) {
 			Animation mRotateNegative = new RotateAnimation (-offset, 0,
@@ -162,6 +162,13 @@ public class SwitchImageButton extends ImageButton implements OnOrientationListe
 		} else {
 			Log.i(TAG, "NO CHANGE");
 		}
+		return true;
+	}
+
+	@Override
+	public int getCurrentOrientationDegree() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }

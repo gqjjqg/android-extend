@@ -1,7 +1,8 @@
-package com.guo.android_extend.rotate;
+package com.guo.android_extend.widget;
 
-import com.guo.android_extend.CustomOrientationDetector;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.rotate.RotatableImageButton;
+import com.guo.android_extend.rotate.RotateRunable;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -17,9 +18,11 @@ import android.widget.ImageView;
 /**
  * @author gqj3375
  * @see RotatableImageButton
+ * 
+ * @support rotatable and scalable.
  */
 
-public class RotatableImageView extends ImageView implements OnOrientationListener, AnimationListener {
+public class ExtImageView extends ImageView implements OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
 	private Handler	mHandler;
@@ -34,20 +37,25 @@ public class RotatableImageView extends ImageView implements OnOrientationListen
 	 */
 	private int mCurDegree;
 	
-	public RotatableImageView(Context context, AttributeSet attrs,
+	/**
+	 * for scale.
+	 */
+	private float scaleX, scaleY;
+	
+	public ExtImageView(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public RotatableImageView(Context context, AttributeSet attrs) {
+	public ExtImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public RotatableImageView(Context context) {
+	public ExtImageView(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
@@ -56,46 +64,46 @@ public class RotatableImageView extends ImageView implements OnOrientationListen
 	private void preCreate(Context context) {
 		mHandler = new Handler();
 		mCurDegree = 0;
+		scaleX = 1.0f;
+		scaleY = 1.0f;
 	}
 
 	@Override
-	public void OnOrientationChanged(int degree, int offset, int flag) {
+	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		// TODO Auto-generated method stub
-		if (this.getVisibility() == View.GONE) {
-			mCurDegree = degree;
-			return ;
+		if (!this.isShown()) {
+			Log.i(TAG, "Not Shown!");
+			return false;
 		}
-		if (flag == CustomOrientationDetector.ROTATE_NEGATIVE) {
-			Animation mRotateNegative = new RotateAnimation (-offset, 0,
-					Animation.RELATIVE_TO_SELF, 0.5f, 
-					Animation.RELATIVE_TO_SELF, 0.5f);
-			mRotateNegative.setDuration(ANIMATION_TIME);
-			mRotateNegative.setFillAfter(true);
-			mHandler.post(new RotateRunable(mRotateNegative, this, degree, false));
-			
-		} else if (flag == CustomOrientationDetector.ROTATE_POSITIVE) {
-			Animation mRotatePositive = new RotateAnimation (offset, 0,
-					Animation.RELATIVE_TO_SELF, 0.5f, 
-					Animation.RELATIVE_TO_SELF, 0.5f);
-			mRotatePositive.setDuration(ANIMATION_TIME);
-			mRotatePositive.setFillAfter(true);
-			mHandler.post(new RotateRunable(mRotatePositive, this, degree, false));
-			
-		} else {
-			Log.i(TAG, "NO CHANGE");
-		}
+		
+		Animation animation = new RotateAnimation (offset, 0,
+				Animation.RELATIVE_TO_SELF, 0.5f, 
+				Animation.RELATIVE_TO_SELF, 0.5f);
+		animation.setDuration(ANIMATION_TIME);
+		animation.setFillAfter(true);
+		mHandler.post(new RotateRunable(animation, this, degree));
+		
 		mCurDegree = degree;
+		return true;
+	}
+	
+	@Override
+	public int getCurrentOrientationDegree() {
+		// TODO Auto-generated method stub
+		return mCurDegree;
 	}
 
 	@Override
 	public void onAnimationStart(Animation animation) {
 		// TODO Auto-generated method stub
+		this.setVisibility(View.GONE);
 		this.setEnabled(false);
 	}
 
 	@Override
 	public void onAnimationEnd(Animation animation) {
 		// TODO Auto-generated method stub
+		this.setVisibility(View.VISIBLE);
 		this.setEnabled(true);
 	}
 
@@ -112,9 +120,8 @@ public class RotatableImageView extends ImageView implements OnOrientationListen
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
 		canvas.save();
-		if (!ROTATE_LAYOUT) {
-			canvas.rotate(-mCurDegree, this.getWidth() / 2, this.getHeight() / 2);
-		}
+		canvas.scale(scaleX, scaleY, canvas.getWidth() / 2f, canvas.getHeight() / 2f);
+		canvas.rotate(-mCurDegree, canvas.getWidth() / 2, canvas.getHeight() / 2);
 		super.onDraw(canvas);
 		canvas.restore();
 	}
@@ -132,4 +139,16 @@ public class RotatableImageView extends ImageView implements OnOrientationListen
 	public void setCurDegree(int mCurDegree) {
 		this.mCurDegree = mCurDegree;
 	}
+	
+	/**
+	 * set scale percent.
+	 * @param sx
+	 * @param sy
+	 */
+	public void setScale(float sx, float sy) {
+		scaleX = sx;
+		scaleY = sy;
+		Log.i(TAG, "scale =(" + sx +"," + sy + ")");
+	}
+
 }

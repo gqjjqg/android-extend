@@ -1,6 +1,7 @@
 package com.guo.android_extend;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
@@ -20,6 +21,7 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	public final static int ROTATE_POSITIVE = 0;
 	public final static int ROTATE_NEGATIVE = 1;
 	public final static int ROTATE_UNCHANGE = 2;
+	public final static int ROTATE_FORCE_REDO = 3;
 	
 	private Display mDisplay;
 	private Context mContext;
@@ -30,9 +32,6 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	private int mMinDegree;
 	private int mMaxDegree;
 	private List<OnOrientationListener> mObjectes;
-	
-	private boolean mUsed;
-	
 
 	/**
 	 * divider for orientation.
@@ -66,12 +65,16 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public interface OnOrientationListener {
 		/**
-		 * API Level 11+ will support rotate layout.
-		 * others is not support rotate layout.
+		 * @param degree
+		 * @param offset
+		 * @param flag
+		 * @return true is visible and done.
 		 */
-		final static boolean ROTATE_LAYOUT = true;
-		
-		void OnOrientationChanged(int degree, int offset, int flag);
+		boolean OnOrientationChanged(int degree, int offset, int flag);
+		/**
+		 * @return the object's current degree.
+		 */
+		int	getCurrentOrientationDegree();
 	}
 	
 	public CustomOrientationDetector(Context context, int rate) {
@@ -107,15 +110,42 @@ public class CustomOrientationDetector extends OrientationEventListener {
 		mMinDegree = ORIENTATION_START;
 		mMaxDegree = mDivider[mDivider.length - 1] - ORIENTATION_HYSTERESIS;
 		
-		mUsed = true;
+	}
+	
+	/**
+	 * @param degree
+	 * @param flag
+	 */
+	private void forceOrientationChanged(int degree, int flag) {
+		synchronized(mObjectes) {
+			Iterator<OnOrientationListener> it = mObjectes.iterator();
+			int param = flag;
+			int offset = ORIENTATION_OFFSET;
+			while (it.hasNext()) {
+				OnOrientationListener listener = it.next();
+				if (flag == CustomOrientationDetector.ROTATE_FORCE_REDO) {
+					param = getRotateFlag(listener.getCurrentOrientationDegree(), degree);
+				}
+				if (param == CustomOrientationDetector.ROTATE_NEGATIVE) {
+					offset = -ORIENTATION_OFFSET;
+				} else if (param == CustomOrientationDetector.ROTATE_POSITIVE) {
+					offset = ORIENTATION_OFFSET;
+				} else {
+					continue;
+				}
+				
+				if (!listener.OnOrientationChanged(degree, offset, param)) {
+					//need remove from list.
+					it.remove();
+				}
+			}
+			mDegree = degree;
+		}
 	}
 	
 	@Override
 	public void onOrientationChanged(int orientation) {
 		// TODO Auto-generated method stub
-		if (!mUsed) {
-			return;
-		}
 		if (orientation == ORIENTATION_UNKNOWN) {
 			return;
 		}
@@ -123,11 +153,17 @@ public class CustomOrientationDetector extends OrientationEventListener {
 		if (mCompensation != mOrientation) {
 			mCompensation = mOrientation;
 			int degree = mCompensation % 360;
-			for (OnOrientationListener listener : mObjectes) {
-				listener.OnOrientationChanged(degree, ORIENTATION_OFFSET, getRotateFlag(degree));
-			}
-			mDegree = degree;
+			int flag = getRotateFlag(mDegree, degree);
+			
+			forceOrientationChanged(degree, flag);
 		}
+	}
+	
+	/**
+	 * use degree and flag to do again.
+	 */
+	public void forceOrientationChanged() {
+		forceOrientationChanged(mDegree, ROTATE_FORCE_REDO);
 	}
 	
 	/**
@@ -137,19 +173,11 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public boolean addReceiver(OnOrientationListener obj) {
 		synchronized (mObjectes) {
-			return mObjectes.add(obj);
+			if (!mObjectes.contains(obj)) {
+				return mObjectes.add(obj);
+			}
 		}
-	}
-	
-	/**
-	 * add receivers.
-	 * @param obj
-	 * @return true if success.
-	 */
-	public boolean addReceiver(List<OnOrientationListener> obj) {
-		synchronized (mObjectes) {
-			return mObjectes.addAll(obj);
-		}
+		return false;
 	}
 	
 	/**
@@ -159,8 +187,11 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public boolean removeReceiver(OnOrientationListener obj) {
 		synchronized (mObjectes) {
-			return mObjectes.remove(obj);
+			if (mObjectes.contains(obj)) {
+				return mObjectes.remove(obj);
+			}
 		}
+		return false;
 	}
 	
 	/**
@@ -176,14 +207,14 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 * @param degree
 	 * @return
 	 */
-	private int getRotateFlag(int degree) {
-		if (mDegree > degree
-				&& !(mDegree == mMaxDegree && degree == mMinDegree)
-				|| (mDegree == mMinDegree && degree == mMaxDegree)) {
+	private int getRotateFlag(int curdegree, int degree) {
+		if (curdegree > degree
+				&& !(curdegree == mMaxDegree && degree == mMinDegree)
+				|| (curdegree == mMinDegree && degree == mMaxDegree)) {
 			return ROTATE_NEGATIVE;
-		} else if (mDegree < degree
-				&& !(mDegree == mMinDegree && degree == mMaxDegree)
-				|| (mDegree == mMaxDegree && degree == mMinDegree)) {
+		} else if (curdegree < degree
+				&& !(curdegree == mMinDegree && degree == mMaxDegree)
+				|| (curdegree == mMaxDegree && degree == mMinDegree)) {
 			return ROTATE_POSITIVE;
 		}
 		return ROTATE_UNCHANGE;
@@ -244,11 +275,4 @@ public class CustomOrientationDetector extends OrientationEventListener {
 		return mDivider[0] - ORIENTATION_HYSTERESIS;
     }
 	
-	/**
-	 * enable 
-	 * @param mUsed
-	 */
-	public void setEnable(boolean mUsed) {
-		this.mUsed = mUsed;
-	}
 }
