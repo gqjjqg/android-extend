@@ -65,6 +65,10 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public interface OnOrientationListener {
 		/**
+		 * DEFAULT ANIMATION TIME.
+		 */
+		static final int ANIMATION_TIME = 300;
+		/**
 		 * @param degree
 		 * @param offset
 		 * @param flag

@@ -9,8 +9,17 @@
     <com.guo.android_extend.widget.HorizontalListView
         android:id="@+id/listView1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="144dp"
         app:itemCenter="true" >
+
+    </com.guo.android_extend.widget.HorizontalListView>
+
+    <com.guo.android_extend.widget.HorizontalListView
+        android:id="@+id/listView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/listView1"
+        app:itemOffsetLeft="128dp" >
 
     </com.guo.android_extend.widget.HorizontalListView>
 

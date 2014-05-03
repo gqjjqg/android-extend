@@ -1,8 +1,8 @@
 package com.guo.android_extend.widget;
 
+import com.guo.android_extend.RotateRunable;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 import com.guo.android_extend.rotate.RotatableImageButton;
-import com.guo.android_extend.rotate.RotateRunable;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -20,6 +20,7 @@ import android.widget.ImageView;
  * @see RotatableImageButton
  * 
  * @support rotatable and scalable.
+ * @note background will not rotate and scale .
  */
 
 public class ExtImageView extends ImageView implements OnOrientationListener, AnimationListener {
@@ -30,7 +31,7 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	/**
 	 * animation during time.
 	 */
-	private final int ANIMATION_TIME = 200;
+	private final int ANIMATION_TIME = OnOrientationListener.ANIMATION_TIME;
 	
 	/**
 	 * for animation .
@@ -127,20 +128,6 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	}
 	
 	/**
-	 * @return the mCurDegree
-	 */
-	public int getCurDegree() {
-		return mCurDegree;
-	}
-
-	/**
-	 * @param mCurDegree the mCurDegree to set
-	 */
-	public void setCurDegree(int mCurDegree) {
-		this.mCurDegree = mCurDegree;
-	}
-	
-	/**
 	 * set scale percent.
 	 * @param sx
 	 * @param sy
@@ -148,7 +135,6 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	public void setScale(float sx, float sy) {
 		scaleX = sx;
 		scaleY = sy;
-		Log.i(TAG, "scale =(" + sx +"," + sy + ")");
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.guo.android_extend.rotate;
 
 import com.guo.android_extend.CustomOrientationDetector;
+import com.guo.android_extend.RotateRunable;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
@@ -21,7 +22,7 @@ import android.widget.ImageButton;
  * there is two method can achieve the target.
  * 1.Rotate the layout:
  * 	 before the button start animation:
- *   @see com.guo.android_extend.rotate.RotateRunable
+ *   @see com.guo.android_extend.RotateRunable
  *   API Level 11+:
  *   View.setVisibility(View.GONE);
  *	 View.setPivotX(RotatableImageButton.this.getWidth() / 2);

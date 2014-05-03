@@ -1,6 +1,7 @@
 package com.example.sample;
 
 import com.guo.android_extend.CustomOrientationDetector;
+import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 import com.guo.android_extend.widget.HorizontalListView;
 import com.guo.android_extend.widget.HorizontalListView.OnItemScrollListener;
 import com.guo.android_extend.widget.ExtImageView;
@@ -39,6 +40,12 @@ public class MainActivity extends Activity {
 		hv.setAdapter(vla);
 		hv.setOnItemScrollListener(new HScrollListener());
 		hv.setOnItemClickListener(vla);
+		
+		ViewList2Adapter vla2 = new ViewList2Adapter(this);
+		HorizontalListView hv2 = (HorizontalListView) this.findViewById(R.id.listView2);
+		hv2.setAdapter(vla2);
+		hv2.setOnItemScrollListener(new HScrollListener());
+		hv2.setOnItemClickListener(vla2);
 		
 		mODetector = new CustomOrientationDetector(this);
 		mODetector.enable();
@@ -108,6 +115,78 @@ public class MainActivity extends Activity {
 			
 			holder.tv.setText(mNames[ position ]);
 			mODetector.addReceiver(holder.siv);
+
+			scale(convertView, 1f - percent_add);
+			
+			return convertView;
+		}
+
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			// TODO Auto-generated method stub
+			Toast t = Toast.makeText(MainActivity.this, mNames[ arg2 ], Toast.LENGTH_SHORT);
+			t.show();
+		}
+		
+	}
+	
+	class ViewList2Adapter extends BaseAdapter implements OnItemClickListener {
+		Context mContext;
+		LayoutInflater mLInflater;
+		String[] mNames = {
+				"Camera",
+				"Test1","Test6","Test6",
+				"Test2","Test6","Test6",
+				"Test3","Test6","Test6",
+				"Test4","Test6","Test6",
+				"Test5","Test6","Test6",
+				"Test6","Test6","Test6",
+		};
+		
+		public ViewList2Adapter(Context c) {
+			// TODO Auto-generated constructor stub
+			mContext = c;
+			mLInflater = LayoutInflater.from(mContext);
+		}
+
+		@Override
+		public int getCount() {
+			// TODO Auto-generated method stub
+			return mNames.length;
+		}
+
+		@Override
+		public Object getItem(int arg0) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			// TODO Auto-generated method stub
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			// TODO Auto-generated method stub
+			Holder holder = null;
+			if (convertView != null) {
+				holder = (Holder) convertView.getTag();
+			} else {
+				convertView = mLInflater.inflate(R.layout.item_sample2, null);
+				holder = new Holder();
+				holder.siv = (ExtImageView) convertView.findViewById(R.id.imageView1);
+				holder.tv = (TextView) convertView.findViewById(R.id.textView1);
+				convertView.setTag(holder);
+			}
+			
+			holder.tv.setText(mNames[ position ]);
+			
+			convertView.setWillNotDraw(false);
+			mODetector.addReceiver((OnOrientationListener) convertView);
+			
 			scale(convertView, 1f - percent_add);
 			
 			return convertView;

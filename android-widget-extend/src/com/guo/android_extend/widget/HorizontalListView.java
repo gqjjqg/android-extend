@@ -559,12 +559,19 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		
 		if(!mScroller.isFinished()){
 			post(mRequestLayoutRunable);
-		} else if (mItemCenter) {
-			/**
-			 * this is fixed for flipping target position.
-			 * @see onFling
-			 */
-			flipingFix(mCurrentX);
+		} else {
+			if (mItemCenter) {
+		
+				/**
+				 * this is fixed for flipping target position.
+				 * @see onFling
+				 */
+				flipingFix(mCurrentX);
+			} else {
+				if (mOnItemScrollListener != null) {
+					mOnItemScrollListener.OnScrollEnd(this, mCurViewIdx);
+				}
+			}
 		}
 	}
 
