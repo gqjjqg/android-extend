@@ -1,8 +1,5 @@
 package com.guo.android_extend;
 
-import com.guo.android_extend.rotate.RotatableImageButton;
-import com.guo.android_extend.rotate.SwitchImageButton;
-
 import android.view.View;
 import android.view.animation.Animation;
 

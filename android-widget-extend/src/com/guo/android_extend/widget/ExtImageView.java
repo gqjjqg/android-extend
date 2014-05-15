@@ -2,7 +2,6 @@ package com.guo.android_extend.widget;
 
 import com.guo.android_extend.RotateRunable;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.rotate.RotatableImageButton;
 
 import android.content.Context;
 import android.graphics.Canvas;
