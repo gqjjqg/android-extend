@@ -5,21 +5,19 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 
 public class ImageViewTouch extends ImageView {
 	private final String TAG = this.getClass().toString();
 	// control
-	protected boolean isCenter;
+	protected boolean isCenter = true;
+	protected boolean isScaleEnable = true;
+	protected boolean isRotateEnable = true;
 	protected float MIN_SCALE = 0.3F;
 	protected float MAX_SCALE = 3.0F;
 	
@@ -28,21 +26,22 @@ public class ImageViewTouch extends ImageView {
 	Matrix mPreMatrix;
 	Matrix mCurMatrix;
 	
+	// scale 
 	float mCurScale;
-	float mTargetScale;
-	
-	float mPreDegree;
-	
-	Drawable mCurDrawable;
-	PointF mCurPointDown;
-	PointF mMidPoint;
-	float mPreDist;
+	float mScale;
+	// rotate
+	float mCurDegree;
+	float mDegree;
+	// touch data.
+	private PointF mCurPointDown;
+	private PointF mMidPoint;
+	private float mPreDist;
+	private float mPreDegree;
 	
 	//Mode
-	private MODE mPreMode;
 	private MODE mMode;
 	public enum MODE {
-		NONE, DRAG, ZOOM
+		NONE, FINGER, DOUBLE_FINGER, LIMITION
 	}
 	
 	//ImageData
@@ -54,8 +53,15 @@ public class ImageViewTouch extends ImageView {
 	float mMaxWidth, mMaxHeight;
 	
 	//animation
-	AnimationTask mAnimationTask;
+	Handler mUIHandler;
 	
+	private final Runnable mInvalidateTask = new Runnable() {
+        @Override
+        public void run() {
+            invalidate();
+        }
+    };
+
 	public ImageViewTouch(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
@@ -81,17 +87,21 @@ public class ImageViewTouch extends ImageView {
 		
 		mCurPointDown = new PointF();
 		mMidPoint = new PointF();
-		
-		mCurDrawable = getDrawable();
-		
-		isCenter = true;
-		
-		mPreMode = MODE.NONE;
-		
+
 		mDefImageBounds = new RectF();
 		mCurImageBounds = new RectF();
+		
+		mCurDegree = 0F;
+		mCurScale = 0F;
+		
+		mMode = MODE.NONE;
+		
+		mUIHandler = new Handler();
 	}
 	
+	/**
+	 * initial scale data.
+	 */
 	protected void initialScale() {
 		mDefImageBounds.set(this.getDrawable().getBounds());
 		
@@ -120,8 +130,34 @@ public class ImageViewTouch extends ImageView {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		if (mDefImageBounds.isEmpty()) {
-			initialScale();
+		if (isScaleEnable) {
+			if (mDefImageBounds.isEmpty()) {
+				initialScale();
+			}
+			if (mMode == MODE.LIMITION) {
+				if (isScaleLimited(mCurMatrix)) {
+					mCurMatrix.set(mPreMatrix);
+					float stepScale = 0f;
+            		if (mScale > 3.0F) {
+            			stepScale = -0.1F;
+                	} else if (mScale > 2.0F) {
+                		stepScale = -0.05F;
+                	} else if (mScale > 1.0F) {
+                		stepScale = -0.01F;
+                	} else if (mScale > 0.6F) {
+                		stepScale = 0.01F;
+                	} else if (mScale > 0.2F) {
+                		stepScale = 0.02F;
+                	} else {
+                		stepScale = 0.05F;
+                	}
+                	mCurScale = mCurScale + stepScale;
+            		mCurMatrix.postScale(mCurScale, mCurScale, mMidPoint.x, mMidPoint.y);
+            		mUIHandler.postDelayed(mInvalidateTask, 1);
+				} else {
+					mMode = MODE.NONE;
+				}
+			}
 		}
 		canvas.setMatrix(mCurMatrix);
 		super.onDraw(canvas);
@@ -134,60 +170,59 @@ public class ImageViewTouch extends ImageView {
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-		case MotionEvent.ACTION_DOWN:
-			mCurPointDown.set(event.getX(), event.getY());
+		case MotionEvent.ACTION_DOWN:	
 			if (mMode == MODE.NONE) {
-				mPreMode = mMode;
-				mMode = MODE.DRAG;
+				mCurPointDown.set(event.getX(), event.getY());
+				mPreMatrix.set(mCurMatrix);
+				mMode = MODE.FINGER;
+			} else if (mMode == MODE.LIMITION) {
+				mCurPointDown.set(event.getX(), event.getY());
+				mMode = MODE.FINGER;
 			}
-			mPreMatrix.set(mCurMatrix);
 			return true;
 		case MotionEvent.ACTION_POINTER_DOWN:
-			if (mMode == MODE.DRAG) {
+			if (mMode == MODE.FINGER && event.getPointerCount() == 2) {
 				if (getMiddlePoint(event, mMidPoint)) {
 					mPreDist = getDistence(event);
 					mPreDegree = getRotation(event);
-					mPreMode = mMode;
-					mMode = MODE.ZOOM;
+					mMode = MODE.DOUBLE_FINGER;
 					mPreMatrix.set(mCurMatrix);
 				}
 			}
 			break;
 		case MotionEvent.ACTION_MOVE:
-			if (mMode == MODE.ZOOM) {
+			if (mMode == MODE.DOUBLE_FINGER && event.getPointerCount() == 2) {
 				mCurMatrix.set(mPreMatrix);
-				//float rotation = getRotation(event) - mPreDegree;
-				mTargetScale = getDistence(event) / mPreDist;
-				mCurMatrix.postScale(mTargetScale, mTargetScale, mMidPoint.x, mMidPoint.y);
+				if (isRotateEnable) {
+					mCurDegree = getRotation(event) - mPreDegree;
+					mCurMatrix.postRotate(mCurDegree, mMidPoint.x, mMidPoint.y);
+				}
+				if (isScaleEnable) {
+					mCurScale = getDistence(event) / mPreDist;
+					mCurMatrix.postScale(mCurScale, mCurScale, mMidPoint.x, mMidPoint.y);
+				}
 				invalidate();
-			} else if (mMode == MODE.DRAG) {
+			} else if (mMode == MODE.FINGER) {
 				
 			}
 			break;
 		case MotionEvent.ACTION_CANCEL:
 		case MotionEvent.ACTION_UP:
-			if (mMode == MODE.ZOOM) {
-				if (isScaleLimited(mCurMatrix)) {
-					//mCurMatrix.set(mDefMatrix);
-				}
+			if (mMode == MODE.DOUBLE_FINGER) {
+				mMode = MODE.NONE;
 			}
-			mMode = MODE.NONE;
-			
 			invalidate();
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
-			if (mMode == MODE.ZOOM) {
+			if (mMode == MODE.DOUBLE_FINGER) {
 				if (isScaleLimited(mCurMatrix)) {
-					if (mAnimationTask == null) {
-						mAnimationTask = new AnimationTask();
-						mAnimationTask.execute("test");
-					}
-					//mCurMatrix.set(mDefMatrix);
+					mMode = MODE.LIMITION;
+				} else {
+					mMode = MODE.FINGER;
 				}
+			} else {
+				Log.e(TAG, "error mMode =" + mMode);
 			}
-			mMode = mPreMode;
-			mPreMode = MODE.NONE;
-			
 			invalidate();
 			break;
 		default : mMode = MODE.NONE;
@@ -203,13 +238,17 @@ public class ImageViewTouch extends ImageView {
 		matrix.mapRect(mCurImageBounds, mDefImageBounds);
 		float w = mCurImageBounds.right - mCurImageBounds.left;
 		float h = mCurImageBounds.bottom - mCurImageBounds.top;
+		
+		mScale = ( w / (mDefImageBounds.right - mDefImageBounds.left) + 
+				h / (mDefImageBounds.bottom - mDefImageBounds.top) ) / 2f;
+		Log.d(TAG, "wh=" + w +"," + h + "scale=" + mScale);
+		
 		if (w < this.mMinWidth || w > this.mMaxWidth) {
 			return true;
 		}
 		if (h < this.mMinHeight || h > this.mMaxHeight) {
 			return true;
 		}
-		Log.d(TAG, "wh=" + w +"," + h);
 		return false;
 	}
 
@@ -253,63 +292,6 @@ public class ImageViewTouch extends ImageView {
 		}
 		double radians = Math.atan2((event.getY(0) - event.getY(1)), (event.getX(0) - event.getX(1)));
 		return (float) Math.toDegrees(radians);
-	}
-	
-	private class AnimationTask extends AsyncTask<String, Integer, String> {
-		private boolean isCanceled = false;
-		
-		@Override  
-        protected void onPreExecute() {  
-            Log.i(TAG, "onPreExecute() called");  
-        }  
-		
-		@Override
-		protected String doInBackground(String... params) {
-			// TODO Auto-generated method stub
-			try {   
-				float step = mTargetScale > 1.0F ? -0.1F : 0.1F;
-            	
-                while ( isScaleLimited(mCurMatrix) && !isCanceled) {
-                	if (mTargetScale > 3.0F) {
-                		step = -0.8F;
-                	} else if (mTargetScale > 2.0F) {
-                		step = -0.4F;
-                	} else if (mTargetScale > 1.0F) {
-                		step = -0.1F;
-                	} else if (mTargetScale > 0.6F) {
-                		step = 0.04F;
-                	} else if (mTargetScale > 0.2F) {
-                		step = 0.08F;
-                	} else {
-                		step = 0.1F;
-                	}
-                	mTargetScale = mTargetScale + step;
-                	
-                	mCurMatrix.set(mPreMatrix);
-    				mCurMatrix.postScale(mTargetScale, mTargetScale, mMidPoint.x, mMidPoint.y);
-                    publishProgress();  
-                    Thread.sleep(10);  
-                }  
-            } catch (Exception e) {  
-                Log.e(TAG, e.getMessage());  
-            }  
-			return null;
-		} 
-		
-        @Override  
-        protected void onProgressUpdate(Integer... progresses) {  
-        	ImageViewTouch.this.invalidate();
-        }  
-          
-        @Override  
-        protected void onPostExecute(String result) {
-            mAnimationTask = null;
-        }  
-          
-        @Override  
-        protected void onCancelled() {  
-        	isCanceled = true;
-        }  
 	}
 	
 	public boolean inQuadrangle(PointF a, PointF b, PointF c,PointF d,PointF p){                 
