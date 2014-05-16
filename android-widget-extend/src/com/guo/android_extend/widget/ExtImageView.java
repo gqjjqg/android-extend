@@ -120,8 +120,8 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
 		canvas.save();
-		canvas.scale(scaleX, scaleY, canvas.getWidth() / 2f, canvas.getHeight() / 2f);
-		canvas.rotate(-mCurDegree, canvas.getWidth() / 2, canvas.getHeight() / 2);
+		canvas.scale(scaleX, scaleY, this.getWidth() / 2f, this.getHeight() / 2f);
+		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);
 		super.onDraw(canvas);
 		canvas.restore();
 	}

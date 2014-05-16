@@ -1,0 +1,20 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res/com.example.sample"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.sample.MainActivity"
+    tools:ignore="MergeRootFrame" >
+
+    <com.guo.android_extend.widget.ImageViewTouch
+        android:id="@+id/imageViewTouch1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:background="@android:drawable/btn_star"
+        android:scaleType="center"
+        android:src="@drawable/ic_launcher" />
+
+</RelativeLayout>
+

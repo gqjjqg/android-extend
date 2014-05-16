@@ -9,6 +9,7 @@ import com.guo.android_extend.widget.ExtImageView;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -142,7 +143,7 @@ public class MainActivity extends Activity {
 		Context mContext;
 		LayoutInflater mLInflater;
 		String[] mNames = {
-				"Camera",
+				"ImageViewTouch",
 				"Test1","Test6","Test6",
 				"Test2","Test6","Test6",
 				"Test3","Test6","Test6",
@@ -205,6 +206,10 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated method stub
 			Toast t = Toast.makeText(MainActivity.this, mNames[ arg2 ], Toast.LENGTH_SHORT);
 			t.show();
+			if (arg2 == 0) {
+				Intent intent = new Intent(MainActivity.this, ImageViewActivity.class);
+				startActivity(intent);
+			}
 		}
 		
 	}

@@ -110,8 +110,8 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
 		super.onDraw(canvas);
-		canvas.scale(scaleX, scaleY, canvas.getWidth() / 2f, canvas.getHeight() / 2f);
-		canvas.rotate(-mCurDegree, canvas.getWidth() / 2, canvas.getHeight() / 2);
+		canvas.scale(scaleX, scaleY, this.getWidth() / 2f, this.getHeight() / 2f);
+		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);
 	}
 
 	@Override

@@ -497,10 +497,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			 * TODO  
 			 * fix <= mMaxX avoid endless loop.
 			 */
+			Log.d(TAG, "fix=" + fix +",mCurrentX="+mCurrentX+",mMaxX="+mMaxX);
 			if (fix != mCurrentX && fix <= mMaxX) {
 				int time = Math.abs(fix  - offset) * FIX_FLIPING_DURATION / width;
 				mScroller.startScroll(offset, 0, fix - offset, 0, time);
 				post(mRequestLayoutRunable);
+				Log.d(TAG, "mNextX" + mNextX);
 			} else {
 				if (mOnItemScrollListener != null) {
 					//Log.i(TAG, "mCurIdx = " + mCurIdx + ", mLeftViewIndex = "+ mLeftViewIndex);
@@ -783,8 +785,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	 */
 	protected boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
+		//mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 		synchronized(HorizontalListView.this){
-			mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 			
 			if (mItemCenter) {
 				/**
@@ -793,9 +795,23 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 				 */
 				int width = getChildViewWidth();
 				if (width != 0 && mCurDrag == DRAG.DRAG_X) {
-					int fix = Math.round((float)mScroller.getFinalX() / (float)width) * width;
-					mScroller.setFinalX(fix);
+					mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
+					mScroller.forceFinished(true);
+
+					int offset = mScroller.getFinalX();
+					int time = mScroller.getDuration();
+					
+					int fix = Math.round((float)offset / (float)width) * width;
+					if (mScrollDirection == DIRECTION.RIGHT_TO_LEFT) {
+						fix = (int) (Math.ceil((float)offset / (float)width) * width);
+					} else if (mScrollDirection == DIRECTION.LEFT_TO_RIGHT) {
+						fix = (int) (Math.floor((float)offset / (float)width) * width);
+					}
+					
+					mScroller.startScroll(mNextX, 0, fix - mNextX, 0, time);
 				}
+			} else {
+				mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 			}
 			mCurDrag = DRAG.DRAG_FLIPPING;
 		}
