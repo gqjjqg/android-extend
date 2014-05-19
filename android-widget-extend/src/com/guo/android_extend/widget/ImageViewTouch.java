@@ -3,10 +3,12 @@ package com.guo.android_extend.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -18,20 +20,23 @@ public class ImageViewTouch extends ImageView {
 	protected boolean isCenter = true;
 	protected boolean isScaleEnable = true;
 	protected boolean isRotateEnable = true;
-	protected float MIN_SCALE = 0.3F;
-	protected float MAX_SCALE = 3.0F;
 	
-	// matrix
-	Matrix mDefMatrix;
-	Matrix mPreMatrix;
-	Matrix mCurMatrix;
+	protected float MIN_SCALE = 0.5F;
+	protected float MAX_SCALE = 3.0F;
+	protected float LIMIT_SCALE_MIN = 0.2F;
+	protected float LIMIT_SCALE_MAX = 5.0F;
+	protected float PRECISION = 0.001F;
+	protected float MAX_STEP = 10.0F;
 	
 	// scale 
 	float mCurScale;
 	float mScale;
+	float mStepScale;
+	
 	// rotate
 	float mCurDegree;
 	float mDegree;
+	
 	// touch data.
 	private PointF mCurPointDown;
 	private PointF mMidPoint;
@@ -41,27 +46,17 @@ public class ImageViewTouch extends ImageView {
 	//Mode
 	private MODE mMode;
 	public enum MODE {
-		NONE, FINGER, DOUBLE_FINGER, LIMITION
+		NONE, FINGER, DOUBLE_FINGER, SCALE_MAX, SCALE_MIN
 	}
 	
+	//temp
+	float[] mMatrixData;
+	Paint mPaint;
+	
 	//ImageData
-	RectF mDefImageBounds;
-	RectF mCurImageBounds;
-	
-	//scale limitation
-	float mMinWidth, mMinHeight;
-	float mMaxWidth, mMaxHeight;
-	
-	//animation
-	Handler mUIHandler;
-	
-	private final Runnable mInvalidateTask = new Runnable() {
-        @Override
-        public void run() {
-            invalidate();
-        }
-    };
-
+  	RectF mDefImageBounds;
+  	RectF mCurImageBounds;
+  	
 	public ImageViewTouch(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
@@ -81,9 +76,6 @@ public class ImageViewTouch extends ImageView {
 	}
 	
 	protected void preCreate() {
-		mCurMatrix = new Matrix(this.getImageMatrix());
-		mDefMatrix = new Matrix(this.getImageMatrix());
-		mPreMatrix = new Matrix();
 		
 		mCurPointDown = new PointF();
 		mMidPoint = new PointF();
@@ -91,37 +83,46 @@ public class ImageViewTouch extends ImageView {
 		mDefImageBounds = new RectF();
 		mCurImageBounds = new RectF();
 		
-		mCurDegree = 0F;
-		mCurScale = 0F;
+		mDegree = 0F;
+		mCurDegree = mDegree;
+				
+		mScale = 1.0F;
+		mCurScale = mScale;
 		
 		mMode = MODE.NONE;
+		mMatrixData = new float[9];
 		
-		mUIHandler = new Handler();
+		mPaint = new Paint();
+		mPaint.setColor(Color.RED);
+		mPaint.setStyle(Style.STROKE);
+		mPaint.setStrokeWidth(6);
 	}
 	
 	/**
-	 * initial scale data.
+	 * @param mid
 	 */
-	protected void initialScale() {
-		mDefImageBounds.set(this.getDrawable().getBounds());
-		
-		//Min scale
-		mCurMatrix.set(mDefMatrix);
-		mCurMatrix.postScale(MIN_SCALE, MIN_SCALE);
-		mCurMatrix.mapRect(mCurImageBounds, mDefImageBounds);
-		mMinWidth = mCurImageBounds.right - mCurImageBounds.left;
-		mMinHeight = mCurImageBounds.bottom - mCurImageBounds.top;
-		//Max scale
-		mCurMatrix.set(mDefMatrix);
-		mCurMatrix.postScale(MAX_SCALE, MAX_SCALE);
-		mCurMatrix.mapRect(mCurImageBounds, mDefImageBounds);
-		mMaxWidth = mCurImageBounds.right - mCurImageBounds.left;
-		mMaxHeight = mCurImageBounds.bottom - mCurImageBounds.top;
-		
-		Log.d(TAG, "Min =(" + this.mMinWidth + "," + this.mMinHeight);
-		Log.d(TAG, "Max =(" + this.mMaxWidth + "," + this.mMaxHeight);
-		
-		mCurMatrix.set(mDefMatrix);
+	protected void animScale() {
+		if (mMode == MODE.SCALE_MAX ) {
+			if ((mCurScale > MAX_SCALE)) {
+				mCurScale += mStepScale;
+			}
+			if (mCurScale < MAX_SCALE){
+				mScale = MAX_SCALE;
+				mCurScale = mScale;
+				mMode = MODE.NONE;
+			}
+			this.invalidate();
+		} else if (mMode == MODE.SCALE_MIN) {
+			if ((mCurScale < MIN_SCALE)) {
+				mCurScale += mStepScale;
+			} 
+			if (mCurScale > MIN_SCALE) {
+				mScale = MIN_SCALE;
+				mCurScale = mScale;
+				mMode = MODE.NONE;
+			}
+			this.invalidate();
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -130,37 +131,25 @@ public class ImageViewTouch extends ImageView {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		if (isScaleEnable) {
-			if (mDefImageBounds.isEmpty()) {
-				initialScale();
-			}
-			if (mMode == MODE.LIMITION) {
-				if (isScaleLimited(mCurMatrix)) {
-					mCurMatrix.set(mPreMatrix);
-					float stepScale = 0f;
-            		if (mScale > 3.0F) {
-            			stepScale = -0.1F;
-                	} else if (mScale > 2.0F) {
-                		stepScale = -0.05F;
-                	} else if (mScale > 1.0F) {
-                		stepScale = -0.01F;
-                	} else if (mScale > 0.6F) {
-                		stepScale = 0.01F;
-                	} else if (mScale > 0.2F) {
-                		stepScale = 0.02F;
-                	} else {
-                		stepScale = 0.05F;
-                	}
-                	mCurScale = mCurScale + stepScale;
-            		mCurMatrix.postScale(mCurScale, mCurScale, mMidPoint.x, mMidPoint.y);
-            		mUIHandler.postDelayed(mInvalidateTask, 1);
-				} else {
-					mMode = MODE.NONE;
-				}
-			}
+		if (mDefImageBounds.isEmpty()) {
+			mDefImageBounds.set(this.getDrawable().getBounds());
+			Log.d(TAG, "mDefImageBounds=" + mDefImageBounds.toString());
+			getImageMatrix().mapRect(mCurImageBounds, mDefImageBounds);
+			Log.d(TAG, "mCurImageBounds=" + mCurImageBounds.toString());
 		}
-		canvas.setMatrix(mCurMatrix);
+		
+		canvas.save();
+		if (isScaleEnable) {
+			animScale();
+			canvas.scale(mCurScale, mCurScale, mMidPoint.x, mMidPoint.y);
+		}
+		if (isRotateEnable) {
+			canvas.rotate(mCurDegree, mMidPoint.x, mMidPoint.y);
+		}
 		super.onDraw(canvas);
+		canvas.drawRect(mCurImageBounds, mPaint);
+		canvas.restore();
+		
 	}
 	
 	/* (non-Javadoc)
@@ -173,10 +162,10 @@ public class ImageViewTouch extends ImageView {
 		case MotionEvent.ACTION_DOWN:	
 			if (mMode == MODE.NONE) {
 				mCurPointDown.set(event.getX(), event.getY());
-				mPreMatrix.set(mCurMatrix);
 				mMode = MODE.FINGER;
-			} else if (mMode == MODE.LIMITION) {
+			} else if (mMode == MODE.SCALE_MAX || mMode == MODE.SCALE_MIN) {
 				mCurPointDown.set(event.getX(), event.getY());
+				mScale = mCurScale;
 				mMode = MODE.FINGER;
 			}
 			return true;
@@ -186,23 +175,21 @@ public class ImageViewTouch extends ImageView {
 					mPreDist = getDistence(event);
 					mPreDegree = getRotation(event);
 					mMode = MODE.DOUBLE_FINGER;
-					mPreMatrix.set(mCurMatrix);
 				}
 			}
 			break;
 		case MotionEvent.ACTION_MOVE:
 			if (mMode == MODE.DOUBLE_FINGER && event.getPointerCount() == 2) {
-				mCurMatrix.set(mPreMatrix);
 				if (isRotateEnable) {
-					mCurDegree = getRotation(event) - mPreDegree;
-					mCurMatrix.postRotate(mCurDegree, mMidPoint.x, mMidPoint.y);
+					mCurDegree = mDegree + getRotation(event) - mPreDegree;
 				}
 				if (isScaleEnable) {
-					mCurScale = getDistence(event) / mPreDist;
-					mCurMatrix.postScale(mCurScale, mCurScale, mMidPoint.x, mMidPoint.y);
+					mCurScale = mScale * getDistence(event) / mPreDist;
+					mCurScale = Math.min(LIMIT_SCALE_MAX, mCurScale);
+					mCurScale = Math.max(LIMIT_SCALE_MIN, mCurScale);
 				}
 				invalidate();
-			} else if (mMode == MODE.FINGER) {
+			} else if (mMode == MODE.FINGER && event.getPointerCount() == 1) {
 				
 			}
 			break;
@@ -215,11 +202,18 @@ public class ImageViewTouch extends ImageView {
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
 			if (mMode == MODE.DOUBLE_FINGER) {
-				if (isScaleLimited(mCurMatrix)) {
-					mMode = MODE.LIMITION;
+				if ((mCurScale > MAX_SCALE)) {
+					mStepScale = (MAX_SCALE - mCurScale) / MAX_STEP;
+					mMode = MODE.SCALE_MAX;
+				} else if ((mCurScale < MIN_SCALE)) {
+					mStepScale = (MIN_SCALE - mCurScale) / MAX_STEP;
+					mMode = MODE.SCALE_MIN;
 				} else {
+					mScale = mCurScale;
 					mMode = MODE.FINGER;
 				}
+				
+				mDegree = mCurDegree % 360;
 			} else {
 				Log.e(TAG, "error mMode =" + mMode);
 			}
@@ -227,6 +221,7 @@ public class ImageViewTouch extends ImageView {
 			break;
 		default : mMode = MODE.NONE;
 		}
+		
 		return super.onTouchEvent(event);
 	}
 
@@ -235,18 +230,13 @@ public class ImageViewTouch extends ImageView {
 	 * @return
 	 */
 	protected boolean isScaleLimited(Matrix matrix) {
-		matrix.mapRect(mCurImageBounds, mDefImageBounds);
-		float w = mCurImageBounds.right - mCurImageBounds.left;
-		float h = mCurImageBounds.bottom - mCurImageBounds.top;
-		
-		mScale = ( w / (mDefImageBounds.right - mDefImageBounds.left) + 
-				h / (mDefImageBounds.bottom - mDefImageBounds.top) ) / 2f;
-		Log.d(TAG, "wh=" + w +"," + h + "scale=" + mScale);
-		
-		if (w < this.mMinWidth || w > this.mMaxWidth) {
+		matrix.getValues(mMatrixData);
+		mScale = (mMatrixData[0] + mMatrixData[4]) / 2f;
+		Log.d(TAG, "mScale=" + mScale);
+		if ((mScale > MAX_SCALE) && (mScale - MAX_SCALE) > PRECISION) {
 			return true;
 		}
-		if (h < this.mMinHeight || h > this.mMaxHeight) {
+		if ((mScale < MIN_SCALE) && (MIN_SCALE - mScale) > PRECISION) {
 			return true;
 		}
 		return false;
@@ -269,10 +259,10 @@ public class ImageViewTouch extends ImageView {
 	 */
 	protected boolean getMiddlePoint(MotionEvent event, PointF out) {
 		if (isCenter) {
-			out.set(this.getWidth() / 2, this.getHeight() / 2);
+			out.set(this.getWidth() / 2F, this.getHeight() / 2F);
 		} else {
 			if (event.getPointerCount() == 2) {
-				out.set((event.getX(0) + event.getX(1)) / 2, (event.getY(0) + event.getY(1)) / 2);
+				out.set((event.getX(0) + event.getX(1)) / 2F, (event.getY(0) + event.getY(1)) / 2F);
 			} else {
 				out.set(0, 0);
 				return false;
@@ -293,19 +283,4 @@ public class ImageViewTouch extends ImageView {
 		double radians = Math.atan2((event.getY(0) - event.getY(1)), (event.getX(0) - event.getX(1)));
 		return (float) Math.toDegrees(radians);
 	}
-	
-	public boolean inQuadrangle(PointF a, PointF b, PointF c,PointF d,PointF p){                 
-        double dTriangle = triangleArea(a,b,p)+triangleArea(b,c,p)  
-                    +triangleArea(c,d,p)+triangleArea(d,a,p);  
-        double dQuadrangle = triangleArea(a,b,c)+triangleArea(c,d,a);         
-        return (dTriangle < (dQuadrangle+1.0))&&(dTriangle > (dQuadrangle-1.0));    
-    }  
-
-
-    public double triangleArea(PointF a, PointF b, PointF c){  
-        double result = Math.abs((a.x * b.y + b.x * c.y + c.x * a.y - b.x * a.y  
-                - c.x * b.y - a.x * c.y) / 2.0D);  
-        return result;  
-    } 
-    
 }
