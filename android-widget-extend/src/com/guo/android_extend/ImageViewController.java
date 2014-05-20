@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
 
 public class ImageViewController extends AbstractController {
@@ -137,79 +138,6 @@ public class ImageViewController extends AbstractController {
 		canvas.restore();
 	}
 
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
-		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-		case MotionEvent.ACTION_DOWN:	
-			if (mMode == MODE.IDEL) {
-				mCurPointDown.set(event.getX(0), event.getY(0));
-				mMode = MODE.PRE_DRAG;
-			}
-		case MotionEvent.ACTION_POINTER_DOWN:
-			if (mMode != MODE.ANIMATION 
-				&& event.getPointerCount() == 2) {
-				mPreDistance = getDistance(event);
-				mCurPointMidd.set(super.mListener.getCenterPoint());
-				mMode = MODE.SCALE;
-			}
-			break;
-		case MotionEvent.ACTION_MOVE:
-			if (mMode == MODE.PRE_DRAG && event.getPointerCount() == 1) {
-				float x = event.getX(0) - mCurPointDown.x;
-				float y = event.getY(0) - mCurPointDown.y;
-				float d = (float) Math.hypot(x, y);
-				if (d > MAX_DISTANCE_MOVE) {
-					mMode = MODE.DRAG;
-				}
-			} else if (mMode == MODE.DRAG && event.getPointerCount() == 1) {
-				mCurOffsetX = mOffsetX + event.getX(0) - mCurPointDown.x;
-				mCurOffsetY = mOffsetY + event.getY(0) - mCurPointDown.y;
-				super.mListener.invalidate();
-			} else if (mMode == MODE.SCALE && event.getPointerCount() == 2) {
-				mCurScale = mScale * getDistance(event) / mPreDistance;
-				
-				mCurScale = Math.min(LIMIT_SCALE_MAX, mCurScale);
-				mCurScale = Math.max(LIMIT_SCALE_MIN, mCurScale);
-				super.mListener.invalidate();
-			} 
-			break;
-		case MotionEvent.ACTION_CANCEL:
-		case MotionEvent.ACTION_UP:
-			if (mMode == MODE.SCALE) {
-				mMode = MODE.IDEL;
-			} else if (mMode == MODE.DRAG) {
-				checkOffset();
-				
-				mOffsetX = 0F;
-				mOffsetY = 0F;
-				if (mMode != MODE.ANIMATION) {
-					mMode = MODE.IDEL;
-				}
-			}
-			super.mListener.invalidate();
-			break;
-		case MotionEvent.ACTION_POINTER_UP:
-			if (mMode == MODE.SCALE) {
-				checkScale();
-				
-				checkOffset();
-				
-				mScale = mCurScale;
-				if (mMode != MODE.ANIMATION) {
-					mMode = MODE.IDEL;
-				}
-			} else {
-				Log.e(TAG, "ACTION_POINTER_UP error mMode =" + mMode);
-			}
-			super.mListener.invalidate();
-			break;
-		default : mMode = MODE.IDEL;
-		}
-		
-		return true;
-	}
-	
 	private void checkOffset() {
 		if (mCurOffsetX - PRECISION > 0F || mCurOffsetX + PRECISION < 0F) {
 			mStepX = -mCurOffsetX / MAX_STEP;
@@ -229,5 +157,78 @@ public class ImageViewController extends AbstractController {
 			mStepScale = (MIN_SCALE - mCurScale) / MAX_STEP;
 			mMode = MODE.ANIMATION;
 		}
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+		case MotionEvent.ACTION_DOWN:
+			if (mMode == MODE.IDEL) {
+				mCurPointDown.set(event.getX(0), event.getY(0));
+				mMode = MODE.PRE_DRAG;
+			}
+		case MotionEvent.ACTION_POINTER_DOWN:
+			if (mMode != MODE.ANIMATION && event.getPointerCount() == 2) {
+				mPreDistance = getDistance(event);
+				mCurPointMidd.set(super.mListener.getCenterPoint());
+				mMode = MODE.SCALE;
+			}
+			break;
+		case MotionEvent.ACTION_MOVE:
+			if (mMode == MODE.PRE_DRAG && event.getPointerCount() == 1) {
+				float x = event.getX(0) - mCurPointDown.x;
+				float y = event.getY(0) - mCurPointDown.y;
+				float d = (float) Math.hypot(x, y);
+				if (d > MAX_DISTANCE_MOVE) {
+					mMode = MODE.DRAG;
+				}
+			} else if (mMode == MODE.DRAG && event.getPointerCount() == 1) {
+				mCurOffsetX = mOffsetX + event.getX(0) - mCurPointDown.x;
+				mCurOffsetY = mOffsetY + event.getY(0) - mCurPointDown.y;
+				super.mListener.invalidate();
+			} else if (mMode == MODE.SCALE && event.getPointerCount() == 2) {
+				mCurScale = mScale * getDistance(event) / mPreDistance;
+
+				mCurScale = Math.min(LIMIT_SCALE_MAX, mCurScale);
+				mCurScale = Math.max(LIMIT_SCALE_MIN, mCurScale);
+				super.mListener.invalidate();
+			}
+			break;
+		case MotionEvent.ACTION_CANCEL:
+		case MotionEvent.ACTION_UP:
+			if (mMode == MODE.SCALE) {
+				mMode = MODE.IDEL;
+			} else if (mMode == MODE.DRAG) {
+				checkOffset();
+
+				mOffsetX = 0F;
+				mOffsetY = 0F;
+				if (mMode != MODE.ANIMATION) {
+					mMode = MODE.IDEL;
+				}
+			}
+			super.mListener.invalidate();
+			break;
+		case MotionEvent.ACTION_POINTER_UP:
+			if (mMode == MODE.SCALE) {
+				checkScale();
+
+				checkOffset();
+
+				mScale = mCurScale;
+				if (mMode != MODE.ANIMATION) {
+					mMode = MODE.IDEL;
+				}
+			} else {
+				Log.e(TAG, "ACTION_POINTER_UP error mMode =" + mMode);
+			}
+			super.mListener.invalidate();
+			break;
+		default:
+			mMode = MODE.IDEL;
+		}
+
+		return true;
 	}
 }

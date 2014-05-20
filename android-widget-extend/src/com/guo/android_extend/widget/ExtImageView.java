@@ -1,10 +1,14 @@
 package com.guo.android_extend.widget;
 
+import com.guo.android_extend.ImageViewController;
 import com.guo.android_extend.RotateRunable;
+import com.guo.android_extend.AbstractController.ControllerListener;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -22,7 +26,7 @@ import android.widget.ImageView;
  * @note background will not rotate and scale .
  */
 
-public class ExtImageView extends ImageView implements OnOrientationListener, AnimationListener {
+public class ExtImageView extends ImageView implements ControllerListener, OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
 	private Handler	mHandler;
@@ -41,6 +45,11 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	 * for scale.
 	 */
 	private float scaleX, scaleY;
+	
+	/**
+	 * for touchable.
+	 */
+	private ImageViewController mImageCtrl;
 	
 	public ExtImageView(Context context, AttributeSet attrs,
 			int defStyle) {
@@ -66,6 +75,8 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 		mCurDegree = 0;
 		scaleX = 1.0f;
 		scaleY = 1.0f;
+		
+		mImageCtrl = null;
 	}
 
 	@Override
@@ -119,13 +130,30 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
+		if (mImageCtrl != null) {
+			mImageCtrl.beforeDraw(canvas);
+		}
+		
 		canvas.save();
 		canvas.scale(scaleX, scaleY, this.getWidth() / 2f, this.getHeight() / 2f);
 		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);
 		super.onDraw(canvas);
 		canvas.restore();
+		
+		if (mImageCtrl != null) {
+			mImageCtrl.afterDraw(canvas);
+		}
 	}
 	
+	@Override
+	public PointF getCenterPoint() {
+		// TODO Auto-generated method stub
+		RectF bounds = new RectF();
+		bounds.set(this.getDrawable().getBounds());
+		this.getImageMatrix().mapRect(bounds);
+		return new PointF(bounds.centerX(), bounds.centerY());
+	}
+
 	/**
 	 * set scale percent.
 	 * @param sx
@@ -134,6 +162,21 @@ public class ExtImageView extends ImageView implements OnOrientationListener, An
 	public void setScale(float sx, float sy) {
 		scaleX = sx;
 		scaleY = sy;
+	}
+	
+	/**
+	 * @return the mImageCtrl
+	 */
+	public ImageViewController getImageCtrl() {
+		return mImageCtrl;
+	}
+
+	/**
+	 * @param mImageCtrl the mImageCtrl to set
+	 */
+	public void setImageCtrl(ImageViewController mImageCtrl) {
+		this.mImageCtrl = mImageCtrl;
+		this.setOnTouchListener(mImageCtrl);
 	}
 
 }

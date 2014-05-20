@@ -3,8 +3,9 @@ package com.guo.android_extend;
 import android.graphics.Canvas;
 import android.graphics.PointF;
 import android.view.MotionEvent;
+import android.view.View.OnTouchListener;
 
-public abstract class AbstractController {
+public abstract class AbstractController implements OnTouchListener {
 
 	protected ControllerListener mListener;
 	
@@ -33,8 +34,6 @@ public abstract class AbstractController {
 	protected abstract void beforeDraw(Canvas canvas);
 	
 	protected abstract void afterDraw(Canvas canvas);
-	
-	protected abstract boolean onTouchEvent(MotionEvent event);
 	
 	/**
 	 * @param event

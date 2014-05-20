@@ -7,12 +7,11 @@
     tools:context="com.example.sample.MainActivity"
     tools:ignore="MergeRootFrame" >
 
-    <com.guo.android_extend.widget.ImageHolder
-        android:id="@+id/imageViewTouch1"
+    <com.guo.android_extend.widget.ExtImageView
+        android:id="@+id/imageView1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
-        android:background="@android:drawable/btn_star"
         android:scaleType="center"
         android:src="@drawable/ic_launcher" />
 
