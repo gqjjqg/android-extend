@@ -11,7 +11,7 @@ import android.graphics.Paint.Style;
 import android.util.Log;
 import android.view.MotionEvent;
 
-public class CanvasController {
+public class TestController {
 	private final String TAG = this.getClass().toString();
 
 	// control
@@ -73,7 +73,7 @@ public class CanvasController {
 		public Matrix getDefMatrix();
 	}
 	
-	public CanvasController(CanvasControllerListener ccl) {
+	public TestController(CanvasControllerListener ccl) {
 		// TODO Auto-generated constructor stub
 		mCurPointDown = new PointF();
 		mCurPointMidd = new PointF();
