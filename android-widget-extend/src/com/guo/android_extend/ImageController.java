@@ -1,91 +1,69 @@
-package com.guo.android_extend.widget;
+package com.guo.android_extend;
 
+import com.guo.android_extend.widget.ImageViewTouch.MODE;
 
-import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.ImageView;
 
-public class ImageViewTouch extends ImageView {
+public class ImageController {
 	private final String TAG = this.getClass().toString();
+
 	// control
 	protected boolean isCenter = true;
 	protected boolean isScaleEnable = true;
 	protected boolean isRotateEnable = true;
 	protected boolean isDragEnable = true;
-	
+
 	protected float MIN_SCALE = 0.5F;
 	protected float MAX_SCALE = 3.0F;
 	protected float LIMIT_SCALE_MIN = 0.2F;
 	protected float LIMIT_SCALE_MAX = 5.0F;
 	protected float PRECISION = 0.001F;
 	protected float MAX_STEP = 10.0F;
-	
-	// scale 
+
+	// scale
 	float mCurScale;
 	float mScale;
 	float mStepScale;
-	
+
 	// rotate
 	float mCurDegree;
 	float mDegree;
-	
+
 	// drag
 	PointF mCenterPoint;
-	float mCurOffsetX; 
+	float mCurOffsetX;
 	float mCurOffsetY;
-	float mOffsetX; 
+	float mOffsetX;
 	float mOffsetY;
-	
+
 	// touch data.
 	private PointF mCurPointDown;
 	private PointF mCurPointMidd;
-	
+
 	private float mPreDist;
 	private float mPreDegree;
-	
-	//Mode
+
+	// Mode
 	private MODE mMode;
+
 	public enum MODE {
-		NONE, FINGER, DOUBLE_FINGER, 
-		SCALE_MAX, SCALE_MIN
+		NONE, FINGER, DOUBLE_FINGER, SCALE_MAX, SCALE_MIN
 	}
-	
-	//temp
+
+	// temp
 	float[] mMatrixData;
-	Paint mPaint;
-	
-	//ImageData
-  	RectF mDefImageBounds;
-  	RectF mCurImageBounds;
-  	
-	public ImageViewTouch(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		// TODO Auto-generated constructor stub
-		preCreate();
-	}
 
-	public ImageViewTouch(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		// TODO Auto-generated constructor stub
-		preCreate();
-	}
+	// ImageData
+	RectF mDefImageBounds;
+	RectF mCurImageBounds;
 
-	public ImageViewTouch(Context context) {
-		super(context);
+	public ImageController() {
 		// TODO Auto-generated constructor stub
-		preCreate();
-	}
-	
-	protected void preCreate() {
 		mCurPointDown = new PointF();
 		mCurPointMidd = new PointF();
 		mCenterPoint = new PointF();
@@ -104,12 +82,6 @@ public class ImageViewTouch extends ImageView {
 		mCurScale = mScale;
 		
 		mMode = MODE.NONE;
-		mMatrixData = new float[9];
-		
-		mPaint = new Paint();
-		mPaint.setColor(Color.RED);
-		mPaint.setStyle(Style.STROKE);
-		mPaint.setStrokeWidth(6);
 	}
 	
 	/**
@@ -139,24 +111,7 @@ public class ImageViewTouch extends ImageView {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.widget.ImageView#onDraw(android.graphics.Canvas)
-	 */
-	@Override
-	protected void onDraw(Canvas canvas) {
-		// TODO Auto-generated method stub
-		canvas.save();
-		if (isDragEnable) {
-			canvas.translate(mCurOffsetX, mCurOffsetY);
-		}
-		if (isScaleEnable) {
-			animScale();
-			canvas.scale(mCurScale, mCurScale, mCurPointMidd.x, mCurPointMidd.y);
-		}
-		if (isRotateEnable) {
-			canvas.rotate(mCurDegree, mCurPointMidd.x, mCurPointMidd.y);
-		}
-		super.onDraw(canvas);
+	protected void afterDraw(Canvas canvas) {
 		if (mDefImageBounds.isEmpty()) {
 			mDefImageBounds.set(this.getDrawable().getBounds());
 			Log.d(TAG, "mDefImageBounds=" + mDefImageBounds.toString());
@@ -170,15 +125,24 @@ public class ImageViewTouch extends ImageView {
 			canvas.getMatrix().mapRect(mCurImageBounds, mDefImageBounds);
 		}
 		canvas.restore();
-		
-		canvas.drawRect(mCurImageBounds, mPaint);
-		canvas.drawPoint(mCurImageBounds.centerX(), mCurImageBounds.centerY(), mPaint);
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.view.View#onTouchEvent(android.view.MotionEvent)
-	 */
-	@Override
+	protected void beforeDraw(Canvas canvas) {
+		// TODO Auto-generated method stub
+		canvas.save();
+		if (isDragEnable) {
+			canvas.translate(mCurOffsetX, mCurOffsetY);
+		}
+		if (isScaleEnable) {
+			animScale();
+			canvas.scale(mCurScale, mCurScale, mCurPointMidd.x, mCurPointMidd.y);
+		}
+		if (isRotateEnable) {
+			canvas.rotate(mCurDegree, mCurPointMidd.x, mCurPointMidd.y);
+		}
+		
+	}
+	
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
@@ -262,7 +226,7 @@ public class ImageViewTouch extends ImageView {
 		
 		return super.onTouchEvent(event);
 	}
-
+	
 	/**
 	 * @param matrix
 	 * @return
