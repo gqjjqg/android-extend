@@ -7,7 +7,7 @@
     tools:context="com.example.sample.MainActivity"
     tools:ignore="MergeRootFrame" >
 
-    <com.guo.android_extend.widget.ImageViewTouch
+    <com.guo.android_extend.widget.ImageHolder
         android:id="@+id/imageViewTouch1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

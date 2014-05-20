@@ -1,15 +1,17 @@
 package com.guo.android_extend;
 
-import com.guo.android_extend.widget.ImageViewTouch.MODE;
-
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Paint.Style;
 import android.util.Log;
 import android.view.MotionEvent;
 
-public class ImageController {
+public class CanvasController {
 	private final String TAG = this.getClass().toString();
 
 	// control
@@ -57,12 +59,21 @@ public class ImageController {
 
 	// temp
 	float[] mMatrixData;
-
+	Paint mPaint;
+  	
 	// ImageData
 	RectF mDefImageBounds;
 	RectF mCurImageBounds;
 
-	public ImageController() {
+	private CanvasControllerListener mCCL;
+	
+	public interface CanvasControllerListener {
+		public void canvasFlush();
+		public Rect getDrawableBounds();
+		public Matrix getDefMatrix();
+	}
+	
+	public CanvasController(CanvasControllerListener ccl) {
 		// TODO Auto-generated constructor stub
 		mCurPointDown = new PointF();
 		mCurPointMidd = new PointF();
@@ -82,6 +93,14 @@ public class ImageController {
 		mCurScale = mScale;
 		
 		mMode = MODE.NONE;
+		
+		mMatrixData = new float[9];
+		mPaint = new Paint();
+		mPaint.setColor(Color.RED);
+		mPaint.setStyle(Style.STROKE);
+		mPaint.setStrokeWidth(6);
+		
+		mCCL = ccl;
 	}
 	
 	/**
@@ -97,7 +116,7 @@ public class ImageController {
 				mCurScale = mScale;
 				mMode = MODE.NONE;
 			}
-			this.invalidate();
+			mCCL.canvasFlush();
 		} else if (mMode == MODE.SCALE_MIN) {
 			if ((mCurScale < MIN_SCALE)) {
 				mCurScale += mStepScale;
@@ -107,27 +126,11 @@ public class ImageController {
 				mCurScale = mScale;
 				mMode = MODE.NONE;
 			}
-			this.invalidate();
+			mCCL.canvasFlush();
 		}
 	}
 	
-	protected void afterDraw(Canvas canvas) {
-		if (mDefImageBounds.isEmpty()) {
-			mDefImageBounds.set(this.getDrawable().getBounds());
-			Log.d(TAG, "mDefImageBounds=" + mDefImageBounds.toString());
-			getImageMatrix().mapRect(mCurImageBounds, mDefImageBounds);
-			Log.d(TAG, "mCurImageBounds=" + mCurImageBounds.toString());
-			
-			mDefImageBounds.set(mCurImageBounds);
-			mCenterPoint.set((mDefImageBounds.left + mDefImageBounds.right) / 2F, 
-						(mDefImageBounds.top + mDefImageBounds.bottom) / 2F);
-		} else {
-			canvas.getMatrix().mapRect(mCurImageBounds, mDefImageBounds);
-		}
-		canvas.restore();
-	}
-	
-	protected void beforeDraw(Canvas canvas) {
+	public void beforeDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
 		canvas.save();
 		if (isDragEnable) {
@@ -140,7 +143,22 @@ public class ImageController {
 		if (isRotateEnable) {
 			canvas.rotate(mCurDegree, mCurPointMidd.x, mCurPointMidd.y);
 		}
-		
+	}
+	
+	public void afterDraw(Canvas canvas) {
+		if (mDefImageBounds.isEmpty()) {
+			mDefImageBounds.set(mCCL.getDrawableBounds());
+			Log.d(TAG, "mDefImageBounds=" + mDefImageBounds.toString());
+			mCCL.getDefMatrix().mapRect(mCurImageBounds, mDefImageBounds);
+			Log.d(TAG, "mCurImageBounds=" + mCurImageBounds.toString());
+			
+			mDefImageBounds.set(mCurImageBounds);
+			mCenterPoint.set((mDefImageBounds.left + mDefImageBounds.right) / 2F, 
+						(mDefImageBounds.top + mDefImageBounds.bottom) / 2F);
+		} else {
+			canvas.getMatrix().mapRect(mCurImageBounds, mDefImageBounds);
+		}
+		canvas.restore();
 	}
 	
 	public boolean onTouchEvent(MotionEvent event) {
@@ -180,13 +198,13 @@ public class ImageController {
 					mCurScale = Math.min(LIMIT_SCALE_MAX, mCurScale);
 					mCurScale = Math.max(LIMIT_SCALE_MIN, mCurScale);
 				}
-				invalidate();
+				mCCL.canvasFlush();
 			} else if (mMode == MODE.FINGER && event.getPointerCount() == 1) {
 				if (isDragEnable) {
 					mCurOffsetX = mOffsetX + event.getX(0) - mCurPointDown.x;
 					mCurOffsetY = mOffsetY + event.getY(0) - mCurPointDown.y;
 				}
-				invalidate();
+				mCCL.canvasFlush();
 			} else {
 				Log.e(TAG, "ACTION_UP error mMode =" + mMode);
 			}
@@ -200,7 +218,7 @@ public class ImageController {
 				mOffsetY = mCurOffsetY;
 				mMode = MODE.NONE;
 			}
-			invalidate();
+			mCCL.canvasFlush();
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
 			if (mMode == MODE.DOUBLE_FINGER) {
@@ -219,12 +237,12 @@ public class ImageController {
 			} else {
 				Log.e(TAG, "ACTION_POINTER_UP error mMode =" + mMode);
 			}
-			invalidate();
+			mCCL.canvasFlush();
 			break;
 		default : mMode = MODE.NONE;
 		}
 		
-		return super.onTouchEvent(event);
+		return true;
 	}
 	
 	/**
@@ -258,7 +276,7 @@ public class ImageController {
 	 * @param event
 	 * @return 取旋转角度
 	 */
-	public float getRotation(MotionEvent event) {
+	protected float getRotation(MotionEvent event) {
 		if (event.getPointerCount() < 2) {
 			return 0;
 		}
