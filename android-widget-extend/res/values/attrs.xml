@@ -4,6 +4,7 @@
     <declare-styleable name="HorizontalListView">
         <attr name="itemOffsetTop" format="dimension" />  
         <attr name="itemOffsetLeft" format="dimension"/>
-        <attr name="itemCenter" format="boolean"/>    
+        <attr name="itemCenter" format="boolean"/>  
+        <attr name="itemAlineBottom" format="boolean"/>  
     </declare-styleable>
 </resources>

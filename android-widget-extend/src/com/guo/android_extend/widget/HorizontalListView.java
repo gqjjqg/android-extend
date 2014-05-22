@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -71,7 +72,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private int mOffsetTop;
 	private int mOffsetLeft;
 	private int mOffsetRight;
-	
+	private boolean mAlineBottom;
 	/**
 	 * support center or not.
 	 */
@@ -187,6 +188,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		mOffsetLeft = (int) att.getDimension(R.styleable.HorizontalListView_itemOffsetLeft, 0);
 		Log.i(TAG, "mOffsetLeft = " + mOffsetLeft);
 		mItemCenter = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemCenter, false);
+		mAlineBottom = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemAlineBottom, false);
 		att.recycle();
 		onCreate();
 	}
@@ -210,6 +212,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		mOffsetLeft = (int) att.getDimension(R.styleable.HorizontalListView_itemOffsetLeft, 0);
 		Log.i(TAG, "mOffsetLeft = " + mOffsetLeft);
 		mItemCenter = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemCenter, false);
+		mAlineBottom = (boolean) att.getBoolean(R.styleable.HorizontalListView_itemAlineBottom, false);
 		att.recycle();
 		onCreate();
 	}
@@ -352,12 +355,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	 */
 	protected int getChildDrawingOrder(int childCount, int i) {
 		int center = mCurViewIdx - getFirstVisiblePosition();
+		int temp = center + (childCount - 1);
 		if (center >= 0 && center < childCount) {
-			if (i == (childCount - 1)) {
-				return center;
-			} 
-			if (i == center) {
-				return (childCount - 1);
+			if (i < center) {
+				return i;
+			} else {
+				return temp - i;
 			}
 		}
 		return i;
@@ -497,12 +500,10 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			 * TODO  
 			 * fix <= mMaxX avoid endless loop.
 			 */
-			Log.d(TAG, "fix=" + fix +",mCurrentX="+mCurrentX+",mMaxX="+mMaxX);
 			if (fix != mCurrentX && fix <= mMaxX) {
 				int time = Math.abs(fix  - offset) * FIX_FLIPING_DURATION / width;
 				mScroller.startScroll(offset, 0, fix - offset, 0, time);
 				post(mRequestLayoutRunable);
-				Log.d(TAG, "mNextX" + mNextX);
 			} else {
 				if (mOnItemScrollListener != null) {
 					//Log.i(TAG, "mCurIdx = " + mCurIdx + ", mLeftViewIndex = "+ mLeftViewIndex);
@@ -696,11 +697,16 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		if(getChildCount() > 0){
 			mDisplayOffset += dx;
 			int left = mDisplayOffset;
+			int height = this.getMeasuredHeight();
 			for(int i=0;i<getChildCount();i++){
 				View child = getChildAt(i);
 				int childWidth = child.getMeasuredWidth();
 				int childHeight =  child.getMeasuredHeight();
-				child.layout(left, mOffsetTop, left + childWidth, mOffsetTop + childHeight);
+				if (!mAlineBottom) {
+					child.layout(left, mOffsetTop, left + childWidth, mOffsetTop + childHeight);
+				} else {
+					child.layout(left, height - childHeight, left + childWidth, height);
+				}
 				left += childWidth;
 			}
 			updateSelected();
@@ -785,7 +791,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	 */
 	protected boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
-		//mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
+		mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 		synchronized(HorizontalListView.this){
 			
 			if (mItemCenter) {
@@ -795,9 +801,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 				 */
 				int width = getChildViewWidth();
 				if (width != 0 && mCurDrag == DRAG.DRAG_X) {
-					mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
-					mScroller.forceFinished(true);
-
 					int offset = mScroller.getFinalX();
 					int time = mScroller.getDuration();
 					
@@ -807,11 +810,13 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 					} else if (mScrollDirection == DIRECTION.LEFT_TO_RIGHT) {
 						fix = (int) (Math.floor((float)offset / (float)width) * width);
 					}
-					
-					mScroller.startScroll(mNextX, 0, fix - mNextX, 0, time);
+					if (Build.VERSION.SDK_INT > 10) {
+						mScroller.setFinalX(fix);
+					} else {
+						mScroller.forceFinished(true);
+						mScroller.startScroll(mNextX, 0, fix - mNextX, 0, time);
+					}
 				}
-			} else {
-				mScroller.fling(mNextX, 0, (int)-velocityX, 0, 0, mMaxX, 0, 0);
 			}
 			mCurDrag = DRAG.DRAG_FLIPPING;
 		}
@@ -837,7 +842,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
-			Log.i(TAG, "onFling  mScrollDirection=" + mScrollDirection);
 			if (mScrollDirection == DIRECTION.BOTTOM_TO_TOP ||
 					mScrollDirection == DIRECTION.TOP_TO_BOTTOM ||
 					mScrollDirection == DIRECTION.MOVE_UNKNOWN) {
@@ -849,8 +853,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2,
 				float distanceX, float distanceY) {
-			Log.i(TAG, "onScroll mScrollDirection=" + mScrollDirection+"x="+distanceX+",y="+distanceY);
-			
 			if (mScrollDirection == DIRECTION.BOTTOM_TO_TOP ||
 					mScrollDirection == DIRECTION.TOP_TO_BOTTOM) {
 				if (mOnItemScrollListener != null) {

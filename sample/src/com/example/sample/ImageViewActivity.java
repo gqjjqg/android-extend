@@ -1,7 +1,7 @@
 package com.example.sample;
 
 import com.guo.android_extend.CustomOrientationDetector;
-import com.guo.android_extend.ImageViewController;
+import com.guo.android_extend.controller.ImageViewController;
 import com.guo.android_extend.widget.ExtImageView;
 
 import android.app.Activity;

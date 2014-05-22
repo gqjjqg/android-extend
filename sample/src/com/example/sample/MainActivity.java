@@ -1,11 +1,15 @@
 package com.example.sample;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.guo.android_extend.CustomOrientationDetector;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 import com.guo.android_extend.widget.ExtRelativeLayout;
 import com.guo.android_extend.widget.HorizontalListView;
 import com.guo.android_extend.widget.HorizontalListView.OnItemScrollListener;
 import com.guo.android_extend.widget.ExtImageView;
+import com.guo.android_extend.effect.HLVEffectAdapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +19,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
@@ -36,11 +41,11 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		ViewListAdapter vla = new ViewListAdapter(this);
 		
 		HorizontalListView hv = (HorizontalListView) this.findViewById(R.id.listView1);
+		ViewListAdapter vla = new ViewListAdapter(hv);
 		hv.setAdapter(vla);
-		hv.setOnItemScrollListener(new HScrollListener());
+		hv.setOnItemScrollListener(vla); //new HScrollListener()
 		hv.setOnItemClickListener(vla);
 		
 		ViewList2Adapter vla2 = new ViewList2Adapter(this);
@@ -68,31 +73,28 @@ public class MainActivity extends Activity {
 	class Holder {
 		ExtImageView siv;
 		TextView tv;
+		int id;
 	}
 	
-	class ViewListAdapter extends BaseAdapter implements OnItemClickListener {
-		Context mContext;
-		LayoutInflater mLInflater;
-		String[] mNames = {
-				"Camera",
-				"Test1","Test6","Test6",
-				"Test2","Test6","Test6",
-				"Test3","Test6","Test6",
-				"Test4","Test6","Test6",
-				"Test5","Test6","Test6",
-				"Test6","Test6","Test6",
-		};
+	class ViewListAdapter extends HLVEffectAdapter implements OnItemClickListener {
 		
-		public ViewListAdapter(Context c) {
+		LayoutInflater mLInflater;
+		List<String> mNames;
+
+		public ViewListAdapter(HorizontalListView context) {
+			super(context);
 			// TODO Auto-generated constructor stub
-			mContext = c;
-			mLInflater = LayoutInflater.from(mContext);
+			mLInflater = LayoutInflater.from(context.getContext());
+			mNames = new ArrayList<String>();
+			for (int i = 0; i < 20; i++) {
+				mNames.add("Test " + i);
+			}
 		}
 
 		@Override
 		public int getCount() {
 			// TODO Auto-generated method stub
-			return mNames.length;
+			return mNames.size();
 		}
 
 		@Override
@@ -121,10 +123,11 @@ public class MainActivity extends Activity {
 				convertView.setTag(holder);
 			}
 			
-			holder.tv.setText(mNames[ position ]);
+			holder.tv.setText(mNames.get(position));
+			holder.id = position;
 			mODetector.addReceiver(holder.siv);
 
-			scale(convertView, 1f - percent_add);
+			scale(convertView, SCAEL_PERCENT);
 			
 			return convertView;
 		}
@@ -133,10 +136,56 @@ public class MainActivity extends Activity {
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
 			// TODO Auto-generated method stub
-			Toast t = Toast.makeText(MainActivity.this, mNames[ arg2 ], Toast.LENGTH_SHORT);
+			Toast t = Toast.makeText(MainActivity.this, mNames.get(arg2), Toast.LENGTH_SHORT);
 			t.show();
 		}
+
+		@Override
+		public void frashViewList() {
+			// TODO Auto-generated method stub
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public void scaleView(View v, float percent) {
+			// TODO Auto-generated method stub
+			scale(v, percent);
+		}
 		
+		@Override
+		public void animaView(View v, Animation ani) {
+			// TODO Auto-generated method stub
+			Holder holder = (Holder) v.getTag();
+			holder.siv.startAnimation(ani);
+		}
+		
+		@Override
+		public void animaClearView(View v) {
+			// TODO Auto-generated method stub
+			Holder holder = (Holder) v.getTag();
+			holder.siv.clearAnimation();
+		}
+
+		@Override
+		public int removeView(View v) {
+			// TODO Auto-generated method stub
+			int id = 0;
+			Holder holder = (Holder) v.getTag();
+			if (holder.id + 1 >= mNames.size()) {
+				id = holder.id - 1;
+			} else {
+				id = holder.id;
+			}
+			if (id < 0) {
+				holder.id = 0;
+			}
+			if (mNames.size() == 1) {
+				id = holder.id;
+			} else {
+				mNames.remove(holder.id);
+			}
+			return id;
+		}
 	}
 	
 	class ViewList2Adapter extends BaseAdapter implements OnItemClickListener {
@@ -213,7 +262,7 @@ public class MainActivity extends Activity {
 		}
 		
 	}
-	
+	/*
 	class HScrollListener implements OnItemScrollListener {
 
 		@Override
@@ -261,7 +310,7 @@ public class MainActivity extends Activity {
 		}
 		
 	}
-	
+	*/
 	class HScrollListener2 implements OnItemScrollListener {
 
 		@Override

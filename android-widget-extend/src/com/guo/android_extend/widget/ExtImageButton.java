@@ -2,7 +2,6 @@ package com.guo.android_extend.widget;
 
 import com.guo.android_extend.RotateRunable;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.controller.ImageViewController;
 import com.guo.android_extend.controller.AbstractController.ControllerListener;
 
 import android.content.Context;
@@ -16,7 +15,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 
 /**
  * @author gqj3375
@@ -26,7 +25,7 @@ import android.widget.ImageView;
  * @note background will not rotate and scale .
  */
 
-public class ExtImageView extends ImageView implements ControllerListener, OnOrientationListener, AnimationListener {
+public class ExtImageButton extends ImageButton implements ControllerListener, OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
 	private Handler	mHandler;
@@ -46,25 +45,20 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	 */
 	private float scaleX, scaleY;
 	
-	/**
-	 * for touchable.
-	 */
-	private ImageViewController mImageCtrl;
-	
-	public ExtImageView(Context context, AttributeSet attrs,
+	public ExtImageButton(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public ExtImageView(Context context, AttributeSet attrs) {
+	public ExtImageButton(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
 	}
 
-	public ExtImageView(Context context) {
+	public ExtImageButton(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		preCreate(context);
@@ -75,8 +69,6 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 		mCurDegree = 0;
 		scaleX = 1.0f;
 		scaleY = 1.0f;
-		
-		mImageCtrl = null;
 	}
 
 	@Override
@@ -130,19 +122,11 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		if (mImageCtrl != null) {
-			mImageCtrl.beforeDraw(canvas);
-		}
-		
 		canvas.save();
 		canvas.scale(scaleX, scaleY, this.getWidth() / 2f, this.getHeight() / 2f);
 		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);
 		super.onDraw(canvas);
 		canvas.restore();
-		
-		if (mImageCtrl != null) {
-			mImageCtrl.afterDraw(canvas);
-		}
 	}
 	
 	@Override
@@ -163,20 +147,4 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 		scaleX = sx;
 		scaleY = sy;
 	}
-	
-	/**
-	 * @return the mImageCtrl
-	 */
-	public ImageViewController getImageCtrl() {
-		return mImageCtrl;
-	}
-
-	/**
-	 * @param mImageCtrl the mImageCtrl to set
-	 */
-	public void setImageCtrl(ImageViewController mImageCtrl) {
-		this.mImageCtrl = mImageCtrl;
-		this.setOnTouchListener(mImageCtrl);
-	}
-
 }

@@ -1,4 +1,4 @@
-package com.guo.android_extend;
+package com.guo.android_extend.controller;
 
 import android.graphics.Canvas;
 import android.graphics.PointF;
