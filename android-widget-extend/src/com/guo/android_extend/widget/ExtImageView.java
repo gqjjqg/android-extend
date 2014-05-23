@@ -45,7 +45,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	 * for scale.
 	 */
 	private float scaleX, scaleY;
-	
+	private boolean isEnableScale;
 	/**
 	 * for touchable.
 	 */
@@ -75,6 +75,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 		mCurDegree = 0;
 		scaleX = 1.0f;
 		scaleY = 1.0f;
+		isEnableScale = true;
 		
 		mImageCtrl = null;
 	}
@@ -155,13 +156,24 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	}
 
 	/**
+	 * @param isEnable
+	 */
+	public void enableScale(boolean isEnable) {
+		isEnableScale = isEnable;
+	}
+	
+	/**
 	 * set scale percent.
 	 * @param sx
 	 * @param sy
 	 */
-	public void setScale(float sx, float sy) {
-		scaleX = sx;
-		scaleY = sy;
+	public boolean setScale(float sx, float sy) {
+		if (isEnableScale) {
+			scaleX = sx;
+			scaleY = sy;
+			return true;
+		}
+		return false;
 	}
 	
 	/**

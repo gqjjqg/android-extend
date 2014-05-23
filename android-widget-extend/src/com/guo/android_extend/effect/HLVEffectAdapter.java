@@ -31,6 +31,9 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 		SCROLL, FLUSH,
 	}
 	
+	private Animation mAniOut;
+	private Animation mAniIn;
+	
 	public float SCAEL_PERCENT = 0.5F;
 	
 	/**
@@ -58,6 +61,22 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 		mHLV = context;
 		mContext = mHLV.getContext();
 		mCurAction = ACTION.NONE;
+		mCenterID = 0;
+		
+		mAniOut = new ScaleAnimation(1.0F + SCAEL_PERCENT, 1F,
+				1.0F + SCAEL_PERCENT, 1F, 
+				Animation.RELATIVE_TO_SELF, 0.5F, 
+				Animation.RELATIVE_TO_SELF, 0.5F);
+		mAniOut.setFillAfter(true);
+		mAniOut.setDuration(ANIMATION_TIME);
+		
+		
+		mAniIn = new ScaleAnimation(SCAEL_PERCENT, 1F,
+				SCAEL_PERCENT, 1F,
+				Animation.RELATIVE_TO_SELF, 0.5F, 
+				Animation.RELATIVE_TO_SELF, 0.5F);
+		mAniIn.setFillAfter(true);
+		mAniIn.setDuration(ANIMATION_TIME);
 	}
 	
 	public abstract void frashViewList();
@@ -96,51 +115,32 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 	public void OnScrollCenter(AdapterView<ListAdapter> adp, View v,
 			int pos, float percent) {
 		// TODO Auto-generated method stub
-		Log.i(TAG, "percent = " + percent+ "pos = " + pos);
+		Log.i(TAG, "OnScrollCenter percent = " + percent+ "mCenterID = " + pos);
 		mCenterID = pos;
-		/*
-		 * float p = 0.72f; float p1 = p + (1f-p) * percent; float p2 = p +
-		 * (1f-p)* (1.0f - percent); if (pos > 0) {
-		 * mMemoListAdapter.setViewScale(adp.getChildAt(pos - 1), p); }
-		 * Log.i(TAG, "v = " + v.toString());
-		 * mMemoListAdapter.setViewScale(v, p1); //p1
-		 * //mMemoListAdapter.setViewScale(adp.getChildAt(pos + 1), p1);//p2
-		 * if (pos + 2 < adp.getChildCount()) {
-		 * mMemoListAdapter.setViewScale(adp.getChildAt(pos + 2), p); }
-		 */
 	}
 
 	@Override
 	public void OnScrollStart(AdapterView<ListAdapter> adp) {
 		// TODO Auto-generated method stub
 		Log.i(TAG, "OnScrollStart mCenterID =" + mCenterID);
-		//mIsDrag = true;
 		mCurAction = ACTION.SCROLL;
-
-		Animation ani = new ScaleAnimation(1.0F + SCAEL_PERCENT, 1F,
-				1.0F + SCAEL_PERCENT, 1F, 
-				Animation.RELATIVE_TO_SELF, 0.5F, 
-				Animation.RELATIVE_TO_SELF, 0.5F);
-		ani.setFillAfter(true);
-		ani.setDuration(ANIMATION_TIME);
-		
+		//TODO Center view scale down.
 		View v = adp.getChildAt(mCenterID);
-		scaleView(v, SCAEL_PERCENT); // p1
-		animaView(v, ani);
-		
+		scaleView(v, SCAEL_PERCENT);
+		animaView(v, mAniOut);
+		// the others stop animation.
 		for (int j = 0; j < adp.getChildCount(); j++) {
 			v = adp.getChildAt(j);
 			if (j != mCenterID) {
 				animaClearView(v);
 			}
-			//mMemoListAdapter.setClickable(v, false);
 		}
 	}
 
 	@Override
 	public void OnScrollEnd(AdapterView<ListAdapter> adp, int pos) {
 		// TODO Auto-generated method stub
-		Log.i(TAG, "OnScrollEnd pos = " + pos + "mCurAction=" + mCurAction);
+		Log.i(TAG, "OnScrollEnd mCenterID = " + pos + "mCurAction=" + mCurAction);
 		if (mCurAction == ACTION.DRAG_DEL_ING) {
 			return;
 		}
@@ -148,47 +148,37 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 			//TODO if current is drag delete mode. start X axis animation
 			// and scroll end emulation.
 			endDelXAnimation(adp);
-			mCurAction = ACTION.SCROLL;
-			OnScrollEnd(adp, pos);
-			return ;
 		}
 		
 		mCurAction = ACTION.NONE;
 		if (pos >= adp.getChildCount()) {
 			pos--;
 		}
+		
+		//TODO Center view scale up
+		//mCenterID = pos;
 		View v = adp.getChildAt(pos);
-		if (v != null) {
-			Animation ani = new ScaleAnimation(SCAEL_PERCENT, 1.0f,
-					SCAEL_PERCENT, 1.0F,
-					Animation.RELATIVE_TO_SELF, 0.5F, 
-					Animation.RELATIVE_TO_SELF, 0.5F);
-			ani.setFillAfter(true);
-			ani.setDuration(ANIMATION_TIME);
-			
-			scaleView(v, 1.0f); // p1
-			animaView(v, ani);
-			
-			for (int i = 0; i < adp.getChildCount(); i++) {
-				View v1 = adp.getChildAt(i);
-				if (i != pos) {
-					animaClearView(v1);
-				}
-				//mMemoListAdapter.setClickable(v1, true);
+		scaleView(v, 1F);
+		animaView(v, mAniIn);
+		// the others stop animation.
+		for (int i = 0; i < adp.getChildCount(); i++) {
+			v = adp.getChildAt(i);
+			if (i != pos) {
+				animaClearView(v);
 			}
-			
-			/**
-			 * TODO for delete move initial.
-			 */
-			mMaxY = (int) (v.getTop() + (v.getHeight() * 0.4F));
-			mMinY = 0;
-			mCurY = 0;
-			
-			mMaxX = (int) (v.getWidth() * 0.4F);
-			mMinX = 0;
-			mCurX = 0;
-			
 		}
+		
+		/**
+		 * TODO for delete move initial.
+		 */
+		mMaxY = (int) (v.getTop() + (v.getHeight() * 0.4F));
+		mMinY = 0;
+		mCurY = 0;
+		
+		mMaxX = (int) (v.getWidth() * 0.4F);
+		mMinX = 0;
+		mCurX = 0;
+		
 	}
 	
 	
@@ -394,12 +384,14 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 			Log.i(TAG, "mCenterID = " + mCenterID + ",Count=" + adp.getChildCount());
 			for (int i = mCenterID; i < adp.getChildCount(); i++) {
 				View v = adp.getChildAt(i);
+				v.setVisibility(View.GONE);
 				if (Build.VERSION.SDK_INT > 10) {
 					v.setLeft(v.getLeft() + offset);
 					v.setRight(v.getRight() + offset);
 				} else {
 					v.layout(v.getLeft() + offset, v.getTop(), v.getRight() + offset, v.getBottom());
 				}
+				v.setVisibility(View.VISIBLE);
 				v.startAnimation(mAniRight);
 			}
 			
@@ -412,12 +404,14 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 			
 			for (int i = 0; i < mCenterID; i++) {
 				View v = adp.getChildAt(i);
+				v.setVisibility(View.GONE);
 				if (Build.VERSION.SDK_INT > 10) {
 					v.setLeft(v.getLeft() - mTemp1);
 					v.setRight(v.getRight() - mTemp1);
 				} else {
 					v.layout(v.getLeft() - mTemp1, v.getTop(), v.getRight() - mTemp1, v.getBottom());
 				}
+				v.setVisibility(View.VISIBLE);
 				v.startAnimation(mAniLeft);
 			}
 		} 
@@ -431,12 +425,14 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 			mAniRight.setDuration(ani_time);
 			for (int i = 0; i <= mCenterID; i++) {
 				View v = adp.getChildAt(i);
+				v.setVisibility(View.GONE);
 				if (Build.VERSION.SDK_INT > 10) {
 					v.setLeft(v.getLeft() + offset);
 					v.setRight(v.getRight() + offset);
 				} else {
 					v.layout(v.getLeft() + offset, v.getTop(), v.getRight() + offset, v.getBottom());
 				}
+				v.setVisibility(View.VISIBLE);
 				v.startAnimation(mAniRight);
 			}
 		} 
@@ -462,17 +458,17 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 		}
 		
 		mTemp2 = mMaxY;
-		Animation mAniOut = new TranslateAnimation(Animation.ABSOLUTE, 0,
+		Animation mAni= new TranslateAnimation(Animation.ABSOLUTE, 0,
 				Animation.ABSOLUTE, 0, Animation.ABSOLUTE, mTemp2,
 				Animation.ABSOLUTE, 0 );
-		mAniOut.setFillAfter(true);
-		mAniOut.setDuration(ani_time);
+		mAni.setFillAfter(true);
+		mAni.setDuration(ani_time);
 		if (Build.VERSION.SDK_INT > 10) {
 			center.setTop(center.getTop() - mTemp2);
 		} else {
 			center.layout(center.getLeft(), center.getTop() - mTemp2, center.getRight(), center.getBottom());
 		}
-		center.startAnimation(mAniOut);
+		center.startAnimation(mAni);
 		
 		mOffSetLeft = -1;
 		mOffSetRight = -1;

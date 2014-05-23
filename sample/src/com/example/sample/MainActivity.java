@@ -60,8 +60,9 @@ public class MainActivity extends Activity {
 
 	private void scale(View v, float percent) {
 		Holder holder = (Holder) v.getTag();
-		holder.siv.setScale(percent, percent);
-		holder.siv.invalidate();
+		if (holder.siv.setScale(percent, percent)) {
+			holder.siv.invalidate();
+		}
 	}
 	
 	private void scale2(View v, float percent) {
