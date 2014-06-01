@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
-import android.view.animation.Animation.AnimationListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
@@ -298,27 +297,6 @@ public abstract class HLVEffectAdapter extends BaseAdapter implements Horizontal
 				Animation.ABSOLUTE, 0 );
 		mAniOut.setFillAfter(true);
 		mAniOut.setDuration(ani_time);
-		mAniOut.setAnimationListener(new AnimationListener() {
-
-			@Override
-			public void onAnimationEnd(Animation animation) {
-				// TODO Auto-generated method stub
-				mCurAction = ACTION.NONE;
-			}
-
-			@Override
-			public void onAnimationRepeat(Animation animation) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void onAnimationStart(Animation animation) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
 		
 		Animation mAniLeft = new TranslateAnimation(Animation.ABSOLUTE, mTemp1,
 				Animation.ABSOLUTE, 0, Animation.ABSOLUTE, 0,

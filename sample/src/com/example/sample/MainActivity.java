@@ -47,12 +47,14 @@ public class MainActivity extends Activity {
 		hv.setAdapter(vla);
 		hv.setOnItemScrollListener(vla); //new HScrollListener()
 		hv.setOnItemClickListener(vla);
+		hv.setSelection(0);
 		
 		ViewList2Adapter vla2 = new ViewList2Adapter(this);
 		HorizontalListView hv2 = (HorizontalListView) this.findViewById(R.id.listView2);
 		hv2.setAdapter(vla2);
 		hv2.setOnItemScrollListener(new HScrollListener2());
 		hv2.setOnItemClickListener(vla2);
+		
 		
 		mODetector = new CustomOrientationDetector(this);
 		mODetector.enable();
