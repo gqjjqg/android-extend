@@ -5,9 +5,11 @@ import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.PointF;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
@@ -120,6 +122,23 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 		return mCurDegree;
 	}
 	
+	/* (non-Javadoc)
+	 * @see android.view.ViewGroup#dispatchTouchEvent(android.view.MotionEvent)
+	 */
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent ev) {
+		PointF newPoint = rotatePoint(new PointF(ev.getX(), ev.getY()),
+				new PointF(this.getWidth() / 2F, this.getHeight() / 2F),
+				-mCurDegree);
+		MotionEvent newEvent = MotionEvent.obtain(ev.getDownTime(),
+				ev.getEventTime(), ev.getAction(), newPoint.x, newPoint.y,
+				ev.getPressure(), ev.getSize(), ev.getMetaState(),
+				ev.getXPrecision(), ev.getYPrecision(), ev.getDeviceId(),
+				ev.getEdgeFlags());
+		// TODO Auto-generated method stub
+		return super.dispatchTouchEvent(newEvent);
+	}
+	
 	/**
 	 * set scale percent.
 	 * @param sx
@@ -128,5 +147,20 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	public void setScale(float sx, float sy) {
 		scaleX = sx;
 		scaleY = sy;
+	}
+	
+	/**
+	 * @param A
+	 * @param B center point
+	 * @param degree
+	 * @return
+	 */
+	private PointF rotatePoint(PointF A, PointF B, float degree) {
+		float radian = (float) Math.toRadians(degree);
+		float cos = (float) Math.cos(radian);
+		float sin = (float) Math.sin(radian);
+		float x = (float) ((A.x - B.x)* cos +(A.y - B.y) * sin + B.x);  
+		float y = (float) (-(A.x - B.x)* sin + (A.y - B.y) * cos + B.y);  
+		return new PointF(x, y);
 	}
 }

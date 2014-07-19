@@ -1,10 +1,5 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.RotateRunable;
-import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.controller.ImageViewController;
-import com.guo.android_extend.controller.AbstractController.ControllerListener;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PointF;
@@ -14,9 +9,14 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
+
+import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.RotateRunable;
+import com.guo.android_extend.controller.AbstractController;
+import com.guo.android_extend.controller.AbstractController.ControllerListener;
 
 /**
  * @author gqj3375
@@ -49,7 +49,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	/**
 	 * for touchable.
 	 */
-	private ImageViewController mImageCtrl;
+	private AbstractController mImageCtrl;
 	
 	public ExtImageView(Context context, AttributeSet attrs,
 			int defStyle) {
@@ -179,14 +179,14 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	/**
 	 * @return the mImageCtrl
 	 */
-	public ImageViewController getImageCtrl() {
+	public AbstractController getImageCtrl() {
 		return mImageCtrl;
 	}
 
 	/**
 	 * @param mImageCtrl the mImageCtrl to set
 	 */
-	public void setImageCtrl(ImageViewController mImageCtrl) {
+	public void setImageCtrl(AbstractController mImageCtrl) {
 		this.mImageCtrl = mImageCtrl;
 		this.setOnTouchListener(mImageCtrl);
 	}

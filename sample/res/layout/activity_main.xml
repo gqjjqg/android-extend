@@ -6,22 +6,13 @@
     tools:context="com.example.sample.MainActivity"
     tools:ignore="MergeRootFrame" xmlns:app="http://schemas.android.com/apk/res/com.example.sample">
 
-    <com.guo.android_extend.widget.HorizontalListView
+    <com.guo.android_extend.widget.HListView
         android:id="@+id/listView1"
         android:layout_width="match_parent"
-        android:layout_height="144dp"
-        app:itemCenter="true" >
-
-    </com.guo.android_extend.widget.HorizontalListView>
-
-    <com.guo.android_extend.widget.HorizontalListView
-        android:id="@+id/listView2"
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/listView1"
-        app:itemOffsetLeft="128dp" >
+        app:dividerHeight="1dp" >
 
-    </com.guo.android_extend.widget.HorizontalListView>
+    </com.guo.android_extend.widget.HListView>
     
 	
 </RelativeLayout>

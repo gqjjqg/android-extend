@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 public class ImageViewActivity extends Activity {
+	@SuppressWarnings("unused")
 	private final String TAG = this.getClass().toString();
 
 	CustomOrientationDetector mODetector;

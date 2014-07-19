@@ -130,10 +130,13 @@ public class CustomOrientationDetector extends OrientationEventListener {
 				if (flag == CustomOrientationDetector.ROTATE_FORCE_REDO) {
 					param = getRotateFlag(listener.getCurrentOrientationDegree(), degree);
 				}
+				// 0 - 180 should rotate 180degree.otherwise 90 degree.
+				offset = Math.abs(listener.getCurrentOrientationDegree() - degree);
+				offset = offset > 180 ? (360 - offset) : offset;
 				if (param == CustomOrientationDetector.ROTATE_NEGATIVE) {
-					offset = -ORIENTATION_OFFSET;
+					offset = -offset;
 				} else if (param == CustomOrientationDetector.ROTATE_POSITIVE) {
-					offset = ORIENTATION_OFFSET;
+					//offset = offset;
 				} else {
 					continue;
 				}
@@ -168,6 +171,14 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public void forceOrientationChanged() {
 		forceOrientationChanged(mDegree, ROTATE_FORCE_REDO);
+	}
+	
+	/**
+	 * 
+	 * @return current degree;
+	 */
+	public int getCurrentOrientationDegree() {
+		return mDegree;
 	}
 	
 	/**

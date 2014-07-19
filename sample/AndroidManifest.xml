@@ -7,7 +7,10 @@
     <uses-sdk
         android:minSdkVersion="10"
         android:targetSdkVersion="19" />
-
+    
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -29,6 +32,18 @@
             android:label="@string/app_name" >
         </activity>
         
+        <activity
+            android:name="com.example.sample.ListViewActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="com.example.sample.WidgetActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="com.example.sample.TestActivity"
+            android:label="@string/app_name" >
+        </activity>
     </application>
 
 </manifest>

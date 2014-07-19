@@ -31,9 +31,9 @@ public abstract class AbstractController implements OnTouchListener {
 		mPreDegree = 0F;
 	}
 	
-	protected abstract void beforeDraw(Canvas canvas);
+	public abstract void beforeDraw(Canvas canvas);
 	
-	protected abstract void afterDraw(Canvas canvas);
+	public abstract void afterDraw(Canvas canvas);
 	
 	/**
 	 * @param event
@@ -53,4 +53,30 @@ public abstract class AbstractController implements OnTouchListener {
 		double radians = Math.atan2((event.getY(0) - event.getY(1)), (event.getX(0) - event.getX(1)));
 		return (float) Math.toDegrees(radians);
 	}
+	
+	/**
+	 * @param A
+	 * @param B
+	 * @return get rotation between point 0 and point 1 
+	 */
+	protected float getRotation(PointF A, PointF B) {
+		double radians = Math.atan2((A.y - B.y), (A.x - B.x));
+		return (float) Math.toDegrees(radians);
+	}
+	
+	/**
+	 * @param VA
+	 * @param VB
+	 * @return
+	 */
+	protected float getRotation(PointF A, PointF B, PointF Center) {
+		PointF VCA = new PointF(A.x - Center.x, A.y - Center.y);
+		PointF VCB = new PointF(B.x - Center.x, B.y - Center.y);
+		float AXB = VCA.x * VCB.y - VCA.y * VCB.x;
+		double ABS_VA = Math.hypot(VCA.x, VCA.y);
+		double ABS_VB = Math.hypot(VCB.x, VCB.y);
+		double radians = Math.asin( AXB / (ABS_VA * ABS_VB) );
+		return (float) Math.toDegrees(radians);
+	}
+	
 }

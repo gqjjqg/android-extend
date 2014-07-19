@@ -2,12 +2,8 @@ package com.guo.android_extend.widget;
 
 import com.guo.android_extend.RotateRunable;
 import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.controller.AbstractController.ControllerListener;
-
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.PointF;
-import android.graphics.RectF;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -25,7 +21,7 @@ import android.widget.ImageButton;
  * @note background will not rotate and scale .
  */
 
-public class ExtImageButton extends ImageButton implements ControllerListener, OnOrientationListener, AnimationListener {
+public class ExtImageButton extends ImageButton implements OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
 	private Handler	mHandler;
@@ -127,15 +123,6 @@ public class ExtImageButton extends ImageButton implements ControllerListener, O
 		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);
 		super.onDraw(canvas);
 		canvas.restore();
-	}
-	
-	@Override
-	public PointF getCenterPoint() {
-		// TODO Auto-generated method stub
-		RectF bounds = new RectF();
-		bounds.set(this.getDrawable().getBounds());
-		this.getImageMatrix().mapRect(bounds);
-		return new PointF(bounds.centerX(), bounds.centerY());
 	}
 
 	/**
