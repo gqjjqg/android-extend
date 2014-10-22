@@ -40,6 +40,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	 * for animation .
 	 */
 	private int mCurDegree;
+	private int mPreDegree;
 	
 	/**
 	 * for scale.
@@ -73,11 +74,13 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	private void preCreate(Context context) {
 		mHandler = new Handler();
 		mCurDegree = 0;
+		mPreDegree = -90;
 		scaleX = 1.0f;
 		scaleY = 1.0f;
 		isEnableScale = true;
 		
 		mImageCtrl = null;
+	
 	}
 
 	@Override
@@ -131,10 +134,26 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
+		if (mImageCtrl != null && mCurDegree != mPreDegree) {
+			//if rotate 90 degree , exchange the width and height, reinit the controller.
+			if (mCurDegree == 0 || mCurDegree == 180) {
+				mImageCtrl.initialize( getDrawable().getBounds().width(), 
+									   getDrawable().getBounds().height(),
+									   canvas.getWidth(), 
+									   canvas.getHeight());
+			} else {
+				mImageCtrl.initialize(getDrawable().getBounds().height(), 
+						   getDrawable().getBounds().width(),
+						   canvas.getWidth(), 
+						   canvas.getHeight());
+			}
+			mPreDegree = mCurDegree;
+		}
+		
 		if (mImageCtrl != null) {
 			mImageCtrl.beforeDraw(canvas);
 		}
-		
+			
 		canvas.save();
 		canvas.scale(scaleX, scaleY, this.getWidth() / 2f, this.getHeight() / 2f);
 		canvas.rotate(-mCurDegree, this.getWidth() / 2f, this.getHeight() / 2f);

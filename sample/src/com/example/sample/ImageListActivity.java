@@ -7,12 +7,14 @@ import java.util.List;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,11 +32,12 @@ import com.guo.android_extend.widget.ExtImageView;
  * A list view example where the 
  * data for the list comes from an array of strings.
  */
-public class ListViewActivity extends ListActivity implements OnItemClickListener , FilenameFilter{
+public class ImageListActivity extends ListActivity implements OnItemClickListener , FilenameFilter{
 
 	private BitmapMonitorThread<ExtImageView, String> mCacheThread;
 	
 	private ListImage mListImage;
+	private String mImagePath;
 	
 	public class Holder {
 		ExtImageView siv;
@@ -46,8 +49,8 @@ public class ListViewActivity extends ListActivity implements OnItemClickListene
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        String path = Environment.getExternalStorageDirectory().getPath();
-        File dir = new File(path + "/DCIM/Camera/");
+        mImagePath = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
+        File dir = new File(mImagePath);
         File[] files = null;
         if (dir.exists()) {
 			files = dir.listFiles(this);
@@ -191,6 +194,13 @@ public class ListViewActivity extends ListActivity implements OnItemClickListene
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 		// TODO Auto-generated method stub
+		String full = ((ListImage.Data)mListImage.getItem(position)).path;
+		Log.d("Image", full);
+		Intent intent = new Intent(ImageListActivity.this, ImageViewActivity.class);
+		Bundle bundle = new Bundle();
+		bundle.putString("imagePath", full);
+		intent.putExtras(bundle);
+		startActivity(intent);
 	}
 
 	@Override

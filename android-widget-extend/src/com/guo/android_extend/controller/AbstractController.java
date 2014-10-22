@@ -31,6 +31,8 @@ public abstract class AbstractController implements OnTouchListener {
 		mPreDegree = 0F;
 	}
 	
+	public abstract void initialize(float imageWidth, float imageHeight, float worldWidth, float worldHeight);
+		
 	public abstract void beforeDraw(Canvas canvas);
 	
 	public abstract void afterDraw(Canvas canvas);

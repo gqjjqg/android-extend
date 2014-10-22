@@ -115,8 +115,7 @@ public class HListView extends AbsHAdapterView {
 
 		int childWidth = 0;
 		int childHeight = 0;
-		//int childState = 0;
-		
+
 		mItemCount = mAdapter == null ? 0 : mAdapter.getCount();
 		if (mItemCount > 0
 				&& (widthMode == MeasureSpec.UNSPECIFIED || heightMode == MeasureSpec.UNSPECIFIED)) {
@@ -126,9 +125,7 @@ public class HListView extends AbsHAdapterView {
 
 			childWidth = child.getMeasuredWidth();
 			childHeight = child.getMeasuredHeight();
-			
-			//childState = combineMeasuredStates(childState, child.getMeasuredState());
-			
+				
 			mRecycledViewQueue.offer(child);
 		}
 
@@ -138,10 +135,8 @@ public class HListView extends AbsHAdapterView {
 
 		if (heightMode == MeasureSpec.UNSPECIFIED) {
 			heightSize = mListPadding.top + mListPadding.bottom + childHeight;
-		} else {
-			//heightSize |= (childState & MEASURED_STATE_MASK);
-        }
-
+		}
+		
 		if (widthMode == MeasureSpec.AT_MOST) {
 			// TODO: after first layout we should maybe start at the first
 			// visible position, not 0

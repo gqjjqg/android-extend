@@ -114,13 +114,13 @@ public class MainActivity extends Activity {
 				Intent intent = new Intent(MainActivity.this, ImageViewActivity.class);
 				startActivity(intent);
 			} else if (arg2 == 1) {
-				Intent intent = new Intent(MainActivity.this, ListViewActivity.class);
+				Intent intent = new Intent(MainActivity.this, ImageListActivity.class);
 				startActivity(intent);
 			} else if (arg2 == 2) {
 				Intent intent = new Intent(MainActivity.this, WidgetActivity.class);
 				startActivity(intent);
 			} else if (arg2 == 3) {
-				Intent intent = new Intent(MainActivity.this, TestActivity.class);
+				Intent intent = new Intent(MainActivity.this, HListActivity.class);
 				startActivity(intent);
 			}
 		}

@@ -50,7 +50,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-public class TestActivity extends Activity implements OnItemClickListener,
+public class HListActivity extends Activity implements OnItemClickListener,
 	OnItemLongClickListener, OnClickListener, OnScrollListener {
 	
 	HListView mHListView;
@@ -60,7 +60,7 @@ public class TestActivity extends Activity implements OnItemClickListener,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.setContentView(R.layout.activity_test);
+		this.setContentView(R.layout.activity_hlist);
 		mAdapter1 = new ViewList1Adapter(this);
 		mAdapter2 = new ViewList2Adapter(this);
 		
