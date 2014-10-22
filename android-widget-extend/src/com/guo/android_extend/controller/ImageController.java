@@ -74,6 +74,7 @@ public class ImageController extends AbstractController {
 	private float LIMIT_SCALE_MIN;
 	private float LIMIT_SCALE_MAX;
 	private float MIN_SCALE;
+	private float NORMAL_SCALE;
 	private float MAX_SCALE;
 	
 	//double tap
@@ -97,6 +98,7 @@ public class ImageController extends AbstractController {
 		mOffsetYStatus = STATUS.IDEL;
 
 		MIN_SCALE = 0.5f;
+		NORMAL_SCALE = 1.0f;
 		MAX_SCALE = 2.0f;
 	}
 
@@ -404,6 +406,62 @@ public class ImageController extends AbstractController {
 	}  
 	
 	/**
+	 * 
+	 */
+	private void initDoubleClick() {
+		float fitin = Math.min(mWorldWidth / mImageWidth, mWorldHeight / mImageHeight);
+		if (Math.abs(fitin - MIN_SCALE) < PRECISION || 
+			Math.abs(fitin - NORMAL_SCALE) < PRECISION ||
+			Math.abs(fitin - MAX_SCALE) < PRECISION) {
+			if (Math.abs(MIN_SCALE - NORMAL_SCALE) < PRECISION || 
+				Math.abs(MAX_SCALE - NORMAL_SCALE) < PRECISION) {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, MAX_SCALE
+				};
+			} else {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, NORMAL_SCALE, MAX_SCALE
+				};
+			}
+		} else if (fitin < MIN_SCALE) {
+			MIN_SCALE = fitin;
+			if (Math.abs(MIN_SCALE - NORMAL_SCALE) < PRECISION || 
+				Math.abs(MAX_SCALE - NORMAL_SCALE) < PRECISION) {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, MAX_SCALE
+				};
+			} else {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, NORMAL_SCALE, MAX_SCALE
+				};
+			}
+		} else if (fitin > MAX_SCALE) {
+			MAX_SCALE = fitin;
+			if (Math.abs(MIN_SCALE - NORMAL_SCALE) < PRECISION || 
+				Math.abs(MAX_SCALE - NORMAL_SCALE) < PRECISION) {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, MAX_SCALE
+				};
+			} else {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, NORMAL_SCALE, MAX_SCALE
+				};
+			}
+		} else {
+			if (Math.abs(MIN_SCALE - NORMAL_SCALE) < PRECISION || 
+				Math.abs(MAX_SCALE - NORMAL_SCALE) < PRECISION) {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, MAX_SCALE, fitin
+				};
+			} else {
+				mScales = new float[] {
+					1.0F, MIN_SCALE, NORMAL_SCALE, MAX_SCALE, fitin
+				};
+			}
+		}
+	}
+	
+	/**
 	 * double tap action
 	 */
 	protected void doDoubleClick() {
@@ -602,28 +660,7 @@ public class ImageController extends AbstractController {
 		mDefOffsetX = (mWorldWidth - mImageWidth * mCurScale) / 2f;
 		mDefOffsetY = (mWorldHeight - mImageHeight * mCurScale) / 2f;
 		
-		float fitin = Math.min(mWorldWidth / mImageWidth, mWorldHeight / mImageHeight);
-		if (Math.abs(fitin - MIN_SCALE) < PRECISION || 
-			Math.abs(fitin - 1.0F) < PRECISION ||
-			Math.abs(fitin - MAX_SCALE) < PRECISION) {
-			mScales = new float[] {
-				1.0F, MIN_SCALE, 1.0F, MAX_SCALE
-			};
-		} else if (fitin < MIN_SCALE) {
-			MIN_SCALE = fitin;
-			mScales = new float[] {
-				1.0F, MIN_SCALE, 1.0F, MAX_SCALE
-			};
-		} else if (fitin > MAX_SCALE) {
-			MAX_SCALE = fitin;
-			mScales = new float[] {
-				1.0F, MIN_SCALE, 1.0F, MAX_SCALE
-			};
-		} else {
-			mScales = new float[] {
-				1.0F, MIN_SCALE, 1.0F, MAX_SCALE, fitin
-			};
-		}
+		initDoubleClick();
 		
 		LIMIT_SCALE_MIN = Math.min(MIN_SCALE - 0.25F, 0.125F);
 		LIMIT_SCALE_MAX = MAX_SCALE + 0.5F;
@@ -636,7 +673,7 @@ public class ImageController extends AbstractController {
 	}
 	
 	public boolean setDefaultLimit(float max, float min) {
-		if (max > 1.0F && min < 1.0F && min > super.PRECISION) {
+		if (max >= min && min > super.PRECISION) {
 			MIN_SCALE = min;
 			MAX_SCALE = max;
 			return true;
