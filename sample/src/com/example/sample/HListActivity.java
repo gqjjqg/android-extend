@@ -92,7 +92,8 @@ public class HListActivity extends Activity implements OnItemClickListener,
 		v.setOnClickListener(this);
 		v = this.findViewById(R.id.button3);
 		v.setOnClickListener(this);
-		
+		v = this.findViewById(R.id.button4);
+		v.setOnClickListener(this);
 	}
 	
 	class Holder {
@@ -290,6 +291,8 @@ public class HListActivity extends Activity implements OnItemClickListener,
 			mAdapter2.key++;
 			mAdapter1.notifyDataSetInvalidated();
 			mAdapter2.notifyDataSetInvalidated();
+		} else if (v.getId() == R.id.button4) {
+			mHListView.enableOverScroll(!mHListView.isOverScrollEnable());
 		}
 	}
 

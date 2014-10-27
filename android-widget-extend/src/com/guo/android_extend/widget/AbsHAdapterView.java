@@ -17,6 +17,7 @@ import android.view.ViewConfiguration;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
+import android.widget.OverScroller;
 import android.widget.Scroller;
 
 public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
@@ -25,7 +26,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 	/**
      * Maximum amount of time to spend in {@link #findSyncPosition()}
      */
-    static final int DEFAULT_DURATION_MILLIS = 500;
+    static final int DEFAULT_DURATION_MILLIS = 250;
     
 	/**
      * Used to indicate a no preference for a position type.
@@ -58,10 +59,22 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
      * Indicates the touch gesture is a scroll
      */
     static final int TOUCH_MODE_SCROLL = 3;
+    
     /**
      * Indicates the view is in the process of being flung
      */
     static final int TOUCH_MODE_FLING = 4;
+    
+    /**
+     * Indicates the touch gesture is an overscroll - a scroll beyond the beginning or end.
+     */
+    static final int TOUCH_MODE_OVERSCROLL = 5;
+    
+    /**
+     * Indicates the view is being flung outside of normal content bounds and will spring back.
+     */
+    static final int TOUCH_MODE_OVERFLING = 6;
+    
 	/**
 	 * The adapter containing the data to be displayed by this view
 	 */
@@ -130,6 +143,10 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
      * Handles one frame of a fling
      */
     private FlingRunnable mFlingRunnable;
+    /**
+     * Handles one frame of a overfling
+     */
+    private OverFlingRunnable mOverFlingRunnable;
     
     /**
      * The last CheckForTap runnable we posted, if any
@@ -144,7 +161,12 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     /**
      * Over Scroll distance.
      */
-    int mOverScrollDistance = 0;
+    int mOverScrollDistance;
+    
+    /**
+     * enable over scroll.
+     */
+    boolean mEnableOverScroll;
     
 	/**
      * Indicates that this view is currently being laid out.
@@ -333,8 +355,10 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 		mTouchSlop = configuration.getScaledTouchSlop();
 		mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
 		mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
-		
+		mOverScrollDistance = configuration.getScaledOverscrollDistance();
 		mTouchSlopSquare = mTouchSlop * mTouchSlop;
+		
+		mEnableOverScroll = false;
 	}
 
 	@Override
@@ -513,7 +537,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 
         switch (ev.getAction() & MotionEvent.ACTION_MASK) {
         case MotionEvent.ACTION_DOWN:
- 
+
             mDownFocusX = mLastFocusX = focusX;
             mDownFocusY = mLastFocusY = focusY;
 
@@ -523,13 +547,12 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
             if (!mDataChanged) {
             	if (mTouchMode == TOUCH_MODE_FLING) {
                 	mFlingRunnable.endFling();
-                	mAlwaysInTapRegion = false;
+                } else if (mTouchMode == TOUCH_MODE_OVERFLING) {
+                	mOverFlingRunnable.endOverFling();
                 } else {
-
                     mPendingCheckForTap = new CheckForTap();
                     postDelayed(mPendingCheckForTap, ViewConfiguration.getTapTimeout());
                 }
-            	
             }
             
             mMotionPosition = motionPosition;
@@ -548,15 +571,13 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
                 layoutChildren();
             }
             
-            if (mAlwaysInTapRegion) {
+            if (mAlwaysInTapRegion && mTouchMode == TOUCH_MODE_DOWN ) {
                 
                 int distance = (deltaX * deltaX) + (deltaY * deltaY);
                 if (distance > mTouchSlopSquare) {
                 	
-                	if (mMotionPosition == INVALID_POSITION) {
-                		removeCallbacks(mTouchMode == TOUCH_MODE_DOWN ?
-                             mPendingCheckForTap : mPendingCheckForLongPress);
-                	}
+                	removeCallbacks(mPendingCheckForTap);
+                	removeCallbacks(mPendingCheckForLongPress);
                 	
                 	mTouchMode = TOUCH_MODE_SCROLL;
                 	trackMotionScroll((int)scrollX, (int)scrollY);
@@ -564,16 +585,10 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
                 	mLastFocusX = focusX;
                     mLastFocusY = focusY;
                     mAlwaysInTapRegion = false;
-
                 }
 
 			} else if ((Math.abs(scrollX) >= 1) || (Math.abs(scrollY) >= 1)) {
-				if (mMotionPosition == INVALID_POSITION) {
-            		removeCallbacks(mTouchMode == TOUCH_MODE_DOWN ?
-                         mPendingCheckForTap : mPendingCheckForLongPress);
-            	}
 
-				mTouchMode = TOUCH_MODE_SCROLL;
 				trackMotionScroll((int) scrollX, (int) scrollY);
 
 				mLastFocusX = focusX;
@@ -589,8 +604,8 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
                 case TOUCH_MODE_DOWN:
                     final View child = getChildAt(mMotionPosition - mFirstPosition);
                     if (child != null) {
-                    	super.performItemClick(child, mMotionPosition, mAdapter.getItemId(mMotionPosition));
                     	mTouchMode = TOUCH_MODE_TAP;
+                    	super.performItemClick(child, mMotionPosition, mAdapter.getItemId(mMotionPosition));
                     } else {
                     	mTouchMode = TOUCH_MODE_REST;
                     }
@@ -612,12 +627,16 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 
                 if ((Math.abs(velocityY) > mMinimumVelocity)
                         || (Math.abs(velocityX) > mMinimumVelocity)){
-                	mTouchMode = TOUCH_MODE_FLING;
                 	mFlingRunnable = new FlingRunnable();
                 	mFlingRunnable.startFling(velocityX, velocityY);
                 } else {
-                	mTouchMode = TOUCH_MODE_REST;
-                	reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                	if (checkOverScroll()) {
+                		mOverFlingRunnable = new OverFlingRunnable();
+    	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, 0, mMaxDistanceX, 0, 0);
+                	} else {
+                		mTouchMode = TOUCH_MODE_REST;
+                		reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                	}
                 }
                 
             }
@@ -694,7 +713,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
         if (childCount == 0) {
             return true;
         }
-        
+
         if (mTouchMode == TOUCH_MODE_SCROLL) {
         	mNextPosX += (int)deltaX;
         	mBlockLayoutRequests = true;
@@ -704,6 +723,33 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
         	
         	reportScrollStateChange(OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
         	invokeOnItemScrollListener();
+        	
+        	if (checkOverScroll()) {
+        		mTouchMode = TOUCH_MODE_OVERSCROLL;
+        	}
+        } else if (mTouchMode == TOUCH_MODE_OVERSCROLL) {
+        	float per;
+        	if (mNextPosX < 0) {
+        		int dst = mOverScrollDistance - Math.abs(mNextPosX);
+        		per = (float)dst / (float)mOverScrollDistance;
+        	} else {
+        		int dst = mNextPosX - mMaxDistanceX;
+        		per = (float)(mOverScrollDistance - dst) / (float)mOverScrollDistance;
+        	}
+        	
+        	deltaX = (int) (deltaX * per);
+        	
+        	mNextPosX += (int)deltaX;
+        	mBlockLayoutRequests = true;
+        	scrollSnap();
+        	mBlockLayoutRequests = false;
+        	invalidate();
+        
+        	if (checkOverScroll()) {
+        		mTouchMode = TOUCH_MODE_OVERSCROLL;
+        	} else {
+        		mTouchMode = TOUCH_MODE_SCROLL;
+        	}
         }
         
 		return false;
@@ -714,18 +760,51 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     abstract void fillGapList(final int offsetX);
     
     /**
+     * check if next movement is out of range. return true.
+     * @return
+     */
+    protected boolean checkOverScroll() {
+    	if (mEnableOverScroll) {
+	    	if (mNextPosX <= 0){
+				return true;
+			}
+			if (mNextPosX >= mMaxDistanceX) {
+				return true;
+			}
+    	}
+		return false;
+    }
+    
+    /**
+     * 
+     * @param enable
+     */
+    public void enableOverScroll(boolean enable) {
+    	mEnableOverScroll = enable;
+    	super.requestLayout();
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public boolean isOverScrollEnable() {
+    	return mEnableOverScroll;
+    }
+    
+    /**
      * mNextPosX : the next movement.
      * mCurrentX : the current position.
      */
     protected boolean scrollSnap() {
     	boolean isEnd = false;
-    	if (mNextPosX <= 0){
-        	mNextPosX = 0;
+    	if (mNextPosX <= -mOverScrollDistance){
+        	mNextPosX = -mOverScrollDistance;
         	isEnd = true;
 		}
         
-		if (mNextPosX >= mMaxDistanceX) {
-			mNextPosX = mMaxDistanceX;
+		if (mNextPosX >= mMaxDistanceX + mOverScrollDistance) {
+			mNextPosX = mMaxDistanceX + mOverScrollDistance;
 			isEnd = true;
 		}
 		
@@ -760,6 +839,79 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     }
 	
 	/**
+	 * 
+	 * Over Fling.
+	 * @author gqj3375
+	 *
+	 */
+	class OverFlingRunnable implements Runnable {
+
+		private final OverScroller mOverScroller;
+		
+		public OverFlingRunnable() {
+			// TODO Auto-generated constructor stub
+			mOverScroller = new OverScroller(getContext());
+		}
+		
+		public OverFlingRunnable(OverScroller overscroller) {
+			mOverScroller = overscroller;
+		}
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			if (mTouchMode == TOUCH_MODE_OVERFLING ||
+				mTouchMode == TOUCH_MODE_OVERSCROLL) {
+				if (mDataChanged) {
+	                layoutChildren();
+	            }
+	            if (mOverScroller.computeScrollOffset()) {
+	            	mNextPosX = mOverScroller.getCurrX();
+	    		}
+	            mBlockLayoutRequests = true;
+	  	        scrollSnap();
+	        	mBlockLayoutRequests = false;
+	        	invalidate();
+	        	
+	        	if (mOverScroller.isFinished()){
+	        		mTouchMode = TOUCH_MODE_REST;
+	        		reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+	    		} else {
+	    			mOverFlingRunnable = new OverFlingRunnable(mOverScroller);
+	    			post(mOverFlingRunnable);
+	    			reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+	    			invokeOnItemScrollListener();
+	    		}
+			}
+		}
+		
+		/**
+		 * 
+		 * @param startX
+		 * @param startY
+		 * @param minX
+		 * @param maxX
+		 * @param minY
+		 * @param maxY
+		 */
+		public void startOverFling (int startX, int startY, int minX, int maxX, int minY, int maxY) {
+			mTouchMode = TOUCH_MODE_OVERFLING;
+			mOverScroller.springBack(startX, startY, minX, maxX, minY, maxY);
+			post(this);
+		}
+		
+		/**
+		 * 
+		 */
+		public void endOverFling() {
+			mOverScroller.forceFinished(true);
+            removeCallbacks(this);
+            removeCallbacks(mOverFlingRunnable);
+		}
+		
+	}
+	
+	/**
      * Responsible for fling behavior. Use {@link #start(int)} to
      * initiate a fling. Each frame of the fling is handled in {@link #run()}.
      * A FlingRunnable will keep re-posting itself until the fling is done.
@@ -783,34 +935,46 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
-			if (mDataChanged) {
-                layoutChildren();
-            }
-            if (mScroller.computeScrollOffset()) {
-            	mNextPosX = mScroller.getCurrX();
-    		}
-            mBlockLayoutRequests = true;
-  	        scrollSnap();
-        	mBlockLayoutRequests = false;
-        	invalidate();
-        	
-        	if (mScroller.isFinished()){
-        		mTouchMode = TOUCH_MODE_REST;
-        		reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
-    		} else {
-    			mFlingRunnable = new FlingRunnable(mScroller);
-    			post(mFlingRunnable);
-    			reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
-    			invokeOnItemScrollListener();
-    		}
+			if (mTouchMode == TOUCH_MODE_FLING || 
+				mTouchMode == TOUCH_MODE_SCROLL ) {
+				if (mDataChanged) {
+	                layoutChildren();
+	            }
+	            if (mScroller.computeScrollOffset()) {
+	            	mNextPosX = mScroller.getCurrX();
+	    		}
+	            mBlockLayoutRequests = true;
+	  	        scrollSnap();
+	        	mBlockLayoutRequests = false;
+	        	invalidate();
+	        	
+	        	if (checkOverScroll()) {
+	        		mFlingRunnable.endFling();
+	        		mOverFlingRunnable = new OverFlingRunnable();
+	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, 0, mMaxDistanceX, 0, 0);
+	        		return ;
+	        	}
+
+	        	if (mScroller.isFinished()){
+	        		mTouchMode = TOUCH_MODE_REST;
+	        		reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+	    		} else {
+	    			mFlingRunnable = new FlingRunnable(mScroller);
+	    			post(mFlingRunnable);
+	    			reportScrollStateChange(OnScrollListener.SCROLL_STATE_FLING);
+	    			invokeOnItemScrollListener();
+	    		}
+			}
 		}
 		
 		public void startFling(float velocityX, float velocityY) {
-			mScroller.fling(mNextPosX, 0, (int)-velocityX, 0, 0, mMaxDistanceX, 0, 0);
+			mTouchMode = TOUCH_MODE_FLING;
+			mScroller.fling(mNextPosX, 0, (int)-velocityX, 0, -mOverScrollDistance, mMaxDistanceX + mOverScrollDistance, 0, 0);
 			post(this);
 		}
 		
 		public void startScroll(float deltaX, float deltaY, int duration) {
+			mTouchMode = TOUCH_MODE_FLING;
 			mScroller.startScroll(mNextPosX, 0, (int) deltaX, 0, duration);
 			post(this);
 		}
@@ -963,4 +1127,5 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     public void scrollSmoothTo(int x) {
     	scrollSmoothTo(x, DEFAULT_DURATION_MILLIS);
     }
+    
 }

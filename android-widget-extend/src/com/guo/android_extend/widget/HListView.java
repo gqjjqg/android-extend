@@ -156,7 +156,6 @@ public class HListView extends AbsHAdapterView {
 		}
 		measureChild(child, 0);
 		
-		mOverScrollDistance = 0;
 		mMaxDistanceX = mAdapter.getCount() * child.getMeasuredWidth() - getMeasuredWidth();
 		// add divider width.
 		mMaxDistanceX += ( mAdapter.getCount() - 1 ) * mDividerWidth;
@@ -166,6 +165,12 @@ public class HListView extends AbsHAdapterView {
 		mItemWidth = child.getMeasuredWidth();
 		mItemHeight = child.getMeasuredHeight();
 
+		//TODO over scroller distance use half width.
+		if (mEnableOverScroll) {
+			mOverScrollDistance = widthSize / 2;
+		} else {
+			mOverScrollDistance = 0;
+		}
 	}
 
 	@Override
@@ -629,15 +634,20 @@ public class HListView extends AbsHAdapterView {
 	 * @param position
 	 */
 	public void scrollToItem(int position) {
-		if (this.isShown()) {
-			final int x = position * (mItemWidth + mDividerWidth);
-			scrollTo(x);
-		} else {
-			final View child = obtainView(0);
-			measureChild(child, 0);
-			final int x = position * (child.getMeasuredWidth() + mDividerWidth);
-			scrollTo(x);
-			super.mRecycledViewQueue.offer(child);
+		if (super.mAdapter == null) {
+			return ;
+		}
+		if (position < super.mAdapter.getCount()) {
+			if (this.isShown()) {
+				final int x = position * (mItemWidth + mDividerWidth);
+				scrollTo(x);
+			} else {
+				final View child = obtainView(0);
+				measureChild(child, 0);
+				final int x = position * (child.getMeasuredWidth() + mDividerWidth);
+				scrollTo(x);
+				super.mRecycledViewQueue.offer(child);
+			}
 		}
     }
 	
@@ -668,4 +678,5 @@ public class HListView extends AbsHAdapterView {
 					+ "While it's not shown!");
 		}
 	}
+	
 }
