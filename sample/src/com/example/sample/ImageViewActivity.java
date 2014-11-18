@@ -20,7 +20,9 @@ public class ImageViewActivity extends Activity {
 	String mFilePath;
 	CustomOrientationDetector mODetector;
 	ExtImageView eiv;
+	Bitmap mBitmap;
 	Rect rect;
+	
 	/* (non-Javadoc)
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
@@ -44,7 +46,8 @@ public class ImageViewActivity extends Activity {
 			Log.e(TAG, "getIntentData fail!");
 			eiv.setImageResource(R.drawable.ic_launcher);
 		} else {
-			eiv.setImageBitmap(loadImage(mFilePath));
+			mBitmap = loadImage(mFilePath);
+			eiv.setImageBitmap(mBitmap);
 		}
 
 	}
@@ -58,6 +61,9 @@ public class ImageViewActivity extends Activity {
 		rect = eiv.getDrawable().copyBounds();
 		Log.d(TAG, "view w =" + eiv.getWidth() + ",h =" + eiv.getHeight());
 		Log.d(TAG, "rect =" + rect.toString());
+		if (null != mBitmap) {
+			mBitmap.recycle();
+		}
 		super.onDestroy();
 	}
 
@@ -92,7 +98,7 @@ public class ImageViewActivity extends Activity {
 	        BitmapFactory.decodeFile(path, op);
 	        Log.d(TAG, "Image:" + op.outWidth + "X" + op.outHeight);
 			
-	        op.inSampleSize = 1;
+	        op.inSampleSize = 2;
 	        op.inJustDecodeBounds = false;  
 	        //op.inMutable = true;
 	        res = BitmapFactory.decodeFile(path, op);

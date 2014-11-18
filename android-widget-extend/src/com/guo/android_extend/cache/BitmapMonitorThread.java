@@ -24,7 +24,7 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 	public BitmapMonitorThread(Handler handler) {
 		// TODO Auto-generated constructor stub
 		mWidgetMap = new LinkedHashMap<K, BitmapMonitor<K, V>>();
-		mBitmapCache = new BitmapCache<V>(32);
+		mBitmapCache = new BitmapCache<V>(32, true);
 		mHandler = handler;
 		mBlinker = this;
 		mPause = false;
@@ -156,6 +156,8 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 				}
 			}
 		}
+		
+		mBitmapCache.destroy();
 	}
 
 	/* (non-Javadoc)
