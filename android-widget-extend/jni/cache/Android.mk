@@ -18,7 +18,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := cache
 LOCAL_SRC_FILES := cache_adapter.cpp \
-				   cache.c		   
+				   rbtree.c \
+				   cache_data.c \
+				   cache.c	   
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/cache/inc		   
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/cache/inc	
 

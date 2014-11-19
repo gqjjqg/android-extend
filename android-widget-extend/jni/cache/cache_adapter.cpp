@@ -72,7 +72,7 @@ jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject b
 	unsigned char *argb_base;
 	AndroidBitmap_lockPixels(env, bitmap, (void**)&argb_base);
 
-	ret = PushCache((LPCACHE_HANDLE)handler, hash, info.width, info.height, info.format, argb_base);
+	ret = PushCache((unsigned long)handler, hash, info.width, info.height, info.format, argb_base);
 
 	AndroidBitmap_unlockPixels(env, bitmap);
 
@@ -87,7 +87,7 @@ jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash)
 	jfieldID jfidconfig;
 	jclass jclsmain = env->FindClass("com/guo/android_extend/cache/BitmapCache");
 	jclass jclsconfig = env->FindClass("android/graphics/Bitmap$Config");
-	if (0 == PullCache((LPCACHE_HANDLE)handler, hash, &width, &height, &format, &pData)) {
+	if (0 == PullCache((unsigned long)handler, hash, &width, &height, &format, &pData)) {
 		switch (format) {
 		case 1: //ANDROID_BITMAP_FORMAT_RGBA_8888 :
 			jfidconfig = env->GetStaticFieldID(jclsconfig, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
@@ -140,5 +140,5 @@ jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash)
 
 jint NC_CacheUnInit(JNIEnv *env, jobject object, jint handler)
 {
-	return ReleaseCache((LPCACHE_HANDLE)handler);
+	return ReleaseCache((unsigned long)handler);
 }
