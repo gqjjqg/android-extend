@@ -121,12 +121,8 @@ public class ImageListActivity extends ListActivity implements OnItemClickListen
 				// TODO Auto-generated method stub
 				super.mView.setImageResource(0);
     			super.mView.setImageBitmap(null);
-    			if (!isOld) {
-					if (super.mBitmap != null) {
-	    				super.mView.setImageBitmap(super.mBitmap);
-	    			} else {
-	    				super.mView.setImageResource(R.drawable.ic_launcher);
-	    			}
+    			if (!isOld && super.mBitmap != null) {
+	    			super.mView.setImageBitmap(super.mBitmap);
     			} else {
     				super.mView.setImageResource(R.drawable.ic_launcher);
     			}
