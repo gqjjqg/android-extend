@@ -8,11 +8,18 @@ public class BitmapInfo {
 	int height;
 	int format;
 	
+	public BitmapInfo() {
+		// TODO Auto-generated constructor stub
+		width = 0;
+		height = 0;
+		format = 0;
+	}
+
 	/**
 	 * 
 	 * @return
 	 */
-	Config getConfig() {
+	public Config getConfig() {
 		switch (format) {
 		case 1 : return Config.ARGB_8888;
 		case 4 : return Config.RGB_565;
@@ -23,7 +30,7 @@ public class BitmapInfo {
 		return null;
 	}
 	
-	void setConfig(Config config) {
+	public void setConfig(Config config) {
 		switch (config) {
 		case ARGB_8888 : format = 1;
 		case RGB_565 : format = 4;
@@ -39,7 +46,7 @@ public class BitmapInfo {
 	 * @param height
 	 * @param format
 	 */
-	void setInfo(int width, int height, int format) {
+	public void setInfo(int width, int height, int format) {
 		this.width = width;
 		this.height = height;
 		this.format = format;
@@ -49,7 +56,7 @@ public class BitmapInfo {
 	 * 
 	 * @return Bitmap
 	 */
-	Bitmap createBitmap() {
+	public Bitmap createBitmap() {
 		return Bitmap.createBitmap(width, height, getConfig());
 	}
 }

@@ -119,16 +119,19 @@ jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jobj
 	}
 	jmethodID getVal = env->GetMethodID(enumclass, "name", "()Ljava/lang/String;");
 	jstring value = (jstring)env->CallObjectMethod(config, getVal);
-	const char * valueNative = env->GetStringUTFChars(value, 0);
+	jboolean iscopy;
+	const char * valueNative = env->GetStringUTFChars(value, &iscopy);
 	if (strcmp(valueNative, "ARGB_8888") == 0) {
-		target = 1;
+		target = CP_RGBA8888;
 	} else if (strcmp(valueNative, "RGB_565") == 0) {
-		target = 4;
+		target = CP_RGB565;
 	} else if (strcmp(valueNative, "ARGB_4444") == 0) {
-		target = 7;
+		target = CP_RGBA4444;
 	} else {
+		env->ReleaseStringUTFChars(value, valueNative);
 		return NULL;
 	}
+	env->ReleaseStringUTFChars(value, valueNative);
 
 	bitmap = createBitmap(env, width, height, format);
 	if (bitmap == NULL) {
