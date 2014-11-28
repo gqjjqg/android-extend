@@ -7,6 +7,16 @@
 
 #include "cache.h"
 
+#define _DEBUG
+#if defined( _DEBUG )
+	#define  LOG_TAG    "ATC."
+	#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+	#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#else
+	#define LOGI(...)
+	#define LOGE(...)
+#endif
+
 #define CP_RGBA8888		ANDROID_BITMAP_FORMAT_RGBA_8888
 #define CP_RGB565		ANDROID_BITMAP_FORMAT_RGB_565
 #define CP_RGBA4444		ANDROID_BITMAP_FORMAT_RGBA_4444
@@ -108,6 +118,8 @@ jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jobj
 	unsigned char * pData;
 	jobject bitmap;
 
+	LOGI("NC_ExCacheGet in");
+
 	if (0 != PullCache((unsigned long)handler, hash, &width, &height, &format, &pData)) {
 		return NULL;
 	}
@@ -206,11 +218,14 @@ jint NC_CacheUnInit(JNIEnv *env, jobject object, jint handler)
 
 jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap)
 {
-	jint ret = NOT_FIND;
+	jint ret = GOK;
 	int width, height, format;
 	unsigned char * pData;
 
+	LOGI("NC_CacheCopy in");
+
 	if (0 != PullCache((unsigned long)handler, hash, &width, &height, &format, &pData)) {
+		ret = NOT_FIND;
 		return ret;
 	}
 
@@ -220,29 +235,32 @@ jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject 
 	unsigned char *argb_base;
 	AndroidBitmap_lockPixels(env, bitmap, (void**)&argb_base);
 
-	if (info.format != format) {
-		//convert
-		if (info.format == CP_RGBA8888 && format == CP_RGB565) {
-			convert_565_8888(pData, argb_base, info.width, info.height);
-		} else if (info.format == CP_RGB565 && format == CP_RGBA8888) {
-			convert_8888_565(pData, argb_base, info.width, info.height);
-		} else if (info.format == CP_RGBA8888 && format == CP_RGBA4444) {
-			convert_4444_8888(pData, argb_base, info.width, info.height);
-		} else if (info.format == CP_RGBA4444 && format == CP_RGBA8888) {
-			convert_8888_4444(pData, argb_base, info.width, info.height);
-		} else if (info.format == CP_RGB565 && format == CP_RGBA4444) {
-			convert_4444_565(pData, argb_base, info.width, info.height);
-		} else if (info.format == CP_RGBA4444 && format == CP_RGB565) {
-			convert_565_4444(pData, argb_base, info.width, info.height);
+	if (info.width == width && info.height == height) {
+		if (info.format != format) {
+			//convert
+			if (info.format == CP_RGBA8888 && format == CP_RGB565) {
+				convert_565_8888(pData, argb_base, info.width, info.height);
+			} else if (info.format == CP_RGB565 && format == CP_RGBA8888) {
+				convert_8888_565(pData, argb_base, info.width, info.height);
+			} else if (info.format == CP_RGBA8888 && format == CP_RGBA4444) {
+				convert_4444_8888(pData, argb_base, info.width, info.height);
+			} else if (info.format == CP_RGBA4444 && format == CP_RGBA8888) {
+				convert_8888_4444(pData, argb_base, info.width, info.height);
+			} else if (info.format == CP_RGB565 && format == CP_RGBA4444) {
+				convert_4444_565(pData, argb_base, info.width, info.height);
+			} else if (info.format == CP_RGBA4444 && format == CP_RGB565) {
+				convert_565_4444(pData, argb_base, info.width, info.height);
+			} else {
+				ret = NOT_SUPPORT;
+			}
 		} else {
-			ret = NOT_SUPPORT;
+			memcpy(argb_base, pData, info.height * info.stride);
 		}
 	} else {
-		memcpy(argb_base, pData, info.height * info.stride);
+		ret = NOT_SUPPORT;
 	}
 
 	AndroidBitmap_unlockPixels(env, bitmap);
-	ret = GOK;
 
 	return ret;
 }
