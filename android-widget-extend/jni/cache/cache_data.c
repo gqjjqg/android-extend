@@ -48,7 +48,9 @@ int cache_data_parse(LPDATA pData, int *width, int *height, int *format, unsigne
 	*width = pData->mWidth;
 	*height = pData->mHeight;
 	*format = pData->mFormat;
-	*data = pData->pByte;
+	if (data != GNull) {
+		*data = pData->pByte;
+	}
 	return 0;
 }
 

@@ -143,13 +143,33 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	return ret;
 }
 
+int QueryCache(unsigned long h, int hash, int *width, int *height, int *format)
+{
+	LPCACHE_NODE pNode;
+	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
+	int ret = 0;
+	if (handle == GNull) {
+		return PARAM_INVALID;
+	}
+
+	// search in rb-tree
+	pNode = rbt_search(&handle->mRoot, hash);
+
+	if (pNode != GNull) {
+		cache_data_parse(&(pNode->mData), width, height, format, GNull);
+		return GOK;
+	}
+
+	return NOT_FIND;
+}
+
 int PullCache(unsigned long h, int hash, int *width, int *height, int *format, unsigned char ** data)
 {
 	LPCACHE_NODE pNode;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
 	int ret = 0;
 	if (handle == GNull) {
-		return -1;
+		return PARAM_INVALID;
 	}
 
 	// search in rb-tree
