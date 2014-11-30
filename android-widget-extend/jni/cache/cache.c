@@ -11,6 +11,7 @@
 #include "cache.h"
 #include "cache_data.h"
 #include "rbtree.h"
+#include "dllist.h"
 
 //#define _DEBUG
 #if defined( _DEBUG )
@@ -26,8 +27,7 @@ typedef struct CACHE_t {
 	RB_NODE  mRBNode;
 
 	// link queue
-	struct CACHE_t *pNext;
-	struct CACHE_t *pPre;
+	DLL_NODE mDLLNode;
 
 	// key-value
 	long	mKey;
@@ -37,11 +37,12 @@ typedef struct CACHE_t {
 typedef struct cache_handle_t {
 	int mMaxCount;
 	int mCurCount;
+
 	//link queue
-	LPCACHE_NODE pHead;
-	LPCACHE_NODE pLast;
+	DLL_ROOT mDLLRoot;
+
 	//RB-tree
-	RB_ROOT mRoot;
+	RB_ROOT mRBRoot;
 
 }CACHE_HANDLE, *LPCACHE_HANDLE;
 
@@ -74,9 +75,9 @@ unsigned long CreateCache(int size)
 
 	handle->mCurCount = 0;
 	handle->mMaxCount = size;
-	handle->pHead = GNull;
-	handle->pLast = GNull;
-	handle->mRoot.rb_node = GNull;
+	handle->mDLLRoot.dll_head = GNull;
+	handle->mDLLRoot.dll_last = GNull;
+	handle->mRBRoot.rb_node = GNull;
 
 	return (unsigned long)handle;
 }
@@ -91,27 +92,19 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	}
 
 	// search in rb-tree
-	pNode = rbt_search(&handle->mRoot, hash);
+	pNode = rbt_search(&handle->mRBRoot, hash);
 
 	if (handle->mCurCount >= handle->mMaxCount && pNode == GNull) {
 		// replace
-		pNode = handle->pLast;
+		container_of(pNode, handle->mDLLRoot.dll_last, CACHE_NODE, mDLLNode);
 	}
 
 	if (pNode != GNull) {
 		//remove out in linked queue.
-		if (pNode->pPre != GNull) {
-			pNode->pPre->pNext = pNode->pNext;
-		} else {
-			handle->pHead = pNode->pNext;
-		}
-		if (pNode->pNext != GNull) {
-			pNode->pNext->pPre = pNode->pPre;
-		} else {
-			handle->pLast = pNode->pPre;
-		}
+		dll_remove_node(&(pNode->mDLLNode), &(handle->mDLLRoot));
+
 		//remove from rb-tree.
-		rb_erase(&pNode->mRBNode, &handle->mRoot);
+		rb_erase(&pNode->mRBNode, &handle->mRBRoot);
 
 		pNode->mKey = hash;
 		
@@ -125,21 +118,11 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	cache_data_update(&(pNode->mData), width, height, format, data);
 
 	//add node
-	if (handle->pHead == GNull) {
-		handle->pHead = pNode;
-		handle->pLast = pNode;
-		pNode->pPre = GNull;
-		pNode->pNext = GNull;
-	} else {
-		pNode->pPre = GNull;
-		pNode->pNext = handle->pHead;
-		handle->pHead->pPre = pNode;
-		handle->pHead = pNode;
-	}
+	dll_insert_node(&(pNode->mDLLNode), GNull, &(handle->mDLLRoot));
 
 	//add to rb-tree
 	rb_init_node(&pNode->mRBNode);
-	rbt_insert(&handle->mRoot, pNode);
+	rbt_insert(&handle->mRBRoot, pNode);
 	return ret;
 }
 
@@ -153,7 +136,7 @@ int QueryCache(unsigned long h, int hash, int *width, int *height, int *format)
 	}
 
 	// search in rb-tree
-	pNode = rbt_search(&handle->mRoot, hash);
+	pNode = rbt_search(&handle->mRBRoot, hash);
 
 	if (pNode != GNull) {
 		cache_data_parse(&(pNode->mData), width, height, format, GNull);
@@ -173,33 +156,14 @@ int PullCache(unsigned long h, int hash, int *width, int *height, int *format, u
 	}
 
 	// search in rb-tree
-	pNode = rbt_search(&handle->mRoot, hash);
+	pNode = rbt_search(&handle->mRBRoot, hash);
 
 	if (pNode != GNull) {
 		//remove out.
-		if (pNode->pPre != GNull) {
-			pNode->pPre->pNext = pNode->pNext;
-		} else {
-			handle->pHead = pNode->pNext;
-		}
-		if (pNode->pNext != GNull) {
-			pNode->pNext->pPre = pNode->pPre;
-		} else {
-			handle->pLast = pNode->pPre;
-		}
+		dll_remove_node(&(pNode->mDLLNode), &(handle->mDLLRoot));
 
 		//add node
-		if (handle->pHead == GNull) {
-			handle->pHead = pNode;
-			handle->pLast = pNode;
-			pNode->pPre = GNull;
-			pNode->pNext = GNull;
-		} else {
-			pNode->pPre = GNull;
-			pNode->pNext = handle->pHead;
-			handle->pHead->pPre = pNode;
-			handle->pHead = pNode;
-		}
+		dll_insert_node(&(pNode->mDLLNode), GNull, &(handle->mDLLRoot));
 
 		cache_data_parse(&(pNode->mData), width, height, format, data);
 
@@ -226,20 +190,21 @@ int PullCache(unsigned long h, int hash, int *width, int *height, int *format, u
 
 int ReleaseCache(unsigned long h)
 {
-	LPCACHE_NODE pNode;
-	LPCACHE_NODE pFree;
+	LPCACHE_NODE pNode = GNull;
+	LPCACHE_NODE pFree = GNull;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
+	LPDLL_NODE node;
 	int ret = 0;
 	if (handle == GNull) {
 		return -1;
 	}
 
-	pNode = handle->pHead;
-	while (pNode != GNull) {
-		pFree = pNode;
-		cache_data_release(&(pFree->mData));
-		GMemFree(pFree);
-		pNode = pNode->pNext;
+	node = dll_first(&(handle->mDLLRoot));
+	while (node) {
+		container_of(pNode, node, CACHE_NODE, mDLLNode);
+		node = dll_next(node);
+		cache_data_release(&(pNode->mData));
+		GMemFree(pNode);
 	}
 
 	GMemFree(handle);

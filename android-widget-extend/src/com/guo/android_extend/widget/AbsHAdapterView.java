@@ -140,6 +140,11 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     int mItemHeight = 0;
     
     /**
+     * Indicates that this list is always drawn on top of a solid, single-color, opaque background
+     */
+    private int mCacheColorHint;
+    
+    /**
      * Handles one frame of a fling
      */
     private FlingRunnable mFlingRunnable;
@@ -1127,5 +1132,31 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     public void scrollSmoothTo(int x) {
     	scrollSmoothTo(x, DEFAULT_DURATION_MILLIS);
     }
-    
+
+
+    /**
+     *  When set to a non-zero value, the cache color hint indicates that this list is always drawn on top of a solid, single-color, opaque background
+     *  Parameters:
+     * @param color
+     */
+	public void setCacheColorHint(int color) {
+		// TODO Auto-generated method stub
+		 if (color != mCacheColorHint) {
+             mCacheColorHint = color;
+             int count = getChildCount();
+             for (int i = 0; i < count; i++) {
+                 getChildAt(i).setDrawingCacheBackgroundColor(color);
+             }
+         }
+	}
+	
+	@Override
+	public int getSolidColor() {
+		return mCacheColorHint;
+	}
+	
+	public int getCacheColorHint() {
+        return mCacheColorHint;
+    }
+	
 }

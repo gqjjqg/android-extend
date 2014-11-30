@@ -32,6 +32,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -47,6 +48,11 @@ public class HListView extends AbsHAdapterView {
      */
     Drawable mDivider;
     int mDividerWidth;
+    
+    private boolean mClipDivider;
+    
+    private boolean mIsCacheColorOpaque;
+    private Paint mDividerPaint;
     
     /**
      * The drawable used to draw the selector
@@ -94,8 +100,11 @@ public class HListView extends AbsHAdapterView {
 		
 		if (dividerWidth != 0) {
             setDividerWidth(dividerWidth);
-            mDivider = new ColorDrawable(Color.GRAY);
+            mDividerPaint = new Paint();
+            mDividerPaint.setColor(Color.GRAY);
         }
+		
+		mDivider = null;
 		
 		att.recycle();
 	}
@@ -390,8 +399,10 @@ public class HListView extends AbsHAdapterView {
     public void setDivider(Drawable divider) {
         if (divider != null) {
             mDividerWidth = divider.getIntrinsicWidth();
+            mClipDivider = divider instanceof ColorDrawable;
         } else {
         	mDividerWidth = 0;
+        	mClipDivider = false;
         }
         mDivider = divider;
         
@@ -399,6 +410,19 @@ public class HListView extends AbsHAdapterView {
         invalidate();
     }
 
+    @Override
+	public void setCacheColorHint(int color) {
+		final boolean opaque = (color >>> 24) == 0xFF;
+		mIsCacheColorOpaque = opaque;
+		if (opaque) {
+			if (mDividerPaint == null) {
+				mDividerPaint = new Paint();
+			}
+			mDividerPaint.setColor(color);
+		}
+		super.setCacheColorHint(color);
+	}
+    
     /**
      * @return Returns the height of the divider that will be drawn between each item in the list.
      */
@@ -430,9 +454,22 @@ public class HListView extends AbsHAdapterView {
     void drawDivider(Canvas canvas, Rect bounds, int childIndex) {
         // This widget draws the same divider for all children
         final Drawable divider = mDivider;
+        final boolean clipDivider = mClipDivider;
+       
+		if (!clipDivider) {
+			divider.setBounds(bounds);
+		} else {
+			canvas.save();
+			canvas.clipRect(bounds);
+		}
 
-        divider.setBounds(bounds);
-        divider.draw(canvas);
+		divider.draw(canvas);
+
+		if (clipDivider) {
+			canvas.restore();
+		}
+		
+		canvas.drawRect(bounds, new Paint());
     }
     
     @Override
@@ -440,7 +477,7 @@ public class HListView extends AbsHAdapterView {
 
         // Draw the dividers
         final int dividerWidth = mDividerWidth;
-        final boolean drawDividers = dividerWidth > 0 && mDivider != null;
+        final boolean drawDividers = dividerWidth > 0;
 
         final int count = getChildCount();
         
@@ -451,18 +488,37 @@ public class HListView extends AbsHAdapterView {
             
             final int itemCount = mItemCount;
             final int first = mFirstPosition;
-
+        
             mTempRect.top = top;
         	mTempRect.bottom = bottom;
         	
         	mTempRect.left = this.getChildAt(0).getRight();
         	mTempRect.right = mTempRect.left + this.mDividerWidth;
-        	this.drawDivider(canvas, mTempRect, -1);
+        	
+        	if (mDivider == null && mDividerPaint == null && mIsCacheColorOpaque) {
+                mDividerPaint = new Paint();
+                mDividerPaint.setColor(getCacheColorHint());
+            }
+            final Paint paint = mDividerPaint;
+        	
+            if ( first < itemCount - 1 && 
+       			 mTempRect.left < (this.getWidth() - this.getPaddingRight()) ) {
+	            if ( mDivider != null ) {
+	            	this.drawDivider(canvas, mTempRect, -1);
+	            } else {
+	            	canvas.drawRect(mTempRect, paint);
+	            }
+            }
         	for (int i = 1; i < count; i++) {
         		mTempRect.left = this.getChildAt(i).getRight();
         		mTempRect.right = mTempRect.left + this.mDividerWidth;
-        		if ((first + i) != itemCount && mTempRect.left < (this.getWidth() - this.getPaddingRight())) {
-                	this.drawDivider(canvas, mTempRect, -1);
+        		if ( (first + i) < itemCount - 1 && 
+        			 mTempRect.left < (this.getWidth() - this.getPaddingRight()) ) {
+        			if ( mDivider != null ) {
+                    	this.drawDivider(canvas, mTempRect, -1);
+                    } else {
+                    	canvas.drawRect(mTempRect, paint);
+                    }
         		}
             }
             
