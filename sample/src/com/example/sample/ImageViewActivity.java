@@ -58,9 +58,7 @@ public class ImageViewActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		rect = eiv.getDrawable().copyBounds();
-		Log.d(TAG, "view w =" + eiv.getWidth() + ",h =" + eiv.getHeight());
-		Log.d(TAG, "rect =" + rect.toString());
+		eiv.setImageBitmap(null);
 		if (null != mBitmap) {
 			mBitmap.recycle();
 		}

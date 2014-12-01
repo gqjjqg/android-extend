@@ -15,8 +15,15 @@
 
 //#define _DEBUG
 #if defined( _DEBUG )
-	#define LOGI(...) printf(__VA_ARGS__)
-	#define LOGE(...) printf(__VA_ARGS__)
+	#define  LOG_TAG    "ATC."
+	#if defined (LOG_TAG)
+		#include <android/log.h>
+		#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+		#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+	#else
+		#define LOGI(...) printf(__VA_ARGS__)
+		#define LOGE(...) printf(__VA_ARGS__)
+	#endif
 #else
 	#define LOGI(...)
 	#define LOGE(...)
@@ -97,6 +104,9 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	if (handle->mCurCount >= handle->mMaxCount && pNode == GNull) {
 		// replace
 		container_of(pNode, handle->mDLLRoot.dll_last, CACHE_NODE, mDLLNode);
+#if defined( _DEBUG )
+		LOGI("replace get last 0x%X\n", pNode);
+#endif
 	}
 
 	if (pNode != GNull) {
@@ -171,16 +181,19 @@ int PullCache(unsigned long h, int hash, int *width, int *height, int *format, u
 		//not found.
 #if defined( _DEBUG )
 		LPRB_NODE node;
+		LPDLL_NODE link;
 		LPCACHE_NODE data;
-		for (node = rb_first(&(handle->mRoot)); node != GNull; node = rb_next(node)) {
+		LOGI("not found %ld\n", hash);
+		for (node = rb_first(&(handle->mRBRoot)); node != GNull; node = rb_next(node)) {
 			container_of(data, node, CACHE_NODE, mRBNode);
 			LOGI("%ld\n", data->mKey);
 		}
-		data = handle->pHead;
-		while (data != GNull) {
-			LOGI("%ld -->\n", data->mKey);
-			data = data->pNext;
+		LOGI("double link list:\n");
+		for (link = dll_first(&(handle->mDLLRoot)); link != GNull; link = dll_next(link)) {
+			container_of(data, link, CACHE_NODE, mDLLNode);
+			LOGI("%ld\n", data->mKey);
 		}
+
 #endif
 		return -1;
 	}

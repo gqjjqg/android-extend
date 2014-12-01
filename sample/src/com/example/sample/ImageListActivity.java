@@ -66,7 +66,23 @@ public class ImageListActivity extends ListActivity implements OnItemClickListen
         
     }
     
-    private class ListImage extends BaseAdapter {
+    /* (non-Javadoc)
+	 * @see android.app.ListActivity#onDestroy()
+	 */
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		/*final int count = this.getListView().getChildCount();
+		for (int i = 0; i < count ; i++ ) {
+			Holder holder = (Holder) this.getListView().getChildAt(i).getTag();
+			holder.siv.setImageBitmap(null);
+		}*/
+		
+		mCacheThread.shutdown();
+	}
+
+	private class ListImage extends BaseAdapter {
     	
     	private class Data {
     		String name;
