@@ -20,8 +20,8 @@ public class BitmapCache<T> {
 	private native int cache_init(int size);
 	private native int cache_put(int handler, int hash, Bitmap bitmap);
 	private native Bitmap cache_get(int handler, int hash);
-	private native Bitmap cache_get(int handler, int hash, Config config);
-	private native int cache_search(int handler, int hash, BitmapInfo info);
+	private native Bitmap cache_get(int handler, int hash, int format);
+	private native int cache_search(int handler, int hash, BitmapStructure info);
 	private native int cache_copy(int handler, int hash, Bitmap output);
 	private native int cache_uninit(int handler);
 	
@@ -59,17 +59,16 @@ public class BitmapCache<T> {
 		if (USE_JVM_MEMORY) {
 			return mCacheMap.get(id);
 		} else {
-			return new SoftReference<Bitmap>(cache_get(mCacheHandle, id.hashCode(), config));
+			final int format = BitmapStructure.Config2NativeFormat(config);
+			return new SoftReference<Bitmap>(cache_get(mCacheHandle, id.hashCode(), format));
 		}
 	}
 	
-	public synchronized boolean QueryBitmap(T id, BitmapInfo info) {
+	public synchronized boolean QueryBitmap(T id, BitmapStructure info) {
 		if (USE_JVM_MEMORY) {
 			SoftReference<Bitmap> svt = mCacheMap.get(id);
 			if (svt != null && svt.get() != null) {
-				info.width = svt.get().getWidth();
-				info.height = svt.get().getHeight();
-				info.setConfig(svt.get().getConfig());
+				info.setInfo(svt.get().getWidth(), svt.get().getHeight(), svt.get().getConfig());
 				return true;
 			}
 			return false;

@@ -8,7 +8,9 @@ import com.guo.android_extend.widget.HListView;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap.Config;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +36,8 @@ public class MainActivity extends Activity {
 		ViewListAdapter vla = new ViewListAdapter(this);
 		hv.setAdapter(vla);
 		hv.setOnItemClickListener(vla);
+		
+		Log.d("test", "Config.ARGB_8888=" + Config.ARGB_8888);
 		
 	}
 	

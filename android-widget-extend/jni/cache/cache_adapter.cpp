@@ -35,7 +35,7 @@ static void convert_565_4444(unsigned char *p565, unsigned char *p4444, int widt
 static jint NC_CacheInit(JNIEnv *env, jobject object, jint size);
 static jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap);
 static jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash);
-static jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jobject config);
+static jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jint format);
 static jint NC_CacheUnInit(JNIEnv *env, jobject object, jint handler);
 static jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap);
 static jint NC_CacheSearch(JNIEnv *env, jobject object, jint handler, jint hash, jobject info);
@@ -45,10 +45,10 @@ static JNINativeMethod gMethods[] = {
 	{"cache_init", "(I)I",(void*)NC_CacheInit},
 	{"cache_put", "(IILandroid/graphics/Bitmap;)I",(void*)NC_CachePut},
 	{"cache_get", "(II)Landroid/graphics/Bitmap;",(void*)NC_CacheGet},
-	{"cache_get", "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;",(void*)NC_ExCacheGet},
+	{"cache_get", "(III)Landroid/graphics/Bitmap;",(void*)NC_ExCacheGet},
 	{"cache_uninit", "(I)I",(void*)NC_CacheUnInit},
 	{"cache_copy", "(IILandroid/graphics/Bitmap;)I",(void*)NC_CacheCopy},
-	{"cache_search", "(IILcom/guo/android_extend/cache/BitmapInfo;)I",(void*)NC_CacheSearch},
+	{"cache_search", "(IILcom/guo/android_extend/cache/BitmapStructure;)I",(void*)NC_CacheSearch},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/cache/BitmapCache";
@@ -111,41 +111,21 @@ jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject b
 	return ret;
 }
 
-jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jobject config)
+jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jint target)
 {
 	int width, height, format;
-	int target;
 	unsigned char * pData;
 	jobject bitmap;
 
-	LOGI("NC_ExCacheGet in");
+	if (target < 0) {
+		return NULL;
+	}
 
 	if (0 != PullCache((unsigned long)handler, hash, &width, &height, &format, &pData)) {
 		return NULL;
 	}
 
-	// get target format from config.
-	jclass enumclass= env->GetObjectClass(config);
-	if(enumclass == NULL) {
-		return NULL;
-	}
-	jmethodID getVal = env->GetMethodID(enumclass, "name", "()Ljava/lang/String;");
-	jstring value = (jstring)env->CallObjectMethod(config, getVal);
-	jboolean iscopy;
-	const char * valueNative = env->GetStringUTFChars(value, &iscopy);
-	if (strcmp(valueNative, "ARGB_8888") == 0) {
-		target = CP_RGBA8888;
-	} else if (strcmp(valueNative, "RGB_565") == 0) {
-		target = CP_RGB565;
-	} else if (strcmp(valueNative, "ARGB_4444") == 0) {
-		target = CP_RGBA4444;
-	} else {
-		env->ReleaseStringUTFChars(value, valueNative);
-		return NULL;
-	}
-	env->ReleaseStringUTFChars(value, valueNative);
-
-	bitmap = createBitmap(env, width, height, format);
+	bitmap = createBitmap(env, width, height, target);
 	if (bitmap == NULL) {
 		return NULL;
 	}
@@ -172,6 +152,7 @@ jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jobj
 			convert_565_4444(pData, argb_base, info.width, info.height);
 		} else {
 			//NOT SUPPORT
+			LOGE("NOT SUPPORT! target = %d", target);
 		}
 	} else {
 		memcpy(argb_base, pData, info.height * info.stride);
@@ -221,8 +202,6 @@ jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject 
 	jint ret = GOK;
 	int width, height, format;
 	unsigned char * pData;
-
-	LOGI("NC_CacheCopy in");
 
 	if (0 != PullCache((unsigned long)handler, hash, &width, &height, &format, &pData)) {
 		ret = NOT_FIND;
@@ -274,9 +253,9 @@ jint NC_CacheSearch(JNIEnv *env, jobject object, jint handler, jint hash, jobjec
 
 	if (info != NULL) {
 		jclass jcls = env->GetObjectClass(info);
-		jfieldID jfildw = env->GetFieldID(jcls, "width", "I");
-		jfieldID jfildh = env->GetFieldID(jcls, "height", "I");
-		jfieldID jfildf = env->GetFieldID(jcls, "format", "I");
+		jfieldID jfildw = env->GetFieldID(jcls, "mWidth", "I");
+		jfieldID jfildh = env->GetFieldID(jcls, "mHeight", "I");
+		jfieldID jfildf = env->GetFieldID(jcls, "mFormat", "I");
 
 		env->SetIntField(info, jfildw, width);
 		env->SetIntField(info, jfildh, height);
@@ -294,16 +273,16 @@ jobject createBitmap(JNIEnv *env, int width, int height, int format)
 	jclass jclsconfig = env->FindClass("android/graphics/Bitmap$Config");
 
 	switch (format) {
-	case 1: //ANDROID_BITMAP_FORMAT_RGBA_8888 :
+	case CP_RGBA8888:
 		jfidconfig = env->GetStaticFieldID(jclsconfig, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
 		break;
-	case 4: //ANDROID_BITMAP_FORMAT_RGB_565 :
+	case CP_RGB565:
 		jfidconfig = env->GetStaticFieldID(jclsconfig, "RGB_565", "Landroid/graphics/Bitmap$Config;");
 		break;
-	case 7: //ANDROID_BITMAP_FORMAT_RGBA_4444:
+	case CP_RGBA4444:
 		jfidconfig = env->GetStaticFieldID(jclsconfig, "ARGB_4444", "Landroid/graphics/Bitmap$Config;");
 		break;
-	case 8: //ANDROID_BITMAP_FORMAT_A_8 :
+	case CP_ALPHA8:
 		jfidconfig = env->GetStaticFieldID(jclsconfig, "ALPHA_8", "Landroid/graphics/Bitmap$Config;");
 		break;
 	default :
