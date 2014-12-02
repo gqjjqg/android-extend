@@ -74,20 +74,6 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 	}
 	
 	/**
-	 * @param id
-	 * @return getBitmap by id
-	 */
-	public Bitmap getBitmap(V id) {
-		synchronized (mBitmapCache) {
-			SoftReference<Bitmap> sb = mBitmapCache.getBitmap(id);
-			if (sb != null && sb.get() != null) {
-				return sb.get();
-			}
-		}
-		return null;
-	}
-	
-	/**
      * shutdown the thread.
      */
     public void shutdown() {
@@ -117,8 +103,7 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 				if (!mWidgetMap.isEmpty()) {
 					Iterator<K> iterator = mWidgetMap.keySet().iterator();
 					if (iterator.hasNext()) {
-						K view = iterator.next();
-						monitor = mWidgetMap.remove(view);
+						monitor = mWidgetMap.remove(iterator.next());
 					}
 				}
 			}
@@ -136,16 +121,14 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 				}
 			} else {
 				try {
-					Bitmap src = getBitmap(monitor.getBitmapID());
-					if (src == null) {
-						src = monitor.decodeImage();
-						if (src != null) {
-							synchronized (mBitmapCache) {
-								mBitmapCache.putBitmap((V)monitor.getBitmapID(), new SoftReference<Bitmap>(src));
-							}
+					Bitmap bitmap = mBitmapCache.getBitmap((V)monitor.getBitmapID());
+					if (bitmap == null) {
+						bitmap = monitor.decodeImage();
+						if (bitmap != null) {
+							mBitmapCache.putBitmap((V)monitor.getBitmapID(), bitmap);
 						}
 					} else {
-						monitor.mBitmap = src;
+						monitor.mBitmap = bitmap;
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

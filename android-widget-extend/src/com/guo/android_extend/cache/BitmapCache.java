@@ -39,37 +39,45 @@ public class BitmapCache<T> {
 		}
 	}
 	
-	public synchronized boolean putBitmap(T id, SoftReference<Bitmap> bm) {
+	public synchronized boolean putBitmap(T id, Bitmap bitmap) {
 		if (USE_JVM_MEMORY) {
-			return mCacheMap.put(id, bm) == null;
+			return mCacheMap.put(id, new SoftReference<Bitmap>(bitmap)) == null;
 		} else {
-			return cache_put(mCacheHandle, id.hashCode(), bm.get()) == 0;
+			return cache_put(mCacheHandle, id.hashCode(), bitmap) == 0;
 		}
 	}
 	
-	public synchronized SoftReference<Bitmap> getBitmap(T id) {
+	public synchronized Bitmap getBitmap(T id) {
 		if (USE_JVM_MEMORY) {
-			return mCacheMap.get(id);
+			if (mCacheMap.containsKey(id)) {
+				return mCacheMap.get(id).get();
+			}
 		} else {
-			return new SoftReference<Bitmap>(cache_get(mCacheHandle, id.hashCode()));
+			return cache_get(mCacheHandle, id.hashCode());
 		}
+		return null;
 	}
 	
-	public synchronized SoftReference<Bitmap> getBitmap(T id, Config config) {
+	public synchronized Bitmap getBitmap(T id, Config config) {
 		if (USE_JVM_MEMORY) {
-			return mCacheMap.get(id);
+			if (mCacheMap.containsKey(id)) {
+				return mCacheMap.get(id).get();
+			}
 		} else {
 			final int format = BitmapStructure.Config2NativeFormat(config);
-			return new SoftReference<Bitmap>(cache_get(mCacheHandle, id.hashCode(), format));
+			return cache_get(mCacheHandle, id.hashCode(), format);
 		}
+		return null;
 	}
 	
 	public synchronized boolean QueryBitmap(T id, BitmapStructure info) {
 		if (USE_JVM_MEMORY) {
-			SoftReference<Bitmap> svt = mCacheMap.get(id);
-			if (svt != null && svt.get() != null) {
-				info.setInfo(svt.get().getWidth(), svt.get().getHeight(), svt.get().getConfig());
-				return true;
+			if (mCacheMap.containsKey(id)) {
+				Bitmap bitmap = mCacheMap.get(id).get();
+				if (bitmap != null) {
+					info.setInfo(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+					return true;
+				}
 			}
 			return false;
 		} else {
@@ -79,11 +87,13 @@ public class BitmapCache<T> {
 	
 	public synchronized boolean CopyBitmap(T id, Bitmap out) {
 		if (USE_JVM_MEMORY) {
-			SoftReference<Bitmap> svt = mCacheMap.get(id);
-			if (svt != null && svt.get() != null) {
-				Canvas cvs = new Canvas(out);
-				cvs.drawBitmap(svt.get(), 0, 0, null);
-				return true;
+			if (mCacheMap.containsKey(id)) {
+				Bitmap bitmap = mCacheMap.get(id).get();
+				if (bitmap != null) {
+					Canvas cvs = new Canvas(out);
+					cvs.drawBitmap(bitmap, 0, 0, null);
+					return true;
+				}
 			}
 			return false;
 		} else {
