@@ -1,86 +1,86 @@
 #include <stdio.h>
 #include "dllist.h"
 
-void dll_init_node(LPDLL_NODE node)
+void dl_init_node(LPDL_NODE node)
 {
-	node->dll_next = NULL;
-	node->dll_pre = NULL;
+	node->dl_next = NULL;
+	node->dl_pre = NULL;
 }
 
-void dll_insert_node(LPDLL_NODE node, LPDLL_NODE insert, LPDLL_ROOT root)
+void dl_insert_node(LPDL_NODE node, LPDL_NODE insert, LPDL_ROOT root)
 {
 	if (insert) { //update head
-		node->dll_next = insert->dll_next;
-		insert->dll_next = node;
-		node->dll_pre = insert;
-		if (node->dll_next) {
-			node->dll_next->dll_pre = node;
+		node->dl_next = insert->dl_next;
+		insert->dl_next = node;
+		node->dl_pre = insert;
+		if (node->dl_next) {
+			node->dl_next->dl_pre = node;
 		} else { //update last
-			root->dll_last = node;
+			root->dl_last = node;
 		}
 	} else {
-		if (root->dll_head) {
-			root->dll_head->dll_pre = node;
-			node->dll_next = root->dll_head;
-			root->dll_head = node;
-			root->dll_head->dll_pre = NULL;
+		if (root->dl_head) {
+			root->dl_head->dl_pre = node;
+			node->dl_next = root->dl_head;
+			root->dl_head = node;
+			root->dl_head->dl_pre = NULL;
 		} else {
-			root->dll_head = node;
-			node->dll_pre = NULL;
-			root->dll_last = node;
-			node->dll_next = NULL;
+			root->dl_head = node;
+			node->dl_pre = NULL;
+			root->dl_last = node;
+			node->dl_next = NULL;
 		}
 	}
 }
 
-void dll_remove_node(LPDLL_NODE node, LPDLL_ROOT root)
+void dl_remove_node(LPDL_NODE node, LPDL_ROOT root)
 {
-	if (node->dll_pre) {
-		node->dll_pre->dll_next = node->dll_next;
+	if (node->dl_pre) {
+		node->dl_pre->dl_next = node->dl_next;
 	} else {
-		root->dll_head = node->dll_next;
+		root->dl_head = node->dl_next;
 	}
 
-	if (node->dll_next) {
-		node->dll_next->dll_pre = node->dll_pre;
+	if (node->dl_next) {
+		node->dl_next->dl_pre = node->dl_pre;
 	} else {
-		root->dll_last = node->dll_pre;
-	}
-}
-
-void dll_replace_node(LPDLL_NODE node, LPDLL_NODE replace, LPDLL_ROOT root)
-{
-	if (node->dll_pre) {
-		node->dll_pre->dll_next = replace;
-		replace->dll_pre = node->dll_pre;
-	} else {
-		root->dll_head = replace;
-	}
-
-	if (node->dll_next) {
-		node->dll_next->dll_pre = replace;
-		replace->dll_next = node->dll_next;
-	} else {
-		root->dll_last = replace;
+		root->dl_last = node->dl_pre;
 	}
 }
 
-LPDLL_NODE dll_next(LPDLL_NODE node)
+void dl_replace_node(LPDL_NODE node, LPDL_NODE replace, LPDL_ROOT root)
 {
-	return node->dll_next;
+	if (node->dl_pre) {
+		node->dl_pre->dl_next = replace;
+		replace->dl_pre = node->dl_pre;
+	} else {
+		root->dl_head = replace;
+	}
+
+	if (node->dl_next) {
+		node->dl_next->dl_pre = replace;
+		replace->dl_next = node->dl_next;
+	} else {
+		root->dl_last = replace;
+	}
 }
 
-LPDLL_NODE dll_prev(LPDLL_NODE node)
+LPDL_NODE dl_next(LPDL_NODE node)
 {
-	return node->dll_pre;
+	return node->dl_next;
 }
 
-LPDLL_NODE dll_first(const LPDLL_ROOT root)
+LPDL_NODE dl_prev(LPDL_NODE node)
 {
-	return root->dll_head;
+	return node->dl_pre;
 }
 
-LPDLL_NODE dll_last(const LPDLL_ROOT root)
+LPDL_NODE dl_first(const LPDL_ROOT root)
 {
-	return root->dll_last;
+	return root->dl_head;
+}
+
+LPDL_NODE dl_last(const LPDL_ROOT root)
+{
+	return root->dl_last;
 }

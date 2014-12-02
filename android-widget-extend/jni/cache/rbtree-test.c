@@ -18,6 +18,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(offsetof)
+#undef offsetof
+#endif
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
+#if defined(container_of)
+#undef container_of
+#endif
+#define container_of(res, ptr, type, member) { \
+		unsigned long address = (unsigned long)(ptr); \
+		res = (type *)( address - offsetof(type,member) ); }
 struct mynode {
 	RB_NODE node;
   	char *string;

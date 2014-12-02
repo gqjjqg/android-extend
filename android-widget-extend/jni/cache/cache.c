@@ -34,7 +34,7 @@ typedef struct CACHE_t {
 	RB_NODE  mRBNode;
 
 	// link queue
-	DLL_NODE mDLLNode;
+	DL_NODE mDLNode;
 
 	// key-value
 	long	mKey;
@@ -46,7 +46,7 @@ typedef struct cache_handle_t {
 	int mCurCount;
 
 	//link queue
-	DLL_ROOT mDLLRoot;
+	DL_ROOT mDLRoot;
 
 	//RB-tree
 	RB_ROOT mRBRoot;
@@ -82,8 +82,8 @@ unsigned long CreateCache(int size)
 
 	handle->mCurCount = 0;
 	handle->mMaxCount = size;
-	handle->mDLLRoot.dll_head = GNull;
-	handle->mDLLRoot.dll_last = GNull;
+	handle->mDLRoot.dl_head = GNull;
+	handle->mDLRoot.dl_last = GNull;
 	handle->mRBRoot.rb_node = GNull;
 
 	return (unsigned long)handle;
@@ -103,7 +103,7 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 
 	if (handle->mCurCount >= handle->mMaxCount && pNode == GNull) {
 		// replace
-		container_of(pNode, handle->mDLLRoot.dll_last, CACHE_NODE, mDLLNode);
+		container_of(pNode, dl_last(&(handle->mDLRoot)), CACHE_NODE, mDLNode);
 #if defined( _DEBUG )
 		LOGI("replace get last 0x%X\n", pNode);
 #endif
@@ -111,7 +111,7 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 
 	if (pNode != GNull) {
 		//remove out in linked queue.
-		dll_remove_node(&(pNode->mDLLNode), &(handle->mDLLRoot));
+		dl_remove_node(&(pNode->mDLNode), &(handle->mDLRoot));
 
 		//remove from rb-tree.
 		rb_erase(&pNode->mRBNode, &handle->mRBRoot);
@@ -128,7 +128,7 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	cache_data_update(&(pNode->mData), width, height, format, data);
 
 	//add node
-	dll_insert_node(&(pNode->mDLLNode), GNull, &(handle->mDLLRoot));
+	dl_insert_node(&(pNode->mDLNode), GNull, &(handle->mDLRoot));
 
 	//add to rb-tree
 	rb_init_node(&pNode->mRBNode);
@@ -170,10 +170,10 @@ int PullCache(unsigned long h, int hash, int *width, int *height, int *format, u
 
 	if (pNode != GNull) {
 		//remove out.
-		dll_remove_node(&(pNode->mDLLNode), &(handle->mDLLRoot));
+		dl_remove_node(&(pNode->mDLNode), &(handle->mDLRoot));
 
 		//add node
-		dll_insert_node(&(pNode->mDLLNode), GNull, &(handle->mDLLRoot));
+		dl_insert_node(&(pNode->mDLNode), GNull, &(handle->mDLRoot));
 
 		cache_data_parse(&(pNode->mData), width, height, format, data);
 
@@ -206,16 +206,16 @@ int ReleaseCache(unsigned long h)
 	LPCACHE_NODE pNode = GNull;
 	LPCACHE_NODE pFree = GNull;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
-	LPDLL_NODE node;
+	LPDL_NODE node;
 	int ret = 0;
 	if (handle == GNull) {
 		return -1;
 	}
 
-	node = dll_first(&(handle->mDLLRoot));
+	node = dl_first(&(handle->mDLRoot));
 	while (node) {
-		container_of(pNode, node, CACHE_NODE, mDLLNode);
-		node = dll_next(node);
+		container_of(pNode, node, CACHE_NODE, mDLNode);
+		node = dl_next(node);
 		cache_data_release(&(pNode->mData));
 		GMemFree(pNode);
 	}
