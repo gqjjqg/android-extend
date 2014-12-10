@@ -23,7 +23,9 @@ int cache_data_update(LPDATA pData, int width, int height, int format, unsigned 
 				pData->pByte = (unsigned char *)GMemMalloc(size);
 				memcpy(pData->pByte, data, size);
 			}
-		} 
+		}  else {
+			memcpy(pData->pByte, data, size);
+		}
 	} else {
 		if (0 != size) {
 			pData->pByte = (unsigned char *)GMemMalloc(size);

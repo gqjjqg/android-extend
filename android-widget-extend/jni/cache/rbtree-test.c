@@ -34,9 +34,9 @@ struct mynode {
   	char *string;
 };
 
-RB_ROOT mytree = RB_ROOT;
+RB_ROOT mytree = {0};
 
-struct mynode * my_search(LPRB_ROOT root, char *string)
+struct mynode * rbt_search(LPRB_ROOT root, char *string)
 {
   	LPRB_NODE node = root->rb_node;
 
@@ -56,7 +56,7 @@ struct mynode * my_search(LPRB_ROOT root, char *string)
 	return NULL;
 }
 
-int my_insert(LPRB_ROOT root, struct mynode *node)
+int rbt_insert(LPRB_ROOT root, struct mynode *node)
 {
   	LPRB_NODE *new = &(root->rb_node);
 	LPRB_NODE parent = NULL;
@@ -84,7 +84,7 @@ int my_insert(LPRB_ROOT root, struct mynode *node)
 	return 1;
 }
 
-void my_free(struct mynode *node)
+void rbt_free(struct mynode *node)
 {
 	if (node != NULL) {
 		if (node->string != NULL) {
@@ -98,7 +98,7 @@ void my_free(struct mynode *node)
 
 #define NUM_NODES 32
 
-int main()
+int rbtree_test()
 {
 
 	struct mynode *mn[NUM_NODES];
@@ -112,7 +112,7 @@ int main()
 		mn[i] = (struct mynode *)malloc(sizeof(struct mynode));
 		mn[i]->string = (char *)malloc(sizeof(char) * 4);
 		sprintf(mn[i]->string, "%d", i);
-		my_insert(&mytree, mn[i]);
+		rbt_insert(&mytree, mn[i]);
 	}
 	
 	/* *search */
@@ -125,26 +125,26 @@ int main()
 
 	/* *delete */
 	printf("delete node 20: \n");
-	data = my_search(&mytree, "20");
+	data = rbt_search(&mytree, "20");
 	if (data) {
 		rb_erase(&data->node, &mytree);
-		my_free(data);
+		rbt_free(data);
 	}
 
 	/* *delete again*/
 	printf("delete node 10: \n");
-	data = my_search(&mytree, "10");
+	data = rbt_search(&mytree, "10");
 	if (data) {
 		rb_erase(&data->node, &mytree);
-		my_free(data);
+		rbt_free(data);
 	}
 
 	/* *delete once again*/
 	printf("delete node 15: \n");
-	data = my_search(&mytree, "15");
+	data = rbt_search(&mytree, "15");
 	if (data) {
 		rb_erase(&data->node, &mytree);
-		my_free(data);
+		rbt_free(data);
 	}
 
 	/* *search again*/

@@ -33,15 +33,15 @@
 		res = (type *)( address - offsetof(type,member) ); }
 
 struct mynode {
-	DLL_NODE node;
+	DL_NODE node;
   	char *string;
 };
 
-static DLL_ROOT mytree = {0,0};
+static DL_ROOT mytree = {0,0};
 
-struct mynode * dll_search(LPDLL_ROOT root, char *string)
+struct mynode * dll_search(LPDL_ROOT root, char *string)
 {
-  	LPDLL_NODE node = dll_first(root);
+  	LPDL_NODE node = dl_first(root);
 
   	while (node) {
   		struct mynode *data;
@@ -50,7 +50,7 @@ struct mynode * dll_search(LPDLL_ROOT root, char *string)
 		result = strcmp(string, data->string);
 		
 		if (result != 0) {
-  			node = node->dll_next;
+  			node = node->dl_next;
 		} else {
   			return data;
 		}
@@ -58,11 +58,11 @@ struct mynode * dll_search(LPDLL_ROOT root, char *string)
 	return NULL;
 }
 
-int dll_insert(LPDLL_ROOT root, struct mynode *node)
+int dll_insert(LPDL_ROOT root, struct mynode *node)
 {
-  	LPDLL_NODE last = dll_last(root);
+  	LPDL_NODE last = dl_last(root);
 
-	dll_insert_node(&(node->node), last, root);
+	dl_insert_node(&(node->node), last, root);
 
 	return 0;
 }
@@ -85,7 +85,7 @@ int dllist_test()
 {
 
 	struct mynode *mn[NUM_NODES];
-	LPDLL_NODE node;
+	LPDL_NODE node;
 	struct mynode *data;
 
 	/* *insert */
@@ -100,7 +100,7 @@ int dllist_test()
 	
 	/* *search */
 	Debug_Message(LOG_FULL, "search all nodes: \n");
-	for (node = dll_first(&mytree); node; node = dll_next(node)) {
+	for (node = dl_first(&mytree); node; node = dl_next(node)) {
 		struct mynode *data;
 		container_of(data, node, struct mynode, node);
 		Debug_Message(LOG_TEST, "key = %s\n", data->string);
@@ -110,7 +110,7 @@ int dllist_test()
 	Debug_Message(LOG_FULL, "delete node 0: \n");
 	data = dll_search(&mytree, "0");
 	if (data) {
-		dll_remove_node(&data->node, &mytree);
+		dl_remove_node(&data->node, &mytree);
 		dll_free(data);
 	}
 
@@ -118,7 +118,7 @@ int dllist_test()
 	Debug_Message(LOG_FULL, "delete node 10: \n");
 	data = dll_search(&mytree, "10");
 	if (data) {
-		dll_remove_node(&data->node, &mytree);
+		dl_remove_node(&data->node, &mytree);
 		dll_free(data);
 	}
 
@@ -126,13 +126,13 @@ int dllist_test()
 	Debug_Message(LOG_FULL, "delete node 31: \n");
 	data = dll_search(&mytree, "31");
 	if (data) {
-		dll_remove_node(&data->node, &mytree);
+		dl_remove_node(&data->node, &mytree);
 		dll_free(data);
 	}
 
 	/* *search again*/
 	Debug_Message(LOG_FULL, "search again:\n");
-	for (node = dll_first(&mytree); node; node = dll_next(node)) {
+	for (node = dl_first(&mytree); node; node = dl_next(node)) {
 		struct mynode *data;
 		container_of(data, node, struct mynode, node);
 		Debug_Message(LOG_TEST,"key = %s\n", data->string);

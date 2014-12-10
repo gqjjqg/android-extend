@@ -63,6 +63,16 @@ public class BitmapStructure {
 		return Bitmap.createBitmap(mWidth, mHeight, getConfig());
 	}
 	
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return super.toString() + "W = " + mWidth + ", H = " + mHeight + ", F = " + mFormat;
+	}
+
 	/**
 	 * convert bitmap config to native bitmap format.  
 	 * @param config

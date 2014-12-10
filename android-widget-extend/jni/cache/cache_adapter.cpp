@@ -7,7 +7,7 @@
 
 #include "cache.h"
 
-//#define _DEBUG
+#define _DEBUG
 #if defined( _DEBUG )
 	#define  LOG_TAG    "ATC."
 	#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -70,6 +70,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
         return JNI_ERR;
     }
 
+    LOGI("cache.so JNI_OnLoad");
+
     return JNI_VERSION_1_4;
 }
 
@@ -84,6 +86,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    if (cls == NULL){
        return;
    }
+
+   LOGI("cache.so JNI_OnUnload");
    jint nRes = env->UnregisterNatives(cls);
 }
 

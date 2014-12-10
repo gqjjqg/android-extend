@@ -70,7 +70,7 @@ public class BitmapCache<T> {
 		return null;
 	}
 	
-	public synchronized boolean QueryBitmap(T id, BitmapStructure info) {
+	public synchronized boolean queryBitmap(T id, BitmapStructure info) {
 		if (USE_JVM_MEMORY) {
 			if (mCacheMap.containsKey(id)) {
 				Bitmap bitmap = mCacheMap.get(id).get();
@@ -85,7 +85,7 @@ public class BitmapCache<T> {
 		}
 	}
 	
-	public synchronized boolean CopyBitmap(T id, Bitmap out) {
+	public synchronized boolean copyBitmap(T id, Bitmap out) {
 		if (USE_JVM_MEMORY) {
 			if (mCacheMap.containsKey(id)) {
 				Bitmap bitmap = mCacheMap.get(id).get();

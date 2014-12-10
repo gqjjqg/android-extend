@@ -1,6 +1,5 @@
 package com.guo.android_extend.cache;
 
-import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
