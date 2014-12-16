@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 
 import com.guo.android_extend.cache.BitmapMonitor.OnMonitoring;
 
-import android.graphics.Bitmap;
 import android.os.Handler;
 import android.util.Log;
 
@@ -120,14 +119,10 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 				}
 			} else {
 				try {
-					Bitmap bitmap = mBitmapCache.getBitmap((V)monitor.getBitmapID());
-					if (bitmap == null) {
-						bitmap = monitor.decodeImage();
-						if (bitmap != null) {
-							mBitmapCache.putBitmap((V)monitor.getBitmapID(), bitmap);
-						}
-					} else {
-						monitor.mBitmap = bitmap;
+					monitor.mBitmap = mBitmapCache.getBitmap((V)monitor.getBitmapID());
+					if (monitor.mBitmap == null) {
+						monitor.mBitmap = monitor.decodeImage();
+						mBitmapCache.putBitmap((V)monitor.getBitmapID(), monitor.mBitmap);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

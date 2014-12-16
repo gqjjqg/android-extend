@@ -55,7 +55,8 @@ public class MainActivity extends Activity {
 				"ListViewCache",
 				"CustomWidget",
 				"HListView",
-				"Test2","Test6","Test6",
+				"ListImageNet",
+				"Test6","Test6",
 				"Test3","Test6","Test6",
 				"Test4","Test6","Test6",
 				"Test5","Test6","Test6",
@@ -125,6 +126,9 @@ public class MainActivity extends Activity {
 				startActivity(intent);
 			} else if (arg2 == 3) {
 				Intent intent = new Intent(MainActivity.this, HListActivity.class);
+				startActivity(intent);
+			} else if (arg2 == 4) {
+				Intent intent = new Intent(MainActivity.this, ImageListNetActivity.class);
 				startActivity(intent);
 			}
 		}

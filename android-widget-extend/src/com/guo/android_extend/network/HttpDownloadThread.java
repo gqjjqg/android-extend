@@ -10,19 +10,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
-import android.os.Handler;
-
-
-public class DownloadThread extends Thread {
+public class HttpDownloadThread extends Thread {
 	
-	private HashMap<String, Downloader> mDownLoadMap;
-	private volatile Thread mBlinker;
-	private Handler mHandler;   
+	private HashMap<String, HttpDownloader> mDownLoadMap;
+	private volatile Thread mBlinker;  
 	
-	public DownloadThread(Handler handler) {
+	public HttpDownloadThread() {
 		// TODO Auto-generated constructor stub
-		mDownLoadMap = new LinkedHashMap<String, Downloader>();
-		mHandler = handler;
+		mDownLoadMap = new LinkedHashMap<String, HttpDownloader>();
 		mBlinker = this;
 	}  
 
@@ -31,7 +26,7 @@ public class DownloadThread extends Thread {
 	 * @param localdir
 	 * @return
 	 */
-	private boolean downloading(Downloader downloader) {
+	private boolean downloading(HttpDownloader downloader) {
 		String cache = downloader.getLocalDownloadFile();
 
 		try {
@@ -47,10 +42,9 @@ public class DownloadThread extends Thread {
 
 			byte[] bytes = new byte[1024];
 			int length = 0;
-			while ((length = is.read(bytes, 0, 1024)) != 1024) {
-				os.write(bytes, 0, 1024);
+			while ((length = is.read(bytes, 0, 1024)) != -1) {
+				os.write(bytes, 0, length);
 			}
-			os.write(bytes, 0, length);
 			os.close();
 			is.close();
 			conn.disconnect();
@@ -68,7 +62,7 @@ public class DownloadThread extends Thread {
      * @param localdir
      * @return
      */
-	public String postLoadImage(Downloader downloader) {
+	public String postLoadImage(HttpDownloader downloader) {
 		if (!downloader.isLocalFileExists()) {
 			synchronized (mDownLoadMap) {
 				mDownLoadMap.put(downloader.mUrl, downloader);
@@ -105,13 +99,12 @@ public class DownloadThread extends Thread {
 		// TODO Auto-generated method stub
 		Thread thisThread = Thread.currentThread();
 		while (mBlinker == thisThread) {
-			Downloader downloader = null;
+			HttpDownloader downloader = null;
 			synchronized(mDownLoadMap) {
 				if (!mDownLoadMap.isEmpty()) {
 					Iterator<String> iterator = mDownLoadMap.keySet().iterator();
 					if (iterator.hasNext()) {
-						String url = iterator.next();
-						downloader = mDownLoadMap.remove(url);
+						downloader = mDownLoadMap.remove(iterator.next());
 					}
 				}
 			}
@@ -126,12 +119,12 @@ public class DownloadThread extends Thread {
 				}
 			} else {
 				if (!downloader.isLocalFileExists()) {
-					if (downloading(downloader)) {
-						mHandler.sendMessage(downloader.getMessage());
-					}
+					downloader.finish(downloader, downloading(downloader) );
 				}
 			}
 		}
+		
+		mDownLoadMap.clear();
 	}
 
 }

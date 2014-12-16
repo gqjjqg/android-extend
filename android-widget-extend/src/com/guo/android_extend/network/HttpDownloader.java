@@ -28,15 +28,11 @@ package com.guo.android_extend.network;
 
 import java.io.File;
 
-import android.os.Message;
-
-public abstract class Downloader {
+public abstract class HttpDownloader {
 	protected String mLocalDir;
 	protected String mUrl;
-	
-	protected Message mMessage;
-	
-	public Downloader(String url, String local) {
+
+	public HttpDownloader(String url, String local) {
 		// TODO Auto-generated constructor stub
 		mLocalDir = local;
 		mUrl = url;
@@ -46,7 +42,7 @@ public abstract class Downloader {
 	 * get file name from url.
 	 * @return
 	 */
-	protected String getRemoteFileName() {
+	public synchronized String getRemoteFileName() {
 		String fileName = null;
 		try {
 			String temp[] = mUrl.replaceAll("////", "/").split("/");
@@ -63,7 +59,7 @@ public abstract class Downloader {
 	 * get local file
 	 * @return
 	 */
-	protected boolean isLocalFileExists() {
+	public synchronized boolean isLocalFileExists() {
 		try {
 	        File file = new File(getLocalFile());
 	        if (file.exists() && file.isFile()) {
@@ -79,7 +75,7 @@ public abstract class Downloader {
 	 * get local file abstract path.
 	 * @return
 	 */
-	protected String getLocalFile() {
+	public synchronized String getLocalFile() {
 		String localFile = null;
 		String fileName = getRemoteFileName();
 		if (mLocalDir.endsWith("/")) {
@@ -114,19 +110,11 @@ public abstract class Downloader {
 		}
 		return fileName;
 	}
-
+	
 	/**
-	 * @return
+	 *  current view is need fresh with this bitmap.
+	 * @param isOld the view is update to set another bitmap.
 	 */
-	public Message getMessage() {
-		return mMessage;
-	}
-
-	/**
-	 * @param mMessage
-	 */
-	public void setMessage(Message mMessage) {
-		this.mMessage = mMessage;
-	}
+	protected abstract void finish(HttpDownloader content, boolean isSuccess);
 	
 }
