@@ -27,6 +27,11 @@
 package com.guo.android_extend.network;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public abstract class HttpDownloader {
 	protected String mLocalDir;
@@ -109,6 +114,44 @@ public abstract class HttpDownloader {
 			e.printStackTrace();
 		}
 		return fileName;
+	}
+	
+	/**
+	 * download the object.
+	 * 
+	 * @param url
+	 * @param localdir
+	 * @return true if success.
+	 */
+	public boolean syncDownload() {
+		String cache = getLocalDownloadFile();
+
+		try {
+			URL url = new URL(mUrl);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setConnectTimeout(30000);
+			conn.setReadTimeout(30000);
+			conn.setInstanceFollowRedirects(true);
+
+			InputStream is = conn.getInputStream();
+			File file = new File(cache);
+			OutputStream os = new FileOutputStream(file);
+
+			byte[] bytes = new byte[1024];
+			int length = 0;
+			while ((length = is.read(bytes, 0, 1024)) != -1) {
+				os.write(bytes, 0, length);
+			}
+			os.close();
+			is.close();
+			conn.disconnect();
+
+			file.renameTo(new File(getLocalFile()));
+			return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return false;
 	}
 	
 	/**

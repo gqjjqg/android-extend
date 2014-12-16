@@ -1,11 +1,5 @@
 package com.guo.android_extend.network;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -20,44 +14,6 @@ public class HttpDownloadThread extends Thread {
 		mDownLoadMap = new LinkedHashMap<String, HttpDownloader>();
 		mBlinker = this;
 	}  
-
-	/**
-	 * download the object.
-	 * 
-	 * @param url
-	 * @param localdir
-	 * @return true if success.
-	 */
-	public boolean syncDownload(HttpDownloader downloader) {
-		String cache = downloader.getLocalDownloadFile();
-
-		try {
-			URL url = new URL(downloader.mUrl);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setConnectTimeout(30000);
-			conn.setReadTimeout(30000);
-			conn.setInstanceFollowRedirects(true);
-
-			InputStream is = conn.getInputStream();
-			File file = new File(cache);
-			OutputStream os = new FileOutputStream(file);
-
-			byte[] bytes = new byte[1024];
-			int length = 0;
-			while ((length = is.read(bytes, 0, 1024)) != -1) {
-				os.write(bytes, 0, length);
-			}
-			os.close();
-			is.close();
-			conn.disconnect();
-
-			file.renameTo(new File(downloader.getLocalFile()));
-			return true;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return false;
-	}
     
     /**
      * @param url
@@ -121,7 +77,8 @@ public class HttpDownloadThread extends Thread {
 				}
 			} else {
 				if (!downloader.isLocalFileExists()) {
-					downloader.finish(downloader, syncDownload(downloader) );
+					final boolean isSuccess = downloader.syncDownload();
+					downloader.finish(downloader, isSuccess);
 				}
 			}
 		}
