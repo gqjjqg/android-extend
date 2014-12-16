@@ -90,16 +90,19 @@ public class ImageListNetActivity extends ListActivity implements OnItemClickLis
 			protected void finish(HttpDownloader content, boolean isSuccess) {
 				// TODO Auto-generated method stub
 				Log.d("debug", content.getRemoteFileName() + ", finish:" + isSuccess);
-				if (isSuccess) {
-					ListView root = ImageListNetActivity.this.getListView();
-					for (int i = 0; i < root.getChildCount(); i++) {
-						Holder holder = (Holder) root.getChildAt(i).getTag();
-						if (holder.data.equals(content)) {
+				
+				ListView root = ImageListNetActivity.this.getListView();
+				for (int i = 0; i < root.getChildCount(); i++) {
+					Holder holder = (Holder) root.getChildAt(i).getTag();
+					if (holder.data.equals(content)) {
+						if (isSuccess) {
 							mCacheThread.postLoadBitmap(new Mointor(holder.siv, content.getLocalFile(), content));
-							break;
+						} else {
+							mHttpDownloadThread.postLoadImage(content);
 						}
+						break;
 					}
-				}
+				} 
 			}
     	}
     	
