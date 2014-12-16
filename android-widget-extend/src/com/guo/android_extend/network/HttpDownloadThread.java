@@ -22,11 +22,13 @@ public class HttpDownloadThread extends Thread {
 	}  
 
 	/**
+	 * download the object.
+	 * 
 	 * @param url
 	 * @param localdir
-	 * @return
+	 * @return true if success.
 	 */
-	private boolean downloading(HttpDownloader downloader) {
+	public boolean syncDownload(HttpDownloader downloader) {
 		String cache = downloader.getLocalDownloadFile();
 
 		try {
@@ -119,7 +121,7 @@ public class HttpDownloadThread extends Thread {
 				}
 			} else {
 				if (!downloader.isLocalFileExists()) {
-					downloader.finish(downloader, downloading(downloader) );
+					downloader.finish(downloader, syncDownload(downloader) );
 				}
 			}
 		}
