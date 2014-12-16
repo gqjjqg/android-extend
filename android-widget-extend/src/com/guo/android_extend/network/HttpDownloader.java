@@ -117,6 +117,20 @@ public abstract class HttpDownloader {
 	}
 	
 	/**
+	 * @return the mUrl
+	 */
+	public String getUrl() {
+		return mUrl;
+	}
+	
+	/**
+	 * @return the mLocalDir
+	 */
+	public String getLocalDir() {
+		return mLocalDir;
+	}
+	
+	/**
 	 * download the object.
 	 * 
 	 * @param url
