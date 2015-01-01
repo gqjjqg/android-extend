@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- attribute for Horizontal ListView. -->
-    <declare-styleable name="HListView">
-        <attr name="dividerHeight" format="dimension" />
-        <attr name="listSelector" format="reference" />
-    </declare-styleable>
-</resources>
