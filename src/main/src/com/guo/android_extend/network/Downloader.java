@@ -82,10 +82,10 @@ public abstract class Downloader<T> extends DownloaderStructure implements Runna
             File file = new File(cache);
             OutputStream os = new FileOutputStream(file);
 
-            byte[] bytes = new byte[1024];
+            byte[] bytes = new byte[1024 * 1024];
             int length = 0;
             try {
-                while ((length = is.read(bytes, 0, 1024)) != -1) {
+                while ((length = is.read(bytes, 0, 1024 * 1024)) != -1) {
                     os.write(bytes, 0, length);
                     cur += length;
                     //update progress

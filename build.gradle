@@ -10,16 +10,16 @@ android {
         versionCode 1
         versionName "1.0"
 
-        ndk {
-            moduleName'cache'
-            ldLibs'jnigraphics','log'
-            abiFilters 'armeabi'
-        }
-
         sourceSets.main {
             //jniLibs.srcDirs = ['src/main/libs']
             //jni.srcDirs = []
             java.srcDirs = ['src/main/src']
+        }
+
+        ndk {
+            moduleName'cache'
+            ldLibs'jnigraphics','log'
+            abiFilters 'armeabi'
         }
     }
     buildTypes {
