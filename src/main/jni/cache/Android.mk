@@ -22,9 +22,13 @@ LOCAL_SRC_FILES := cache_adapter.cpp \
 				   dllist.c \
 				   cache_data.c \
 				   cache.c	   
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/cache/inc		   
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/cache/inc	
+LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 
 LOCAL_LDLIBS   := -llog -ljnigraphics 
+
+LOCAL_STATIC_LIBRARIES := imagebase
+
+LOCAL_EXPORT_LDLIBS := $(LOCAL_LDLIBS) 
 
 include $(BUILD_SHARED_LIBRARY)

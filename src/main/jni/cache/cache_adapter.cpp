@@ -1,11 +1,12 @@
 #include <jni.h>
 #include <android/log.h>
-#include <android/bitmap.h>
+
 
 #include <stdio.h>
 #include <string.h>
 
 #include "cache.h"
+#include "image.h"
 
 #define _DEBUG
 #if defined( _DEBUG )
@@ -17,20 +18,8 @@
 	#define LOGE(...)
 #endif
 
-#define CP_RGBA8888		ANDROID_BITMAP_FORMAT_RGBA_8888
-#define CP_RGB565		ANDROID_BITMAP_FORMAT_RGB_565
-#define CP_RGBA4444		ANDROID_BITMAP_FORMAT_RGBA_4444
-#define CP_ALPHA8		ANDROID_BITMAP_FORMAT_A_8
-
 
 static jobject createBitmap(JNIEnv *env, int width, int height, int format);
-static void convert_565_8888(unsigned char *p565, unsigned char * p8888, int width, int height);
-static void convert_8888_565(unsigned char * p8888, unsigned char *p565, int width, int height);
-static void convert_4444_8888(unsigned char *p4444, unsigned char * p8888, int width, int height);
-static void convert_8888_4444(unsigned char * p8888, unsigned char *p4444, int width, int height);
-static void convert_4444_565(unsigned char *p4444, unsigned char *p565, int width, int height);
-static void convert_565_4444(unsigned char *p565, unsigned char *p4444, int width, int height);
-
 
 static jint NC_CacheInit(JNIEnv *env, jobject object, jint size);
 static jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap);
@@ -306,89 +295,3 @@ jobject createBitmap(JNIEnv *env, int width, int height, int format)
 
 	return bitmap;
 }
-
-void convert_565_8888(unsigned char *p565, unsigned char * p8888, int width, int height)
-{
-	unsigned char * pagb = p8888;
-	unsigned short *arg565_p = (unsigned short *)p565;
-	for (int i = 0, k = 0; i < width * height; i++) {
-		unsigned char r = (unsigned char)(((arg565_p[i] >> 11) & 0x7) | (arg565_p[i] >> 8));
-		unsigned char g = (unsigned char)(((arg565_p[i] >> 5) & 0x3) | (arg565_p[i] >> 3));
-		unsigned char b = (unsigned char)((arg565_p[i] & 0x7) |( arg565_p[i] << 3));
-		pagb[k] = r; k++;
-		pagb[k] = g; k++;
-		pagb[k] = b; k++;
-		pagb[k] = 255; k++;
-	}
-}
-
-void convert_8888_565(unsigned char * p8888, unsigned char *p565, int width, int height)
-{
-	unsigned char * pagb = p8888;
-	unsigned short *arg565_p = (unsigned short *)p565;
-	for (int i = 0, k = 0; i < width * height; i++) {
-		unsigned short r = pagb[k]; k++;
-		unsigned short g = pagb[k]; k++;
-		unsigned short b = pagb[k]; k++;
-		k++;
-		arg565_p[i] = ((r & 0xF8) << 8) | ((g & 0xFC) << 5) | (b & 0xF8);
-	}
-}
-
-void convert_4444_8888(unsigned char *p4444, unsigned char * p8888, int width, int height)
-{
-	unsigned char * pagb = p8888;
-	unsigned short *arg565_p = (unsigned short *)p4444;
-	for (int i = 0, k = 0; i < width * height; i++) {
-		unsigned char r = (unsigned char)(((arg565_p[i] >> 8) & 0xF0) | (arg565_p[i] >> 12));
-		unsigned char g = (unsigned char)(((arg565_p[i] >> 4) & 0xF0) | ((arg565_p[i] >> 8) & 0x0F));
-		unsigned char b = (unsigned char)((arg565_p[i] & 0xF0) | ((arg565_p[i] >> 4) & 0x0F));
-		unsigned char a = (unsigned char)(((arg565_p[i] << 4) & 0xF0) | ( arg565_p[i] & 0x0F));
-		pagb[k] = r; k++;
-		pagb[k] = g; k++;
-		pagb[k] = b; k++;
-		pagb[k] = a; k++;
-	}
-}
-
-void convert_8888_4444(unsigned char * p8888, unsigned char *p4444, int width, int height)
-{
-	unsigned char * pagb = p8888;
-	unsigned short *arg565_p = (unsigned short *)p4444;
-	for (int i = 0, k = 0; i < width * height; i++) {
-		unsigned short r = pagb[k]; k++;
-		unsigned short g = pagb[k]; k++;
-		unsigned short b = pagb[k]; k++;
-		unsigned short a = pagb[k]; k++;
-
-		arg565_p[i] = (((r & 0xF0) | (g >> 4)) << 8) | (b & 0xF0) | (a >> 4);
-	}
-}
-
-void convert_4444_565(unsigned char *p4444, unsigned char *p565, int width, int height)
-{
-	unsigned short * pagb = (unsigned short *)p565;
-	unsigned short *arg565_p = (unsigned short *)p4444;
-	for (int i = 0; i < width * height; i++) {
-		unsigned short r = (unsigned short)(((arg565_p[i] >> 8) & 0xF0) | (arg565_p[i] >> 12));
-		unsigned short g = (unsigned short)(((arg565_p[i] >> 4) & 0xF0) | ((arg565_p[i] >> 8) & 0x0F));
-		unsigned short b = (unsigned short)((arg565_p[i] & 0xF0) | ((arg565_p[i] >> 4) & 0x0F));
-		unsigned short a = (unsigned short)(((arg565_p[i] << 4) & 0xF0) | ( arg565_p[i] & 0x0F));
-
-		pagb[i] = ((r & 0xF8) << 8) | ((g & 0xFC) << 5) | (b & 0xF8);
-	}
-}
-
-void convert_565_4444(unsigned char *p565, unsigned char *p4444, int width, int height)
-{
-	unsigned short * pagb = (unsigned short *)p4444;
-	unsigned short *arg565_p = (unsigned short *)p565;
-	for (int i = 0; i < width * height; i++) {
-		unsigned short r = (unsigned short)(((arg565_p[i] >> 11) & 0x7) | (arg565_p[i] >> 8));
-		unsigned short g = (unsigned short)(((arg565_p[i] >> 5) & 0x3) | (arg565_p[i] >> 3));
-		unsigned short b = (unsigned short)((arg565_p[i] & 0x7) |( arg565_p[i] << 3));
-		unsigned short a = 0;
-		pagb[i] = (((r & 0xF0) | (g >> 4)) << 8) | (b & 0xF0) | (a >> 4);
-	}
-}
-
