@@ -7,7 +7,7 @@
 
 #include "image.h"
 
-#define _DEBUG
+//#define _DEBUG
 #if defined( _DEBUG )
 	#define  LOG_TAG    "ATC."
 	#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -23,6 +23,10 @@ typedef struct imageformat_t {
 	int width;
 	int height;
 	int format;
+#ifdef _DEBUG
+	FILE *file;
+	int count;
+#endif
 }IMAGE_HANDLE, *LPIMAGE_HANDLE;
 
 static jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format);
@@ -81,6 +85,9 @@ jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
 	if (engine->pBuffer != NULL) {
 		free(engine->pBuffer);
 	}
+#ifdef _DEBUG
+	fclose(engine->file);
+#endif
 	free(engine);
 }
 
@@ -90,10 +97,14 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->width = width;
 	handle->height = height;
 	handle->format = format;
-
+#ifdef _DEBUG
+	handle->count = 1;
+	handle->file = fopen("/sdcard/dump.nv21", "wb");
+#endif
 	jclass jclsmain = env->FindClass("com/guo/android_extend/image/ImageFormat");
 
 	switch (format) {
+	case CP_PAF_NV12:
 	case CP_PAF_NV21:
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3 / 2);
 		break;
@@ -136,11 +147,25 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 	//convert
 	if (info.format == CP_RGBA8888 && engine->format == CP_PAF_NV12) {
 		convert_8888_NV12(RGBAbase, engine->pBuffer, info.width, info.height);
-	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_NV21) {
+	} else if (info.format == CP_RGBA8888 && engine->format == CP_PAF_NV21) {
 		convert_8888_NV21(RGBAbase, engine->pBuffer, info.width, info.height);
+	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_NV12) {
+		convert_565_NV12(RGBAbase, engine->pBuffer, info.width, info.height);
+	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_NV21) {
+		convert_565_NV21(RGBAbase, engine->pBuffer, info.width, info.height);
 	} else {
+		LOGI("format = %d\n", info.format);
 		ret = -1;
 	}
+
+#ifdef _DEBUG
+	if (engine->count > 0) {
+		int size = fwrite(engine->pBuffer, 1, info.width * info.height * 3 / 2, engine->file);
+		engine->count--;
+		LOGI("size = %dx%d, %d\n", info.width, info.height, size);
+		fclose(engine->file);
+	}
+#endif
 
 	env->SetByteArrayRegion(data, 0, info.width * info.height * 3 / 2, (const jbyte*) engine->pBuffer);
 

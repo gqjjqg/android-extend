@@ -29,6 +29,8 @@ void convert_4444_565(unsigned char *p4444, unsigned char *p565, int width, int 
 void convert_565_4444(unsigned char *p565, unsigned char *p4444, int width, int height);
 void convert_8888_NV12(unsigned char * p8888, unsigned char *pNV12, int width, int height);
 void convert_8888_NV21(unsigned char * p8888, unsigned char *pNV12, int width, int height);
+void convert_565_NV12(unsigned char * p565, unsigned char *pNV21, int width, int height);
+void convert_565_NV21(unsigned char * p565, unsigned char *pNV21, int width, int height);
 
 #ifdef __cplusplus
 }

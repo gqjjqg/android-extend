@@ -101,39 +101,6 @@ void convert_565_4444(unsigned char *p565, unsigned char *p4444, int width, int 
 	}
 }
 
-void convert_8888_NV12(unsigned char * p8888, unsigned char *pNV12, int width, int height)
-{
-	unsigned char *pY;
-	unsigned char *pCrCb;
-	int i, j;
-	//Y’ = 0.299*R' + 0.587*G' + 0.114*B'
-	//Cb' = 128-0.168736*R' - 0.331264*G' + 0.5*B'
-	//Cr' = 128+0.5*R' - 0.418688*G' - 0.081312*B'
-
-	for (j = 0; j < height; j++) {
-		pY = pNV12 + j * width;
-		pCrCb = pNV12 + (width * height) + ((j >> 1)) * width;
-		for (i = 0; i < width; i++) {
-			unsigned char R = *p8888;
-			unsigned char G = *(p8888 + 1);
-			unsigned char B = *(p8888 + 2);
-			int Y;
-			int Cb;
-			int Cr;
-
-			Y = (1225 * R + 2404 * G + 467 * B) >> 12;
-			*(pY++) = NV21_CLAMP_INT32_8(Y);
-			if ((i & 0x00000001) == 0x00000000) {
-				Cr = (524288 + 2048 * R - 1715 * G - 333 * B) >> 12;
-				Cb = (524288 - 691 * R - 1357 * G + 2048 * B) >> 12;
-				*(pCrCb++) = NV21_CLAMP_INT32_8(Cr);
-				*(pCrCb++) = NV21_CLAMP_INT32_8(Cb);
-			}
-			p8888 += 4;
-		}
-	}
-}
-
 void convert_8888_NV21(unsigned char * p8888, unsigned char *pNV12, int width, int height)
 {
 	unsigned char *pY;
@@ -155,15 +122,115 @@ void convert_8888_NV21(unsigned char * p8888, unsigned char *pNV12, int width, i
 			int Cr;
 
 			Y = (1225 * R + 2404 * G + 467 * B) >> 12;
-			*(pY++) = NV21_CLAMP_INT32_8(Y);
+			*pY = NV21_CLAMP_INT32_8(Y); pY++;
 			if ((i & 0x00000001) == 0x00000000) {
 				Cr = (524288 + 2048 * R - 1715 * G - 333 * B) >> 12;
 				Cb = (524288 - 691 * R - 1357 * G + 2048 * B) >> 12;
-				*(pCrCb++) = NV21_CLAMP_INT32_8(Cb);
-				*(pCrCb++) = NV21_CLAMP_INT32_8(Cr);
+				*pCrCb = NV21_CLAMP_INT32_8(Cr); pCrCb++;
+				*pCrCb = NV21_CLAMP_INT32_8(Cb); pCrCb++;
 			}
 			p8888 += 4;
 		}
 	}
 }
 
+void convert_8888_NV12(unsigned char * p8888, unsigned char *pNV21, int width, int height)
+{
+	unsigned char *pY;
+	unsigned char *pCrCb;
+	int i, j;
+	//Y’ = 0.299*R' + 0.587*G' + 0.114*B'
+	//Cb' = 128-0.168736*R' - 0.331264*G' + 0.5*B'
+	//Cr' = 128+0.5*R' - 0.418688*G' - 0.081312*B'
+
+	for (j = 0; j < height; j++) {
+		pY = pNV21 + j * width;
+		pCrCb = pNV21 + (width * height) + ((j >> 1)) * width;
+		for (i = 0; i < width; i++) {
+			unsigned char R = *p8888;
+			unsigned char G = *(p8888 + 1);
+			unsigned char B = *(p8888 + 2);
+			int Y;
+			int Cb;
+			int Cr;
+
+			Y = (1225 * R + 2404 * G + 467 * B) >> 12;
+			*pY = NV21_CLAMP_INT32_8(Y); pY++;
+			if ((i & 0x00000001) == 0x00000000) {
+				Cr = (524288 + 2048 * R - 1715 * G - 333 * B) >> 12;
+				Cb = (524288 - 691 * R - 1357 * G + 2048 * B) >> 12;
+				*pCrCb = NV21_CLAMP_INT32_8(Cb); pCrCb++;
+				*pCrCb = NV21_CLAMP_INT32_8(Cr); pCrCb++;
+			}
+			p8888 += 4;
+		}
+	}
+}
+
+void convert_565_NV12(unsigned char * p565, unsigned char *pNV21, int width, int height)
+{
+	unsigned short *arg565_p = (unsigned short *)p565;
+	unsigned char *pY;
+	unsigned char *pCrCb;
+	int i, j, k;
+	//Y’ = 0.299*R' + 0.587*G' + 0.114*B'
+	//Cb' = 128-0.168736*R' - 0.331264*G' + 0.5*B'
+	//Cr' = 128+0.5*R' - 0.418688*G' - 0.081312*B'
+
+	for (j = 0, k = 0; j < height; j++) {
+		pY = pNV21 + j * width;
+		pCrCb = pNV21 + (width * height) + ((j >> 1)) * width;
+		for (i = 0; i < width; i++) {
+			unsigned char R = (unsigned char)(((arg565_p[k] >> 11) & 0x7) | (arg565_p[k] >> 8));
+			unsigned char G = (unsigned char)(((arg565_p[k] >> 5) & 0x3) | (arg565_p[k] >> 3));
+			unsigned char B = (unsigned char)((arg565_p[k] & 0x7) |( arg565_p[k] << 3));
+			int Y;
+			int Cb;
+			int Cr;
+
+			Y = (1225 * R + 2404 * G + 467 * B) >> 12;
+			*pY = NV21_CLAMP_INT32_8(Y); pY++;
+			if ((i & 0x00000001) == 0x00000000) {
+				Cr = (524288 + 2048 * R - 1715 * G - 333 * B) >> 12;
+				Cb = (524288 - 691 * R - 1357 * G + 2048 * B) >> 12;
+				*pCrCb = NV21_CLAMP_INT32_8(Cb); pCrCb++;
+				*pCrCb = NV21_CLAMP_INT32_8(Cr); pCrCb++;
+			}
+			k++;
+		}
+	}
+}
+
+void convert_565_NV21(unsigned char * p565, unsigned char *pNV12, int width, int height)
+{
+	unsigned short *arg565_p = (unsigned short *)p565;
+	unsigned char *pY;
+	unsigned char *pCrCb;
+	int i, j, k;
+	//Y’ = 0.299*R' + 0.587*G' + 0.114*B'
+	//Cb' = 128-0.168736*R' - 0.331264*G' + 0.5*B'
+	//Cr' = 128+0.5*R' - 0.418688*G' - 0.081312*B'
+
+	for (j = 0, k = 0; j < height; j++) {
+		pY = pNV12 + j * width;
+		pCrCb = pNV12 + (width * height) + ((j >> 1)) * width;
+		for (i = 0; i < width; i++) {
+			unsigned char R = (unsigned char)(((arg565_p[k] >> 11) & 0x7) | (arg565_p[k] >> 8));
+			unsigned char G = (unsigned char)(((arg565_p[k] >> 5) & 0x3) | (arg565_p[k] >> 3));
+			unsigned char B = (unsigned char)((arg565_p[k] & 0x7) |( arg565_p[k] << 3));
+			int Y;
+			int Cb;
+			int Cr;
+
+			Y = (1225 * R + 2404 * G + 467 * B) >> 12;
+			*pY = NV21_CLAMP_INT32_8(Y); pY++;
+			if ((i & 0x00000001) == 0x00000000) {
+				Cr = (524288 + 2048 * R - 1715 * G - 333 * B) >> 12;
+				Cb = (524288 - 691 * R - 1357 * G + 2048 * B) >> 12;
+				*pCrCb = NV21_CLAMP_INT32_8(Cr); pCrCb++;
+				*pCrCb = NV21_CLAMP_INT32_8(Cb); pCrCb++;
+			}
+			k++;
+		}
+	}
+}
