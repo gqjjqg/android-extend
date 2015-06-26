@@ -39,6 +39,14 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	 * for scale.
 	 */
 	private float scaleX, scaleY;
+	/**
+	 * for dispatch touch event process.
+	 */
+	private OnDispatchTouchEventListener mOnDispatchTouchEventListener;
+	
+	public interface OnDispatchTouchEventListener {
+		public void onDispatchTouchEvent(View v, MotionEvent ev);
+	}
 	
 	public ExtRelativeLayout(Context context, AttributeSet attrs,
 			int defStyle) {
@@ -136,6 +144,9 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 				ev.getXPrecision(), ev.getYPrecision(), ev.getDeviceId(),
 				ev.getEdgeFlags());
 		// TODO Auto-generated method stub
+		if (mOnDispatchTouchEventListener != null) {
+			mOnDispatchTouchEventListener.onDispatchTouchEvent(this, ev);
+		}
 		return super.dispatchTouchEvent(newEvent);
 	}
 	
@@ -147,6 +158,14 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	public void setScale(float sx, float sy) {
 		scaleX = sx;
 		scaleY = sy;
+	}
+	
+	/**
+	 * set listener
+	 * @param listener
+	 */
+	public void setOnDispatchTouchEventListener(OnDispatchTouchEventListener listener) {
+		mOnDispatchTouchEventListener = listener;
 	}
 	
 	/**
