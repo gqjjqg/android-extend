@@ -98,7 +98,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->height = height;
 	handle->format = format;
 #ifdef _DEBUG
-	handle->count = 1;
+	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
 	jclass jclsmain = env->FindClass("com/guo/android_extend/image/ImageFormat");
@@ -162,7 +162,8 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 	if (engine->count > 0) {
 		int size = fwrite(engine->pBuffer, 1, info.width * info.height * 3 / 2, engine->file);
 		engine->count--;
-		LOGI("size = %dx%d, %d\n", info.width, info.height, size);
+	} else if (engine->count == 0) {
+		engine->count--;
 		fclose(engine->file);
 	}
 #endif

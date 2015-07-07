@@ -14,9 +14,9 @@ public class SerialClient extends Thread {
 	private Serial mPort4;
 	private Handler mHandler;
 	
-	public SerialClient(Handler handle) {
+	public SerialClient(Handler handle, int port) {
 		// TODO Auto-generated constructor stub
-		mPort4 = new Serial(4, 115200);
+		mPort4 = new Serial(port, 115200);
 		mBlinker = this;
 		mHandler = handle;
 	}

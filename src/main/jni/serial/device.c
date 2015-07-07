@@ -10,6 +10,10 @@
 #include <fcntl.h>
 #include <termios.h>
 
+#include <linux/videodev2.h>
+#include <linux/usbdevice_fs.h>
+
+
 
 int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 {
@@ -166,5 +170,143 @@ int Open_Port(int com_port, int *error)
 }
 
 
+int Open_Video(int port)
+{
+	int fd = 0;
+	//fprintf(stdout,"Function Open_Port Begin!\n");
 
+	char *dev[] = { "/dev/Video0", "/dev/Video1", "/dev/Video2", "/dev/Video3", "/dev/Video4"};
 
+	if ((port < 0) || (port > 4)) {
+		return -1;
+	}
+
+	fd = open (dev[port], O_RDWR | O_NONBLOCK);
+	if (-1 == fd) {
+		//LOGE("Cannot open '%s': %d, %s", dev, errno, strerror (errno));
+		return -2;
+	}
+
+	return fd;
+}
+
+struct buffer {
+        void *                  start;
+        size_t                  length;
+};
+
+int Set_Video(int fd, int width, int height)
+{
+	int ret, i, j, min;
+	struct v4l2_capability cap;
+	struct v4l2_cropcap cropcap;
+	struct v4l2_crop crop;
+	struct v4l2_format fmt;
+	struct v4l2_streamparm params;
+	struct v4l2_fmtdesc fmtdesc;
+
+	struct v4l2_requestbuffers req;
+	struct v4l2_buffer buf;
+
+	struct buffer *buffers = NULL;
+
+	/* Fetch the capability of the device */
+	ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+	if (ret != 0) {
+		return -3;
+	}
+	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+		//LOGE("This device is no video capture device");
+		return -4;
+	}
+	if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
+		//LOGE("This device does not support streaming i/o");
+		return -5;
+	}
+
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	ret = ioctl(fd, VIDIOC_CROPCAP, &cropcap);
+	if (ret != 0) {
+		return -6;
+	}
+
+	crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	crop.c = cropcap.defrect;
+	ret = ioctl(fd, VIDIOC_S_CROP, &crop);
+	if (ret != 0) {
+		return -7;
+	}
+
+	fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	fmt.fmt.pix.width       = 640;
+	fmt.fmt.pix.height      = 480;
+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; // assumed this device supports MJPEG
+	fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
+	for (i = 0; i < 3; i++) {
+		if (0 != ioctl (fd, VIDIOC_S_FMT, &fmt)) {
+			continue;
+		}
+	}
+
+	/* set frame rate 30fps. */
+	params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	params.parm.capture.timeperframe.numerator = 1;
+	params.parm.capture.timeperframe.denominator = 30;
+	ret = ioctl(fd, VIDIOC_S_PARM, &params);
+	if (ret != 0) {
+		return -8;
+	}
+
+	min = fmt.fmt.pix.width * 2;
+	if (fmt.fmt.pix.bytesperline < min) {
+		fmt.fmt.pix.bytesperline = min;
+	}
+
+	min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
+	if (fmt.fmt.pix.sizeimage < min) {
+		fmt.fmt.pix.sizeimage = min;
+	}
+
+	/* Store the image size that driver wants */
+	//imageBufSize = fmt.fmt.pix.sizeimage;
+	req.count               = 4;
+	req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.memory              = V4L2_MEMORY_MMAP;
+	ret = ioctl (fd, VIDIOC_REQBUFS, req);
+	if (ret != 0) {
+		return -9;
+	}
+	if (req.count < 2) {
+		//LOGE("Insufficient buffer memory on %s", dev_name);
+		return -10;
+	}
+
+	buffers = (struct buffer*) calloc (req.count, sizeof(buffers));
+	if (!buffers) {
+		//LOGE("Out of memory");
+		return -11;
+	}
+
+	/*for (i = 0; i < req.count; ++i) {
+		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory      = V4L2_MEMORY_MMAP;
+		buf.index       = i;
+		ret = ioctl (fd, VIDIOC_QUERYBUF, &buf);
+		if (ret != 0) {
+			return -11;
+		}
+
+		buffers[i].length = buf.length;
+		buffers[i].start = mmap (NULL , buf.length, PROT_READ | PROT_WRITE,  MAP_SHARED, fd, buf.m.offset);
+
+		if (MAP_FAILED == buffers[n_buffers].start) {
+			return errnoexit ("mmap");
+		}
+
+		LOGE("buffers[%d].start = 0x%x", n_buffers, buffers[n_buffers].start);
+
+		memset(buffers[n_buffers].start, 0xab, buf.length);
+	}*/
+
+	return 0;
+}
