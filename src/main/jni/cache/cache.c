@@ -13,21 +13,7 @@
 #include "rbtree.h"
 #include "dllist.h"
 
-//#define _DEBUG
-#if defined( _DEBUG )
-	#define  LOG_TAG    "ATC."
-	#if defined (LOG_TAG)
-		#include <android/log.h>
-		#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-		#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-	#else
-		#define LOGI(...) printf(__VA_ARGS__)
-		#define LOGE(...) printf(__VA_ARGS__)
-	#endif
-#else
-	#define LOGI(...)
-	#define LOGE(...)
-#endif
+#include "loger.h"
 
 typedef struct CACHE_t {
 	// RB-tree

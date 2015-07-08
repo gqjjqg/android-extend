@@ -16,6 +16,7 @@
 #include <sys/select.h>
 
 #include "device.h"
+#include "loger.h"
 
 #define BUFFER_SIZE		1024
 
@@ -37,26 +38,6 @@ typedef struct engine_t {
 #define MSG_SwingLeft 	 	1
 #define MSG_SwingRight   	2
 #define MSG_SwingUp 		3
-
-#if defined(DEBUG)
-#define  LOG_TAG    "ATC."
-#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-#else
-#define  LOGI(...)
-#define  LOGE(...)
-#endif
-
-unsigned long GTimeGet()
-{
-	unsigned long g_Time = 0;
-    struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC , &ts);
-	//微秒
-	g_Time = 1000000*ts.tv_sec + ts.tv_nsec/1000;
-	//毫秒
-	return g_Time / 1000;
-}
 
 //public method.
 static jint NS_Init(JNIEnv *env, jobject object, jint port);

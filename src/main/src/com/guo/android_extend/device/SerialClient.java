@@ -11,12 +11,12 @@ public class SerialClient extends Thread {
 	public static final int RECEIVE_MSG = 0x4001;
 	
 	private volatile Thread mBlinker;
-	private Serial mPort4;
+	private Serial mPort;
 	private Handler mHandler;
 	
 	public SerialClient(Handler handle, int port) {
 		// TODO Auto-generated constructor stub
-		mPort4 = new Serial(port, 115200);
+		mPort = new Serial(port, 115200);
 		mBlinker = this;
 		mHandler = handle;
 	}
@@ -31,7 +31,7 @@ public class SerialClient extends Thread {
 		
 		while (mBlinker == thisThread) {
 			//synchronized (mPort4) {
-				String data = mPort4.receive();
+				String data = mPort.receive();
 				if (data != null) {
 					Log.d(TAG, data);
 					Message msg = new Message();
@@ -49,6 +49,7 @@ public class SerialClient extends Thread {
 			//	e.printStackTrace();
 			//}
 		}
+		mPort.destroy();
 	}
 	
 	public void shutdown() {
@@ -57,7 +58,7 @@ public class SerialClient extends Thread {
 	
 	public boolean sendData(String data) {
 		//synchronized (mPort4) {
-			return mPort4.send(data);
+			return mPort.send(data);
 		//}
 	}
 	

@@ -45,4 +45,8 @@ public class Serial {
 		return null;
 	}
 	
+	public void destroy() {
+		uninitSerial(mHandle);
+	}
+	
 }
