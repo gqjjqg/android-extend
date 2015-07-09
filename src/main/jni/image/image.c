@@ -234,3 +234,51 @@ void convert_565_NV21(unsigned char * p565, unsigned char *pNV12, int width, int
 		}
 	}
 }
+
+void convert_YUYV_NV21(unsigned char * pYUYV, unsigned char *pNV21, int width, int height)
+{
+	int i, j;
+	unsigned char *pYCbCr = pYUYV;
+	unsigned char *pY = pNV21;
+	unsigned char *pCrCb = pNV21 + width * height;
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j += 2) {
+			*pY = pYCbCr[0];
+			pY++;
+			*pY = pYCbCr[2];
+			pY++;
+
+			if ((i & 0x1) == 0) { // U
+				*pCrCb = pYCbCr[3];
+				pCrCb++;
+				*pCrCb = pYCbCr[1];
+				pCrCb++;
+			}
+			pYCbCr += 4;
+		}
+	}
+}
+
+void convert_YUYV_NV12(unsigned char * pYUYV, unsigned char *pNV12, int width, int height)
+{
+	int i, j;
+	unsigned char *pYCbCr = pYUYV;
+	unsigned char *pY = pNV12;
+	unsigned char *pCrCb = pNV12 + width * height;
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j += 2) {
+			*pY = pYCbCr[0];
+			pY++;
+			*pY = pYCbCr[2];
+			pY++;
+
+			if ((i & 0x1) == 0) { // U
+				*pCrCb = pYCbCr[1];
+				pCrCb++;
+				*pCrCb = pYCbCr[3];
+				pCrCb++;
+			}
+			pYCbCr += 4;
+		}
+	}
+}

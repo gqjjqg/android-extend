@@ -16,6 +16,7 @@
 #define CP_ALPHA8		ANDROID_BITMAP_FORMAT_A_8
 #define CP_PAF_NV21		0x802
 #define CP_PAF_NV12		0x801
+#define CP_PAF_YUYV		0x501
 
 #ifdef __cplusplus
 extern "C"{
@@ -31,6 +32,8 @@ void convert_8888_NV12(unsigned char * p8888, unsigned char *pNV12, int width, i
 void convert_8888_NV21(unsigned char * p8888, unsigned char *pNV12, int width, int height);
 void convert_565_NV12(unsigned char * p565, unsigned char *pNV21, int width, int height);
 void convert_565_NV21(unsigned char * p565, unsigned char *pNV21, int width, int height);
+void convert_YUYV_NV21(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
+void convert_YUYV_NV12(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
 
 #ifdef __cplusplus
 }

@@ -17,18 +17,22 @@
 
 #include "device.h"
 #include "loger.h"
+#include "image.h"
 
 #define BUFFER_SIZE		1024
 
 //#define DEBUG
-#define DEBUG_DUMP
+//#define DEBUG_DUMP
 
 typedef struct engine_t {
 	int mHandle;
 	int mStatus;
+	unsigned char *pBuffer;
+	int mWidth;
+	int mHeight;
+#ifdef DEBUG_DUMP
 	unsigned char *pWriteBuffer;
 	unsigned char *pReadBuffer;
-#ifdef DEBUG_DUMP
 	FILE * pfile;
 	int frame;
 #endif
@@ -99,11 +103,11 @@ jint NV_Init(JNIEnv *env, jobject object, jint port)
 	memset(engine, 0, sizeof(SERIAL));
 
 
-	//engine->pWriteBuffer = (unsigned char *)malloc(BUFFER_SIZE);
-	//engine->pReadBuffer = (unsigned char *)malloc(BUFFER_SIZE + 1);
+	engine->pBuffer = NULL;
 
 #ifdef DEBUG_DUMP
-	engine->pfile = fopen("/sdcard/dump_640x480.yuyv", "wb");
+	engine->pWriteBuffer = (unsigned char *)malloc(640*480*3/2);
+	engine->pfile = fopen("/sdcard/dump_640x480.nv21", "wb");
 	engine->frame = 0;
 #endif
 
@@ -125,8 +129,12 @@ jint NV_UnInit(JNIEnv *env, jobject object, jint handler)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 
-	//free(engine->pWriteBuffer);
+	if (engine->pBuffer != NULL) {
+		free(engine->pBuffer);
+	}
 	//free(engine->pReadBuffer);
+
+	Close_Video(engine->mHandle);
 
 #ifdef DEBUG_DUMP
 	fclose(engine->pfile);
@@ -140,6 +148,13 @@ jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 
+	engine->mWidth = width;
+	engine->mHeight = height;
+	engine->pBuffer = (unsigned char*)malloc(width * height * 2);
+	if (engine->pBuffer == NULL) {
+		LOGE("malloc fail");
+		return -1;
+	}
 	if (Set_Video(engine->mHandle, width, height) == -1) {
 		LOGE("Set_Video fail");
 		return -1;
@@ -162,11 +177,15 @@ jint NV_ReadData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 		return 0;
 	}
 
-	if (size != Read_Video(engine->mHandle, (unsigned char *)buffer, size)) {
+	if (2 * engine->mWidth * engine->mHeight != Read_Video(engine->mHandle, engine->pBuffer, 2 * engine->mWidth * engine->mHeight)) {
 		LOGI("Read_Video failed!\n");
+	} else {
+		convert_YUYV_NV21(engine->pBuffer, (unsigned char *)buffer, engine->mWidth, engine->mHeight);
 	}
+
 #ifdef DEBUG_DUMP
-	fwrite(buffer, sizeof(char), size, engine->pfile);
+	convert_YUYV_NV21((unsigned char *)buffer, engine->pWriteBuffer, 640, 480);
+	fwrite(engine->pWriteBuffer, sizeof(char), 640*480*3/2, engine->pfile);
 	fclose(engine->pfile);
 #endif
 

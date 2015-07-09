@@ -10,12 +10,20 @@
 #include <fcntl.h>
 #include <termios.h>
 
-#include <linux/videodev2.h>
-#include <linux/usbdevice_fs.h>
 
 #include <sys/mman.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+
+#include <asm/types.h>          /* for videodev2.h */
+#include <linux/videodev2.h>
+#include <linux/usbdevice_fs.h>
+
 
 #include "loger.h"
 
@@ -23,7 +31,10 @@ struct buffer {
 	void * start;
 	size_t length;
 };
-struct buffer *buffers = NULL;
+static struct buffer *buffers = NULL;
+static int count = 0;
+
+static int xioctl(int fd, int request, void *arg);
 
 
 int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
@@ -180,11 +191,16 @@ int Open_Port(int com_port, int *error)
 	return fd;
 }
 
+int Close_Port(int fd)
+{
+	close(fd);
+	return 0;
+}
 
 int Open_Video(int port)
 {
 	int fd = 0;
-	//fprintf(stdout,"Function Open_Port Begin!\n");
+	struct stat st;
 
 	char *dev[] = { "/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3", "/dev/video4"};
 
@@ -192,7 +208,17 @@ int Open_Video(int port)
 		return -1;
 	}
 
-	fd = open (dev[port], O_RDWR | O_NONBLOCK, 0);
+	if (-1 == stat (dev[port], &st)) {
+		LOGE("Cannot identify '%s': %d, %s", dev[port], errno, strerror (errno));
+		return -2;
+	}
+
+	if (!S_ISCHR (st.st_mode)) {
+		LOGE("%s is no device", dev[port]);
+		return -3;
+	}
+
+	fd = open (dev[port], O_RDWR, 0); //O_NONBLOCK
 	if (-1 == fd) {
 		LOGE("Cannot open '%s' ", dev[port]);
 		return -2;
@@ -213,11 +239,13 @@ int Set_Video(int fd, int width, int height)
 
 	struct v4l2_requestbuffers req;
 	struct v4l2_buffer buf;
+	enum v4l2_buf_type type;
 
 	/* Fetch the capability of the device */
 	memset (&cap, 0, sizeof (cap)); /* defaults */
-	ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+	ret = xioctl(fd, VIDIOC_QUERYCAP, &cap);
 	if (ret != 0) {
+		LOGE("VIDIOC_QUERYCAP");
 		return -3;
 	}
 	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
@@ -229,10 +257,11 @@ int Set_Video(int fd, int width, int height)
 		return -5;
 	}
 
+	memset(&formatdesc, 0, sizeof(formatdesc));
 	formatdesc.index = 0;
 	formatdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	LOGE("Support format");
-	while (ioctl(fd, VIDIOC_ENUM_FMT, &formatdesc) != -1) {
+	while (xioctl(fd, VIDIOC_ENUM_FMT, &formatdesc) != -1) {
 		formatdesc.index++;
 		LOGE("%d.%s", formatdesc.index, formatdesc.description);
 		LOGE("{ pixelformat = ''%c%c%c%c'', description = ''%s'' }\n",
@@ -244,29 +273,35 @@ int Set_Video(int fd, int width, int height)
 
 	memset (&cropcap, 0, sizeof (cropcap)); /* defaults */
 	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ret = ioctl(fd, VIDIOC_CROPCAP, &cropcap);
+	ret = xioctl(fd, VIDIOC_CROPCAP, &cropcap);
 	if (ret != 0) {
-		LOGE("VIDIOC_CROPCAP");
+		LOGE("Command VIDIOC_CROPCAP error, errno: %d, %s", errno, strerror(errno));
 		return -6;
 	}
 
+	LOGE("%d, %d, %d, %d", cropcap.bounds.left, cropcap.bounds.top, cropcap.bounds.width, cropcap.bounds.height);
+	LOGE("%d, %d, %d, %d", cropcap.defrect.left, cropcap.defrect.top, cropcap.defrect.width, cropcap.defrect.height);
+
+	memset (&crop, 0, sizeof (crop)); /* defaults */
 	crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	crop.c = cropcap.defrect;
+	crop.c.left = cropcap.defrect.left;
+	crop.c.top = cropcap.defrect.top;
+	crop.c.width = cropcap.defrect.width;
+	crop.c.height = cropcap.defrect.height;
 	ret = ioctl(fd, VIDIOC_S_CROP, &crop);
-	//if (ret != 0) {
-	//	LOGE("set VIDIOC_CROPCAP");
-	//	return -7;
-	//}
+	if (ret != 0) {
+		LOGE("Command VIDIOC_S_CROP error, errno: %d, %s", errno, strerror(errno));
+	}
 
 	memset (&format, 0, sizeof (format)); /* defaults */
 	format.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	format.fmt.pix.width       = 640;
 	format.fmt.pix.height      = 480;
-	format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // assumed this device supports MJPEG
+	format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // assumed this device supports MJPEG V4L2_PIX_FMT_MJPEG
 	format.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-	ret = ioctl (fd, VIDIOC_S_FMT, &format);
+	ret = xioctl (fd, VIDIOC_S_FMT, &format);
 	if (ret != 0) {
-		LOGE("set VIDIOC_S_FMT");
+		LOGE("Command VIDIOC_S_FMT error, errno: %d, %s", errno, strerror(errno));
 		return -8;
 	}
 
@@ -275,21 +310,11 @@ int Set_Video(int fd, int width, int height)
 	params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	params.parm.capture.timeperframe.numerator = 1;
 	params.parm.capture.timeperframe.denominator = 30;
-	ret = ioctl(fd, VIDIOC_S_PARM, &params);
+	ret = xioctl(fd, VIDIOC_S_PARM, &params);
 	if (ret != 0) {
-		LOGE("set VIDIOC_S_PARM");
+		LOGE("Command VIDIOC_S_PARM error, errno: %d, %s", errno, strerror(errno));
 		return -8;
 	}
-
-	/*min = fmt.fmt.pix.width * 2;
-	if (fmt.fmt.pix.bytesperline < min) {
-		fmt.fmt.pix.bytesperline = min;
-	}
-
-	min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
-	if (fmt.fmt.pix.sizeimage < min) {
-		fmt.fmt.pix.sizeimage = min;
-	}*/
 
 	LOGE("width = %d, height = %d", format.fmt.pix.width, format.fmt.pix.height);
 	LOGE("format = %d", format.fmt.pix.pixelformat);
@@ -303,9 +328,9 @@ int Set_Video(int fd, int width, int height)
 	req.count = 4;
 	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	req.memory = V4L2_MEMORY_MMAP;
-	ret = ioctl(fd, VIDIOC_REQBUFS, &req);
+	ret = xioctl(fd, VIDIOC_REQBUFS, &req);
 	if (ret != 0) {
-		LOGE("VIDIOC_REQBUFS");
+		LOGE("Command VIDIOC_REQBUFS error, errno: %d, %s", errno, strerror(errno));
 		return -9;
 	}
 	if (req.count < 2) {
@@ -320,10 +345,11 @@ int Set_Video(int fd, int width, int height)
 	}
 
 	for (i = 0; i < req.count; ++i) {
+		memset(&buf, 0, sizeof(buf));
 		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory      = V4L2_MEMORY_MMAP;
 		buf.index       = i;
-		ret = ioctl (fd, VIDIOC_QUERYBUF, &buf);
+		ret = xioctl (fd, VIDIOC_QUERYBUF, &buf);
 		if (ret != 0) {
 			LOGE("VIDIOC_QUERYBUF");
 			return -11;
@@ -340,26 +366,35 @@ int Set_Video(int fd, int width, int height)
 		memset(buffers[i].start, 0xab, buf.length);
 	}
 
+	count = i;
+	for (j = 0; j < count; ++j) {
+		struct v4l2_buffer buf;
+		memset (&buf, 0, sizeof(buf));
+		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory      = V4L2_MEMORY_MMAP;
+		buf.index       = j;
+		if (-1 == xioctl (fd, VIDIOC_QBUF, &buf)) {
+			LOGE("VIDIOC_QBUF");
+			return -13;
+		}
+	}
+
+	memset(&type, 0, sizeof(type));
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (-1 == xioctl (fd, VIDIOC_STREAMON, &type)) {
+		LOGE("VIDIOC_STREAMON");
+		return -14;
+	}
+
 	return 0;
 }
+
 
 int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 {
 	struct v4l2_buffer buf;
 	unsigned int i;
 	int ret = 1, result = 0;
-
-	fd_set fds;
-	struct timeval tv;
-	int r = 0;
-
-	while (r <= 0) {
-		FD_ZERO (&fds);
-		FD_SET (fd, &fds);
-		tv.tv_sec = 2000;
-		tv.tv_usec = 0;
-		r = select (fd + 1, &fds, NULL, NULL, &tv);
-	}
 
 	memset (&buf, 0, sizeof (buf)); /* defaults */
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -378,8 +413,8 @@ int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 	//_sequence = buf.sequence;
 	//processFrame (buffers[buf.index].start, buf.bytesused);
 	LOGE("size = %d", size);
-	if (buf.bytesused < size) {
-		LOGE("buf.bytesused = %d", buf.bytesused);
+	LOGE("buf.bytesused = %d", buf.bytesused);
+	if (buf.bytesused <= size) {
 		memcpy(pFrameBuffer, buffers[buf.index].start, buf.bytesused);
 		result = buf.bytesused;
 	}
@@ -389,9 +424,43 @@ int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 	buf.memory = V4L2_MEMORY_MMAP;
 	ret = ioctl(fd, VIDIOC_QBUF, &buf);
 	if (0 != ret) {
-		LOGE("VIDIOC_QBUF");
+		LOGE("Command VIDIOC_QBUF error, errno: %d, %s", errno, strerror(errno));
 		return -2;
 	}
 
 	return result;
 }
+
+int Close_Video(int fd)
+{
+	unsigned int i;
+	enum v4l2_buf_type type;
+
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (-1 == xioctl (fd, VIDIOC_STREAMOFF, &type)) {
+		LOGE("Command VIDIOC_STREAMOFF error, errno: %d, %s", errno, strerror(errno));
+		return -1;
+	}
+
+	for (i = 0; i < count; ++i) {
+		if (-1 == munmap (buffers[i].start, buffers[i].length)) {
+			LOGE("munmap");
+			return -1;
+		}
+	}
+	free (buffers);
+
+	close (fd);
+
+	return 0;
+}
+
+int xioctl(int fd, int request, void *arg)
+{
+	int r;
+	do {
+		r = ioctl (fd, request, arg);
+	} while (-1 == r && EINTR == errno);
+	return r;
+}
+
