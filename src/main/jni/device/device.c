@@ -295,8 +295,8 @@ int Set_Video(int fd, int width, int height)
 
 	memset (&format, 0, sizeof (format)); /* defaults */
 	format.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	format.fmt.pix.width       = 640;
-	format.fmt.pix.height      = 480;
+	format.fmt.pix.width       = width;
+	format.fmt.pix.height      = height;
 	format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // assumed this device supports MJPEG V4L2_PIX_FMT_MJPEG
 	format.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 	ret = xioctl (fd, VIDIOC_S_FMT, &format);
@@ -412,8 +412,9 @@ int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 	/* Record the last the sequence of frame */
 	//_sequence = buf.sequence;
 	//processFrame (buffers[buf.index].start, buf.bytesused);
-	LOGE("size = %d", size);
-	LOGE("buf.bytesused = %d", buf.bytesused);
+
+	//LOGE("size = %d", size);
+	//LOGE("buf.bytesused = %d", buf.bytesused);
 	if (buf.bytesused <= size) {
 		memcpy(pFrameBuffer, buffers[buf.index].start, buf.bytesused);
 		result = buf.bytesused;
