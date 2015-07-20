@@ -10,6 +10,7 @@
 
 typedef struct glesrender_t {
 	int handler;
+	int showfps;
 #ifdef _DEBUG
 	unsigned char *pBuffer;
 	int width;
@@ -20,16 +21,16 @@ typedef struct glesrender_t {
 #endif
 }RENDER_HANDLE, *LPRENDER_HANDLE;
 
-static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori);
+static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint fps);
 static jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint height);
 static jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height, jint format);
-static jint NIF_uninitial(JNIEnv *env, jobject object, jint handle);
+static jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle);
 
 static JNINativeMethod gMethods[] = {
-	{"render_init", "(II)I",(void*)NGLR_initial},
+	{"render_init", "(III)I",(void*)NGLR_initial},
 	{"render_changed", "(III)I",(void*)NGLR_changed},
 	{"render_process", "(I[BIII)I",(void*)NGLR_process},
-	{"render_uninit", "(I)I",(void*)NIF_uninitial},
+	{"render_uninit", "(I)I",(void*)NGLR_uninitial},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/GLES2Render";
@@ -72,7 +73,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
+jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
 
@@ -87,16 +88,15 @@ jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
 	free(engine);
 }
 
-jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori)
+jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint fps)
 {
 	LPRENDER_HANDLE handle = (LPRENDER_HANDLE)malloc(sizeof(RENDER_HANDLE));
 #ifdef _DEBUG
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
-
 	handle->handler = GLInit(mirror, ori);
-
+	handle->showfps = fps;
 	return (jint)handle;
 }
 
@@ -117,6 +117,9 @@ jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jin
 		return 0;
 	}
 
+	if (engine->showfps == 1) {
+		LOGD("NGLR FPS = %ld", GFps_GetCurFps());
+	}
 	GLRender(engine->handler, (unsigned char *)buffer, width, height, format);
 
 	env->ReleaseByteArrayElements(data, buffer, isCopy);

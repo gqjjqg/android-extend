@@ -21,14 +21,12 @@ typedef struct opengl_t {
 }OPENGLES, *LPOPENGLES;
 
 const char* pVertexShaderStr =
-      "uniform float u_offset;      \n"
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
       "varying highp vec2 v_texCoord;     \n"
       "void main()                  \n"
       "{                            \n"
       "   gl_Position = a_position; \n"
-      //"   gl_Position.x += u_offset;\n"
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
 
@@ -90,7 +88,6 @@ const char* pFragmentShaderNV12 =
 
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
-static void CreateTextures(LPOPENGLES engine);
 
 int GLInit(int mirror, int ori)
 {
@@ -127,6 +124,8 @@ int GLInit(int mirror, int ori)
 
 	glLinkProgram ( engine->m_hProgramObject );
 
+	LOGD("glLinkProgram");
+
 	glGetProgramiv( engine->m_hProgramObject, GL_LINK_STATUS, &linked);
 	if (0 == linked) {
 		GLint	infoLen = 0;
@@ -148,15 +147,28 @@ int GLInit(int mirror, int ori)
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	glEnable(GL_TEXTURE_2D);
 
-	CreateTextures(engine);
+	LOGD("glGenTextures");
+	// Textures
+	glGenTextures(2, engine->m_nTextureIds);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	LOGD("VBO");
 
+	//VBO
 	glGenBuffers(3, engine->m_nBufs);
-
 	float scale_factor = 1.0f;
 	GLfloat vVertices[] = { -scale_factor,  scale_factor, 0.0f, 1.0f,  // Position 0
                            -scale_factor, -scale_factor, 0.0f, 1.0f, // Position 1
@@ -179,7 +191,7 @@ int GLInit(int mirror, int ori)
 		tCoords[6] = tCoords[0]; tCoords[7] = tCoords[1];
 	}
 		
-	if (engine->m_bMirror){
+	if (engine->m_bMirror == 1){
 		GLfloat temp[2];
 		LOGD("set mirror is true");
 		temp[0] = tCoords[0]; temp[1] = tCoords[2];
@@ -217,37 +229,18 @@ void GLRender(int handle, unsigned char* pData, int w, int h, int format)
 		LOGE("pOffScreen == MNull");
 		return;
 	}
-	
-	if (glIsTexture (engine->m_nTextureIds[0])) {
-		glDeleteTextures(1, &engine->m_nTextureIds[0]);
-	}
 
-	if (glIsTexture (engine->m_nTextureIds[1])) {
-		glDeleteTextures(1, &engine->m_nTextureIds[1]);
-	}
-
-	CreateTextures(engine);
-	engine->m_bTexInit = -1;
-
+	//clean
 	glClear ( GL_COLOR_BUFFER_BIT );
 
-	if (engine->m_bTexInit == 1) {
-		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-		//NV21 Y
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
+	//Texture -> GPU
+	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
 
-		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-		//NV21 UV
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w >> 1, h >> 1, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
-	} else {
-		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
+	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
 
-		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
-		engine->m_bTexInit = 1;
-	}
-
+	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 
 	GLuint textureUniformY = glGetUniformLocation(engine->m_hProgramObject, "y_texture");
@@ -259,17 +252,12 @@ void GLRender(int handle, unsigned char* pData, int w, int h, int format)
 	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
 	glUniform1i(textureUniformU, 1);
 
-	glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glVertexAttribPointer ( 0, 4, GL_FLOAT, 
-			   GL_FALSE, 4 * sizeof(GLfloat), 0 );
+	glVertexAttribPointer ( 0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-	glVertexAttribPointer ( 1, 2, GL_FLOAT,
-			   GL_FALSE, 2 * sizeof(GLfloat), 0 );
+	glVertexAttribPointer ( 1, 2, GL_FLOAT,GL_FALSE, 2 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->m_nBufs[2]);
@@ -277,8 +265,6 @@ void GLRender(int handle, unsigned char* pData, int w, int h, int format)
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLUnInit(int handle)
@@ -322,22 +308,4 @@ GLuint LoadShader(GLenum shaderType, const char* pSource)
     return shader;
 }
 
-void CreateTextures(LPOPENGLES engine)
-{
-	glGenTextures(2, engine->m_nTextureIds);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-}
 

@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 unsigned long GTimeGet();
+unsigned long GFps_GetCurFps();
 
 void LOGI(const char * szFormat, ...);
 void LOGD(const char * szFormat, ...);

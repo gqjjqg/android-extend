@@ -2,7 +2,7 @@ package com.guo.android_extend.image;
 
 import android.graphics.Bitmap;
 
-public class ImageFormat {
+public class ImageConverter {
 	private final String TAG = this.getClass().getSimpleName();
 
 	public final static int CP_RGBA8888 = 1;
@@ -22,7 +22,7 @@ public class ImageFormat {
 		System.loadLibrary("image");
 	}
 	
-	public ImageFormat() {
+	public ImageConverter() {
 		// TODO Auto-generated constructor stub
 		handle = -1;
 	}

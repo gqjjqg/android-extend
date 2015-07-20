@@ -15,6 +15,10 @@
 #define  LOG_TAG    "ATC."
 
 static char str[256] = {'\0'};
+static unsigned long FPS_ThisTime = 0;
+static unsigned long FPS_LastTime = 0;
+static unsigned long FPS_Count = 0;
+static int FPS_TimeCount = 0;
 
 unsigned long GTimeGet()
 {
@@ -26,6 +30,22 @@ unsigned long GTimeGet()
 	//毫秒
 	return g_Time / 1000;
 }
+
+unsigned long GFps_GetCurFps()
+{
+	if (FPS_TimeCount == 0) {
+		FPS_LastTime = GTimeGet();
+	}
+	if (++FPS_TimeCount >= 30) {
+		if (FPS_LastTime - FPS_ThisTime != 0) {
+			FPS_Count = 30000 / (FPS_LastTime - FPS_ThisTime);
+		}
+		FPS_TimeCount = 0;
+		FPS_ThisTime = FPS_LastTime;
+	}
+	return FPS_Count;
+}
+
 
 void LOGI(const char * szFormat, ...)
 {

@@ -30,7 +30,7 @@ static JNINativeMethod gMethods[] = {
 	{"image_uninit", "(I)I",(void*)NIF_uninitial},
 };
 
-const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/image/ImageFormat";
+const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/image/ImageConverter";
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
 
