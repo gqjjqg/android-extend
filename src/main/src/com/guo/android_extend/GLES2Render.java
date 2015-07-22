@@ -1,7 +1,5 @@
 package com.guo.android_extend;
 
-import android.util.Log;
-
 public class GLES2Render {
 	private final String TAG = this.getClass().getSimpleName();
 

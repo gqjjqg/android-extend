@@ -9,6 +9,24 @@
 
 #define NV21_CLAMP_INT32_8(a) ( ((((255-(a))>>31) & 0xFF) | ((a) & ~((a)>>31))) )
 
+int calcImageSize(int width, int height, int format)
+{
+	switch (format) {
+	case CP_PAF_NV21 :
+	case CP_PAF_NV12:
+		return width * height * 3 / 2;
+	case CP_PAF_YUYV:
+	case CP_RGB565:
+	case CP_RGBA4444:
+		return width * height * 2;
+	case CP_RGBA8888 :
+	case CP_UNKNOWN:
+		return width * height * 4;
+	default :;
+	}
+	return 0;
+}
+
 
 void convert_565_8888(unsigned char *p565, unsigned char * p8888, int width, int height)
 {

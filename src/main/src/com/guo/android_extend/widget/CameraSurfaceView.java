@@ -105,9 +105,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
-		mCamera.stopPreview();
-        mCamera.release();
-        mCamera = null;
+		if (mCamera != null) {
+			mCamera.setPreviewCallbackWithBuffer(null);
+			mCamera.stopPreview();
+	        mCamera.release();
+	        mCamera = null;
+		}
 	}
 
 	@Override
@@ -118,7 +121,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		if (mOnCameraListener != null) {
 			mOnCameraListener.onPreview(data, camera);
 		}
-		mCamera.addCallbackBuffer(data);
+		if (mCamera != null) {
+			mCamera.addCallbackBuffer(data);
+		}
 	}
 
 	public void setOnCameraListener(OnCameraListener l) {

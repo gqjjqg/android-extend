@@ -41,4 +41,20 @@ public class ImageConverter {
 			image_uninit(handle);
 		}
 	}
+	
+	public static int calcImageSize(int w, int h, int format) {
+		switch (format) {
+		case CP_PAF_NV21 :
+		case CP_PAF_NV12:
+			return w * h * 3 / 2;
+		case CP_PAF_YUYV:
+		case CP_RGB565:
+		case CP_RGBA4444:
+			return w * h * 2;
+		case CP_RGBA8888 :
+			return w * h * 4;
+		default :;
+		}
+		return 0;
+	}
 }

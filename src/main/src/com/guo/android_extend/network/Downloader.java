@@ -30,7 +30,7 @@ public abstract class Downloader<T> extends DownloaderStructure implements Runna
          *  current view is need fresh with this bitmap.
          * @param isSuccess the view is update to set another bitmap.
          */
-        public void onFinish(Downloader content, boolean isSuccess);
+        public void onFinish(Downloader<?> content, boolean isSuccess);
     }
 
     protected Downloader(String mLocalDir, String mUrl, T mID) {
@@ -47,19 +47,19 @@ public abstract class Downloader<T> extends DownloaderStructure implements Runna
         this.mOnMonitoring = mOnMonitoring;
     }
 
-    public void onTaskOver(Downloader context, int error) {
+    public void onTaskOver(Downloader<?> context, int error) {
         if (mOnMonitoring != null) {
             mOnMonitoring.onFinish(this, true);
         }
         //TODO USERTASK.
     }
 
-    public boolean onDownloadFinish(Downloader context, String cache) {
+    public boolean onDownloadFinish(Downloader<?> context, String cache) {
         //TODO USER TASK.
         return true;
     }
 
-    public abstract void onDownloadUpdate(Downloader context, int percent);
+    public abstract void onDownloadUpdate(Downloader<?> context, int percent);
 
 
     /* (non-Javadoc)

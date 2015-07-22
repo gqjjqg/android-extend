@@ -8,12 +8,11 @@
 #ifndef JNI_IMAGE_IMAGE_H_
 #define JNI_IMAGE_IMAGE_H_
 
-#include <android/bitmap.h>
-
-#define CP_RGBA8888		ANDROID_BITMAP_FORMAT_RGBA_8888
-#define CP_RGB565		ANDROID_BITMAP_FORMAT_RGB_565
-#define CP_RGBA4444		ANDROID_BITMAP_FORMAT_RGBA_4444
-#define CP_ALPHA8		ANDROID_BITMAP_FORMAT_A_8
+#define CP_UNKNOWN		-1
+#define CP_RGBA8888		1
+#define CP_RGB565		4
+#define CP_RGBA4444		7
+#define CP_ALPHA8		8
 #define CP_PAF_NV21		0x802
 #define CP_PAF_NV12		0x801
 #define CP_PAF_YUYV		0x501
@@ -34,6 +33,8 @@ void convert_565_NV12(unsigned char * p565, unsigned char *pNV21, int width, int
 void convert_565_NV21(unsigned char * p565, unsigned char *pNV21, int width, int height);
 void convert_YUYV_NV21(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
 void convert_YUYV_NV12(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
+
+int calcImageSize(int width, int height, int format);
 
 #ifdef __cplusplus
 }

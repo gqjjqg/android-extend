@@ -31,11 +31,17 @@ struct buffer {
 	void * start;
 	size_t length;
 };
-static struct buffer *buffers = NULL;
-static int count = 0;
+
+typedef struct V4L2_Video_t {
+	struct buffer *buffers;
+	__u32 format[64];
+	int fcount;
+	int count;
+	int fd;
+}V4L2_VIDEO, *LPV4L2_VIDEO;
+
 
 static int xioctl(int fd, int request, void *arg);
-
 
 int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 {
@@ -100,49 +106,37 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 	switch (parity) {
 	default:
 	case 'N':
-	case 'n': {
+	case 'n':
 		newtio.c_cflag &= ~PARENB;
 		newtio.c_iflag &= ~INPCK;
-	}
 		break;
-
 	case 'o':
-	case 'O': {
+	case 'O':
 		newtio.c_cflag |= (PARODD | PARENB);
 		newtio.c_iflag |= INPCK;
-	}
 		break;
-
 	case 'e':
-	case 'E': {
+	case 'E':
 		newtio.c_cflag |= PARENB;
 		newtio.c_cflag &= ~PARODD;
 		newtio.c_iflag |= INPCK;
-	}
 		break;
-
 	case 's':
-	case 'S': {
+	case 'S':
 		newtio.c_cflag &= ~PARENB;
 		newtio.c_cflag &= ~CSTOPB;
-
-	}
 		break;
 	}
 
 	//Set STOPBITS 1 or 2
 	switch (stop_bits) {
 	default:
-	case 1: {
+	case 1:
 		newtio.c_cflag &= ~CSTOPB;
-	}
 		break;
-
-	case 2: {
+	case 2:
 		newtio.c_cflag |= CSTOPB;
-	}
 		break;
-
 	}
 
 	newtio.c_cc[VTIME] = 1;
@@ -199,8 +193,11 @@ int Close_Port(int fd)
 
 int Open_Video(int port)
 {
-	int fd = 0;
 	struct stat st;
+	struct v4l2_capability cap;
+	struct v4l2_fmtdesc formatdesc;
+
+	LPV4L2_VIDEO handle = (LPV4L2_VIDEO)malloc(sizeof(V4L2_VIDEO));
 
 	char *dev[] = { "/dev/video0", "/dev/video1", "/dev/video2", "/dev/video3", "/dev/video4"};
 
@@ -218,50 +215,35 @@ int Open_Video(int port)
 		return -3;
 	}
 
-	fd = open (dev[port], O_RDWR, 0); //O_NONBLOCK
-	if (-1 == fd) {
+	handle->fd = open (dev[port], O_RDWR, 0); //O_NONBLOCK
+	if (-1 == handle->fd) {
 		LOGE("Cannot open '%s' ", dev[port]);
-		return -2;
+		return -4;
 	}
 
-	return fd;
-}
-
-int Set_Video(int fd, int width, int height)
-{
-	int ret, i, j;
-	struct v4l2_capability cap;
-	struct v4l2_cropcap cropcap;
-	struct v4l2_crop crop;
-	struct v4l2_format format;
-	struct v4l2_streamparm params;
-	struct v4l2_fmtdesc formatdesc;
-
-	struct v4l2_requestbuffers req;
-	struct v4l2_buffer buf;
-	enum v4l2_buf_type type;
+	handle->count = 0;
+	handle->buffers = NULL;
 
 	/* Fetch the capability of the device */
 	memset (&cap, 0, sizeof (cap)); /* defaults */
-	ret = xioctl(fd, VIDIOC_QUERYCAP, &cap);
-	if (ret != 0) {
+	if (xioctl(handle->fd, VIDIOC_QUERYCAP, &cap) != 0) {
 		LOGE("VIDIOC_QUERYCAP");
-		return -3;
+		return -5;
 	}
 	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
 		LOGE("This device is no video capture device");
-		return -4;
+		return -6;
 	}
 	if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
 		LOGE("This device does not support streaming i/o");
-		return -5;
+		return -7;
 	}
 
 	memset(&formatdesc, 0, sizeof(formatdesc));
 	formatdesc.index = 0;
 	formatdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	LOGE("Support format");
-	while (xioctl(fd, VIDIOC_ENUM_FMT, &formatdesc) != -1) {
+	while (xioctl(handle->fd, VIDIOC_ENUM_FMT, &formatdesc) != -1) {
 		formatdesc.index++;
 		LOGE("%d.%s", formatdesc.index, formatdesc.description);
 		LOGE("{ pixelformat = ''%c%c%c%c'', description = ''%s'' }\n",
@@ -269,11 +251,34 @@ int Set_Video(int fd, int width, int height)
 				(formatdesc.pixelformat >> 16) & 0xFF,
 				(formatdesc.pixelformat >> 24) & 0xFF, formatdesc.description);
 
+		if (formatdesc.index < 64) {
+			handle->format[formatdesc.index] = formatdesc.pixelformat;
+		}
 	}
+
+	handle->fcount = formatdesc.index;
+
+	return (int)handle;
+}
+
+int Set_Video(int engine, int width, int height, int f)
+{
+	int ret, i, j;
+
+	struct v4l2_cropcap cropcap;
+	struct v4l2_crop crop;
+	struct v4l2_format format;
+	struct v4l2_streamparm params;
+
+	struct v4l2_requestbuffers req;
+	struct v4l2_buffer buf;
+	enum v4l2_buf_type type;
+
+	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
 
 	memset (&cropcap, 0, sizeof (cropcap)); /* defaults */
 	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ret = xioctl(fd, VIDIOC_CROPCAP, &cropcap);
+	ret = xioctl(handle->fd, VIDIOC_CROPCAP, &cropcap);
 	if (ret != 0) {
 		LOGE("Command VIDIOC_CROPCAP error, errno: %d, %s", errno, strerror(errno));
 		return -6;
@@ -288,7 +293,7 @@ int Set_Video(int fd, int width, int height)
 	crop.c.top = cropcap.defrect.top;
 	crop.c.width = cropcap.defrect.width;
 	crop.c.height = cropcap.defrect.height;
-	ret = ioctl(fd, VIDIOC_S_CROP, &crop);
+	ret = ioctl(handle->fd, VIDIOC_S_CROP, &crop);
 	if (ret != 0) {
 		LOGE("Command VIDIOC_S_CROP error, errno: %d, %s", errno, strerror(errno));
 	}
@@ -297,9 +302,9 @@ int Set_Video(int fd, int width, int height)
 	format.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	format.fmt.pix.width       = width;
 	format.fmt.pix.height      = height;
-	format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // assumed this device supports MJPEG V4L2_PIX_FMT_MJPEG
+	format.fmt.pix.pixelformat = f;
 	format.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-	ret = xioctl (fd, VIDIOC_S_FMT, &format);
+	ret = xioctl (handle->fd, VIDIOC_S_FMT, &format);
 	if (ret != 0) {
 		LOGE("Command VIDIOC_S_FMT error, errno: %d, %s", errno, strerror(errno));
 		return -8;
@@ -308,9 +313,10 @@ int Set_Video(int fd, int width, int height)
 	/* set frame rate 30fps. */
 	memset (&params, 0, sizeof (params)); /* defaults */
 	params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	params.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
 	params.parm.capture.timeperframe.numerator = 1;
 	params.parm.capture.timeperframe.denominator = 30;
-	ret = xioctl(fd, VIDIOC_S_PARM, &params);
+	ret = xioctl(handle->fd, VIDIOC_S_PARM, &params);
 	if (ret != 0) {
 		LOGE("Command VIDIOC_S_PARM error, errno: %d, %s", errno, strerror(errno));
 		return -8;
@@ -328,7 +334,7 @@ int Set_Video(int fd, int width, int height)
 	req.count = 4;
 	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	req.memory = V4L2_MEMORY_MMAP;
-	ret = xioctl(fd, VIDIOC_REQBUFS, &req);
+	ret = xioctl(handle->fd, VIDIOC_REQBUFS, &req);
 	if (ret != 0) {
 		LOGE("Command VIDIOC_REQBUFS error, errno: %d, %s", errno, strerror(errno));
 		return -9;
@@ -338,8 +344,8 @@ int Set_Video(int fd, int width, int height)
 		return -10;
 	}
 
-	buffers = (struct buffer*) calloc (req.count, sizeof(*buffers));
-	if (!buffers) {
+	handle->buffers = (struct buffer*) calloc (req.count, sizeof(*handle->buffers));
+	if (!handle->buffers) {
 		LOGE("Out of memory");
 		return -11;
 	}
@@ -349,31 +355,31 @@ int Set_Video(int fd, int width, int height)
 		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory      = V4L2_MEMORY_MMAP;
 		buf.index       = i;
-		ret = xioctl (fd, VIDIOC_QUERYBUF, &buf);
+		ret = xioctl (handle->fd, VIDIOC_QUERYBUF, &buf);
 		if (ret != 0) {
 			LOGE("VIDIOC_QUERYBUF");
 			return -11;
 		}
 
-		buffers[i].length = buf.length;
-		buffers[i].start = mmap (NULL , buf.length, PROT_READ | PROT_WRITE,  MAP_SHARED, fd, buf.m.offset);
-		if (MAP_FAILED == buffers[i].start) {
+		handle->buffers[i].length = buf.length;
+		handle->buffers[i].start = mmap (NULL , buf.length, PROT_READ | PROT_WRITE,  MAP_SHARED, handle->fd, buf.m.offset);
+		if (MAP_FAILED == handle->buffers[i].start) {
 			LOGE("MAP_FAILED");
 			return -12;
 		}
 
-		LOGE("buffers[%d].start = 0x%x", i, buffers[i].start);
-		memset(buffers[i].start, 0xab, buf.length);
+		LOGE("buffers[%d].start = 0x%x", i, handle->buffers[i].start);
+		memset(handle->buffers[i].start, 0xab, buf.length);
 	}
 
-	count = i;
-	for (j = 0; j < count; ++j) {
+	handle->count = i;
+	for (j = 0; j < handle->count; ++j) {
 		struct v4l2_buffer buf;
 		memset (&buf, 0, sizeof(buf));
 		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buf.memory      = V4L2_MEMORY_MMAP;
 		buf.index       = j;
-		if (-1 == xioctl (fd, VIDIOC_QBUF, &buf)) {
+		if (-1 == xioctl (handle->fd, VIDIOC_QBUF, &buf)) {
 			LOGE("VIDIOC_QBUF");
 			return -13;
 		}
@@ -381,7 +387,7 @@ int Set_Video(int fd, int width, int height)
 
 	memset(&type, 0, sizeof(type));
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (-1 == xioctl (fd, VIDIOC_STREAMON, &type)) {
+	if (-1 == xioctl (handle->fd, VIDIOC_STREAMON, &type)) {
 		LOGE("VIDIOC_STREAMON");
 		return -14;
 	}
@@ -390,21 +396,22 @@ int Set_Video(int fd, int width, int height)
 }
 
 
-int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
+int Read_Video(int engine, unsigned char * pFrameBuffer, int size)
 {
 	struct v4l2_buffer buf;
 	unsigned int i;
 	int ret = 1, result = 0;
 
+	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
+
 	memset (&buf, 0, sizeof (buf)); /* defaults */
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	buf.memory = V4L2_MEMORY_MMAP;
-	ret = ioctl (fd, VIDIOC_DQBUF, &buf);
+	ret = ioctl (handle->fd, VIDIOC_DQBUF, &buf);
 	if (0 != ret) {
 		LOGE("Command VIDIOC_DQBUF error, errno: %d, %s", errno, strerror(errno));
 		return -1;
 	}
-
 	 /* Check if some frames are lost */
 	//if ((_sequence + 1) != buf.sequence) {
 		//LOGE("Some Frames are lost, the last frame is %d, the current frame is %d", _sequence, buf.sequence);
@@ -416,14 +423,16 @@ int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 	//LOGE("size = %d", size);
 	//LOGE("buf.bytesused = %d", buf.bytesused);
 	if (buf.bytesused <= size) {
-		memcpy(pFrameBuffer, buffers[buf.index].start, buf.bytesused);
+		memcpy(pFrameBuffer, handle->buffers[buf.index].start, buf.bytesused);
 		result = buf.bytesused;
 	}
 
+	i = buf.index;
 	memset (&buf, 0, sizeof (buf)); /* defaults */
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	buf.memory = V4L2_MEMORY_MMAP;
-	ret = ioctl(fd, VIDIOC_QBUF, &buf);
+	buf.index = i;
+	ret = ioctl(handle->fd, VIDIOC_QBUF, &buf);
 	if (0 != ret) {
 		LOGE("Command VIDIOC_QBUF error, errno: %d, %s", errno, strerror(errno));
 		return -2;
@@ -432,27 +441,43 @@ int Read_Video(int fd, unsigned char * pFrameBuffer, int size)
 	return result;
 }
 
-int Close_Video(int fd)
+int Close_Video(int engine)
 {
 	unsigned int i;
 	enum v4l2_buf_type type;
 
+	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
+
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (-1 == xioctl (fd, VIDIOC_STREAMOFF, &type)) {
+	if (-1 == xioctl (handle->fd, VIDIOC_STREAMOFF, &type)) {
 		LOGE("Command VIDIOC_STREAMOFF error, errno: %d, %s", errno, strerror(errno));
 		return -1;
 	}
 
-	for (i = 0; i < count; ++i) {
-		if (-1 == munmap (buffers[i].start, buffers[i].length)) {
+	for (i = 0; i < handle->count; ++i) {
+		if (-1 == munmap (handle->buffers[i].start, handle->buffers[i].length)) {
 			LOGE("munmap");
 			return -1;
 		}
 	}
-	free (buffers);
+	free (handle->buffers);
 
-	close (fd);
+	close (handle->fd);
 
+	free(handle);
+
+	return 0;
+}
+
+int Check_Format(int engine, int format)
+{
+	int i = 0;
+	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
+	for (i = 0; i < handle->fcount && i < 64; i++) {
+		if(handle->format[i++] == format) {
+			return 1;
+		}
+	}
 	return 0;
 }
 

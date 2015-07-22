@@ -54,6 +54,15 @@ public class SerialClient extends Thread {
 	
 	public void shutdown() {
 		mBlinker = null;
+		try {
+			synchronized (this) {
+				this.notifyAll();
+			}
+			this.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public boolean sendData(String data) {

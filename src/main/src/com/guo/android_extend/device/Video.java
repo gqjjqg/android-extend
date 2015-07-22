@@ -4,7 +4,7 @@ public class Video {
 	private final String TAG = this.getClass().getSimpleName();
 	
 	private native int initVideo(int port);
-	private native int setVideo(int handle, int width, int height);
+	private native int setVideo(int handle, int width, int height, int format);
 	private native int uninitVideo(int handle);
 	private native int readData(int handle, byte[] data, int size);
 	
@@ -19,8 +19,8 @@ public class Video {
 		mHandle = initVideo(port);
 	}
 	
-	public void setVideo(int width, int height) {
-		setVideo(mHandle, width, height);
+	public void setVideo(int width, int height, int format) {
+		setVideo(mHandle, width, height, format);
 	}
 	
 	public void destroy() {

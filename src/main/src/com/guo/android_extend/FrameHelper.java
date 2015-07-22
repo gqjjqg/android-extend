@@ -12,6 +12,7 @@ public class FrameHelper {
 	
 	public FrameHelper() {
 		// TODO Auto-generated constructor stub
+		isShow = true;
 		reset();
 	}
 	
