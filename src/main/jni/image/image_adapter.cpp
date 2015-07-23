@@ -92,7 +92,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
-	jclass jclsmain = env->FindClass("com/guo/android_extend/image/ImageFormat");
+	jclass jclsmain = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
 
 	switch (format) {
 	case CP_PAF_NV12:
@@ -120,15 +120,14 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 		return -1;
 	}
 
-	if (info.width != engine->width || info.height != engine->height) {
+	if (info.width != engine->width || info.height != engine->height || data == NULL) {
+		LOGE("PARAM FAIL!");
 		return -1;
 	}
 
-	if (data == NULL) {
-		return -1;
-	}
-
-	if (env->GetArrayLength(data) != (info.width * info.height * 3 / 2)) {
+	int size = calcImageSize(info.width, info.height, engine->format);
+	if (env->GetArrayLength(data) < size) {
+		LOGE("DATA BUFFER NOT NOT ENOUGH!");
 		return -1;
 	}
 
@@ -159,7 +158,7 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 	}
 #endif
 
-	env->SetByteArrayRegion(data, 0, info.width * info.height * 3 / 2, (const jbyte*) engine->pBuffer);
+	env->SetByteArrayRegion(data, 0, size, (const jbyte*) engine->pBuffer);
 
 	AndroidBitmap_unlockPixels(env, jbitmap);
 

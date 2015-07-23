@@ -34,7 +34,7 @@ struct buffer {
 
 typedef struct V4L2_Video_t {
 	struct buffer *buffers;
-	__u32 format[64];
+	unsigned int format[64];
 	int fcount;
 	int count;
 	int fd;
@@ -242,18 +242,12 @@ int Open_Video(int port)
 	memset(&formatdesc, 0, sizeof(formatdesc));
 	formatdesc.index = 0;
 	formatdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	LOGE("Support format");
 	while (xioctl(handle->fd, VIDIOC_ENUM_FMT, &formatdesc) != -1) {
-		formatdesc.index++;
-		LOGE("%d.%s", formatdesc.index, formatdesc.description);
-		LOGE("{ pixelformat = ''%c%c%c%c'', description = ''%s'' }\n",
-				formatdesc.pixelformat & 0xFF, (formatdesc.pixelformat >> 8) & 0xFF,
-				(formatdesc.pixelformat >> 16) & 0xFF,
-				(formatdesc.pixelformat >> 24) & 0xFF, formatdesc.description);
-
+		LOGE("%d.%s,(%d,%d)", formatdesc.index, formatdesc.description, formatdesc.flags, formatdesc.pixelformat);
 		if (formatdesc.index < 64) {
 			handle->format[formatdesc.index] = formatdesc.pixelformat;
 		}
+		formatdesc.index++;
 	}
 
 	handle->fcount = formatdesc.index;
@@ -469,12 +463,12 @@ int Close_Video(int engine)
 	return 0;
 }
 
-int Check_Format(int engine, int format)
+int Check_Format(int engine, unsigned int format)
 {
 	int i = 0;
 	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
 	for (i = 0; i < handle->fcount && i < 64; i++) {
-		if(handle->format[i++] == format) {
+		if (handle->format[i] == format) {
 			return 1;
 		}
 	}

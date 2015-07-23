@@ -36,7 +36,7 @@ public class VideoClient extends Thread {
 		 * @param h
 		 * @param format
 		 */
-		public void onPreview(byte[] data, int camera, int w, int h, int format);
+		public void onPreview(byte[] data, int size, int camera);
 	}
 	
 	public VideoClient(Handler handle, int port) {
@@ -90,9 +90,9 @@ public class VideoClient extends Thread {
 		mVideo.setVideo(mPreviewWidth, mPreviewHeight, mFormat);
 		while (mBlinker == thisThread) {
 			byte[] data = mBufferQueue.poll();
-			mVideo.readFrame(data);
+			size = mVideo.readFrame(data);
 			if (mOnCameraListener != null && isPreviewStart) {
-				mOnCameraListener.onPreview(data, mCameraID, mPreviewWidth, mPreviewHeight, mFormat);
+				mOnCameraListener.onPreview(data, size, mCameraID);
 			}
 			mBufferQueue.offer(data);
 			mFrameHelper.printFPS();

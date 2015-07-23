@@ -20,7 +20,7 @@ int calcImageSize(int width, int height, int format)
 	case CP_RGBA4444:
 		return width * height * 2;
 	case CP_RGBA8888 :
-	case CP_UNKNOWN:
+	case CP_MJPEG:
 		return width * height * 4;
 	default :;
 	}

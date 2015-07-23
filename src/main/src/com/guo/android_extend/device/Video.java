@@ -27,7 +27,7 @@ public class Video {
 		uninitVideo(mHandle);
 	}
 	
-	public void readFrame(byte[] data) {
-		readData(mHandle, data, data.length);
+	public int readFrame(byte[] data) {
+		return readData(mHandle, data, data.length);
 	}
 }

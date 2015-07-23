@@ -30,8 +30,8 @@ const char* pVertexShaderStr =
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
 
-/*
-const char* pfGalaxyShader = 
+
+const char* pFragmentShaderYUYV =
 "precision highp float;\n"
 "uniform sampler2D y_texture;\n"
 "uniform sampler2D uv_texture;\n"
@@ -40,15 +40,14 @@ const char* pfGalaxyShader =
 "{\n"
 "    mediump vec3 yuv;\n"
 "    highp vec3 rgb; \n"
-"    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"
-"    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;\n"
- "   yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;\n"
- "   rgb = mat3(      1,       1,       1,\n"
- "              0, -.21482, 2.12798,\n"
- "              1.28033, -.38059,       0) * yuv;\n"
- "   gl_FragColor = vec4(rgb, 1);\n"
+"    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"	//
+"    yuv.y = texture2D(uv_texture, v_texCoord).g-0.5;\n" //
+"    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;\n" //
+"    rgb = mat3(      1,       1,       1,\n"
+"              0, -0.344, 1.770,\n"
+"              1.403, -0.714,       0) * yuv;\n"
+"    gl_FragColor = vec4(rgb, 1);\n"
 "}\n";
-*/
 
 const char* pFragmentShaderNV21 =
 "precision highp float;\n"
@@ -61,11 +60,11 @@ const char* pFragmentShaderNV21 =
 "    highp vec3 rgb; \n"
 "    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"
 "    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;\n"
- "   yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;\n"
- "   rgb = mat3(      1,       1,       1,\n"
- "              0, -0.344, 1.770,\n"
- "              1.403, -0.714,       0) * yuv;\n"
- "   gl_FragColor = vec4(rgb, 1);\n"
+"    yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;\n"
+"    rgb = mat3(      1,       1,       1,\n"
+"              0, -0.344, 1.770,\n"
+"              1.403, -0.714,       0) * yuv;\n"
+"    gl_FragColor = vec4(rgb, 1);\n"
 "}\n";
 
 const char* pFragmentShaderNV12 =
@@ -79,17 +78,17 @@ const char* pFragmentShaderNV12 =
 "    highp vec3 rgb; \n"
 "    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"
 "    yuv.y = texture2D(uv_texture, v_texCoord).r-0.5;\n"
- "   yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;\n"
- "   rgb = mat3(      1,       1,       1,\n"
- "              0, -0.344, 1.770,\n"
- "              1.403, -0.714,       0) * yuv;\n"
- "   gl_FragColor = vec4(rgb, 1);\n"
+"    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;\n"
+"    rgb = mat3(      1,       1,       1,\n"
+"              0, -0.344, 1.770,\n"
+"              1.403, -0.714,       0) * yuv;\n"
+"    gl_FragColor = vec4(rgb, 1);\n"
 "}\n";
 
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
-int GLInit(int mirror, int ori)
+int GLInit(int mirror, int ori, int format)
 {
 	LPOPENGLES engine;
 	GLuint	vertexShader;
@@ -103,9 +102,16 @@ int GLInit(int mirror, int ori)
 	engine->m_bTexInit				= -1;
 	engine->m_bMirror				= mirror;
 	engine->m_nDisplayOrientation	= ori;
+	engine->m_nPixelFormat 			= format;
 
 	vertexShader = LoadShader(GL_VERTEX_SHADER, pVertexShaderStr);
-	fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderNV21);
+	if (engine->m_nPixelFormat == CP_PAF_NV21) {
+		fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderNV21);
+	} else if (engine->m_nPixelFormat == CP_PAF_NV12) {
+		fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderNV12);
+	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
+		fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderYUYV);
+	}
 
 	engine->m_hProgramObject = glCreateProgram();
 	if (0 == engine->m_hProgramObject) {
@@ -147,7 +153,7 @@ int GLInit(int mirror, int ori)
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glEnable(GL_TEXTURE_2D);
 
 	LOGD("glGenTextures");
@@ -222,7 +228,7 @@ void GLChanged(int handle, int w, int h)
 	LOGD("glesChanged() --->");
 }
 
-void GLRender(int handle, unsigned char* pData, int w, int h, int format)
+void GLRender(int handle, unsigned char* pData, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
 	if (pData == NULL) {
@@ -234,12 +240,19 @@ void GLRender(int handle, unsigned char* pData, int w, int h, int format)
 	glClear ( GL_COLOR_BUFFER_BIT );
 
 	//Texture -> GPU
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
+	if (engine->m_nPixelFormat == CP_PAF_NV21 || engine->m_nPixelFormat == CP_PAF_NV12) {
+		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
 
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
+		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
+	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
+		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
 
+		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w >> 1, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
+	}
 	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 

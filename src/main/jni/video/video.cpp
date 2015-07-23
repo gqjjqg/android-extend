@@ -68,7 +68,7 @@ typedef struct engine_t {
 	int mStatus;
 
 	int mWidth;
-		int mHeight;
+	int mHeight;
 	unsigned char *pTargetBuffer;
 	int mTargetFormat;
 	int mTargetSize;
@@ -77,8 +77,6 @@ typedef struct engine_t {
 	int mSourceFormat;
 	int mSourceSize;
 #ifdef DEBUG_DUMP
-	unsigned char *pWriteBuffer;
-	unsigned char *pReadBuffer;
 	FILE * pfile;
 	int frame;
 #endif
@@ -152,20 +150,13 @@ jint NV_Init(JNIEnv *env, jobject object, jint port)
 	engine->pTargetBuffer = NULL;
 
 #ifdef DEBUG_DUMP
-	engine->pWriteBuffer = (unsigned char *)malloc(640*480*3/2);
-	engine->pfile = fopen("/sdcard/dump_640x480.nv21", "wb");
-	engine->frame = 0;
+	engine->pfile = fopen("/sdcard/frame1.mjpeg", "wb");
+	engine->frame = 1;
 #endif
 
 	engine->mHandle = Open_Video(port);
-	if (engine->mHandle < 0) {
-		engine->mStatus =  engine->mHandle;
-	} else {
-		engine->mStatus = 0;
-	}
-
-	if (engine->mStatus != 0) {
-		LOGE("Open_Video = %d\n", engine->mStatus);
+	if (engine->mHandle != 0) {
+		LOGE("Open_Video = %d\n", engine->mHandle);
 	}
 
 	return (jint)engine;
@@ -196,7 +187,7 @@ jint NV_UnInit(JNIEnv *env, jobject object, jint handler)
 jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height, jint format)
 {
 	LPVIDEO engine = (LPVIDEO)handler;
-	int f = V4L2_PIX_FMT_MJPEG;
+	int f = 0;
 
 	engine->mWidth = width;
 	engine->mHeight = height;
@@ -212,25 +203,43 @@ jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height, 
 		return -1;
 	}
 
-	engine->mSourceFormat = CP_UNKNOWN;
-	if (format == CP_PAF_NV12) {
+	//set source format and set output format.
+	engine->mSourceFormat = CP_MJPEG;
+	if (engine->mTargetFormat == CP_PAF_NV12) {
 		if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_NV12)) {
 			f = V4L2_PIX_FMT_NV12;
-			engine->mSourceFormat = format;
+			engine->mSourceFormat = CP_PAF_NV12;
+		} else if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_YUYV)) {
+			f = V4L2_PIX_FMT_YUYV;
+			engine->mSourceFormat = CP_PAF_YUYV;
 		}
-	} else if (format == CP_PAF_NV21) {
+	} else if (engine->mTargetFormat == CP_PAF_NV21) {
 		if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_NV21)) {
 			f = V4L2_PIX_FMT_NV21;
-			engine->mSourceFormat = format;
+			engine->mSourceFormat = CP_PAF_NV21;
+		} else if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_YUYV)) {
+			f = V4L2_PIX_FMT_YUYV;
+			engine->mSourceFormat = CP_PAF_YUYV;
 		}
-	} else if (format == CP_PAF_YUYV) {
+	} else if (engine->mTargetFormat == CP_PAF_YUYV) {
 		if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_YUYV)) {
 			f = V4L2_PIX_FMT_YUYV;
-			engine->mSourceFormat = format;
+			engine->mSourceFormat = CP_PAF_YUYV;
+		}
+	} else if (engine->mTargetFormat == CP_MJPEG) {
+		if (1 == Check_Format(engine->mHandle, V4L2_PIX_FMT_MJPEG)) {
+			f = V4L2_PIX_FMT_MJPEG;
+			engine->mSourceFormat = CP_MJPEG;
 		}
 	}
 
-
+	if (f == 0) {
+		LOGE("NOT SUPPORT");
+		return -1;
+	}
+#ifdef DEBUG
+	LOGE("setting %d, %d", engine->mSourceFormat, engine->mTargetFormat);
+#endif
 	if (engine->pSourceBuffer != NULL) {
 		free(engine->pSourceBuffer);
 	}
@@ -254,6 +263,7 @@ jint NV_ReadData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 #ifdef DEBUG
 	unsigned long cost = GTimeGet();
 #endif
+	jint ret = 0;
 	jboolean isCopy = false;
 	LPVIDEO engine = (LPVIDEO)handler;
 
@@ -263,42 +273,50 @@ jint NV_ReadData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 		return 0;
 	}
 
-	if (2 * engine->mWidth * engine->mHeight != Read_Video(engine->mHandle, engine->pSourceBuffer, engine->mSourceSize)) {
-		LOGI("Read_Video failed!\n");
-	} else {
-		if (engine->mSourceFormat != engine->mTargetFormat) {
-			if (engine->mSourceFormat == CP_UNKNOWN) {
-				mjpg_raw_insert_huffman(engine->pSourceBuffer, engine->mSourceSize, (unsigned char *)buffer);
-				//mjpg data. decode to raw and convert.
+	//LOGE("%d, %d", engine->mSourceFormat, engine->mTargetFormat);
+	ret = Read_Video(engine->mHandle, engine->pSourceBuffer, engine->mSourceSize);
+#ifdef DEBUG
+	LOGE("Read_Video = %d", ret);
+#endif
+	if (ret > 0) {
+		if (engine->mSourceFormat == CP_MJPEG) { //MJPG PROCESS
+			ret = mjpg_raw_insert_huffman(engine->pSourceBuffer, ret, (unsigned char *)engine->pTargetBuffer);
+			//mjpg data. decode to raw and convert.
+#ifdef DEBUG
+			LOGE("mjpeg full size = %d", ret);
+#endif
+			if (engine->mTargetFormat == CP_MJPEG) {
+				memcpy(buffer, engine->pTargetBuffer, ret);
+#ifdef DEBUG_DUMP
+				if (engine->frame > 0) {
+					fwrite(engine->pTargetBuffer, sizeof(char), ret, engine->pfile);
+					fclose(engine->pfile);
+					engine->frame = 0;
+				}
+#endif
+			} else {
+				LOGE("NOT SUPPORT DECODE!");
 			}
-
-			//convert out
+		} else if (engine->mSourceFormat != engine->mTargetFormat) {
 			if (engine->mSourceFormat == CP_PAF_YUYV && engine->mTargetFormat == CP_PAF_NV21) {
 				convert_YUYV_NV21(engine->pSourceBuffer, (unsigned char *)buffer, engine->mWidth, engine->mHeight);
+				ret = calcImageSize(engine->mWidth, engine->mHeight, engine->mTargetFormat);
 			} else if (engine->mSourceFormat == CP_PAF_YUYV && engine->mTargetFormat == CP_PAF_NV12) {
 				convert_YUYV_NV12(engine->pSourceBuffer, (unsigned char *)buffer, engine->mWidth, engine->mHeight);
+				ret = calcImageSize(engine->mWidth, engine->mHeight, engine->mTargetFormat);
 			} else {
-				LOGE("convert color format failed!\n");
+				LOGE("convert color format failed!");
+				ret = 0;
 			}
 		} else {
 			// copy out
-			memcpy(engine->pSourceBuffer, buffer, engine->mSourceSize);
+			memcpy(buffer, engine->pSourceBuffer, engine->mSourceSize);
 		}
 	}
 
-#ifdef DEBUG_DUMP
-	convert_YUYV_NV21((unsigned char *)buffer, engine->pWriteBuffer, 640, 480);
-	fwrite(engine->pWriteBuffer, sizeof(char), 640*480*3/2, engine->pfile);
-	fclose(engine->pfile);
-#endif
-
 	env->ReleaseByteArrayElements(data, buffer, isCopy);
 
-#ifdef DEBUG
-	engine->pWriteBuffer[size] = '\0';
-	LOGI("(%s,%d) cost = %ld",  engine->pWriteBuffer, size, GTimeGet() - cost);
-#endif
-	return 0;
+	return ret;
 }
 
 int mjpg_raw_insert_huffman(const void *in_buf, int buf_size, void *out_buf)

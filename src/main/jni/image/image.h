@@ -8,7 +8,8 @@
 #ifndef JNI_IMAGE_IMAGE_H_
 #define JNI_IMAGE_IMAGE_H_
 
-#define CP_UNKNOWN		-1
+#define CP_MJPEG		0xA000
+#define CP_PNG			0xB000
 #define CP_RGBA8888		1
 #define CP_RGB565		4
 #define CP_RGBA4444		7

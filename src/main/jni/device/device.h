@@ -15,7 +15,7 @@ int Open_Video(int port);
 int Set_Video(int fd, int width, int height, int format);
 int Read_Video(int fd, unsigned char * pFrameBuffer, int size);
 int Close_Video(int fd);
-int Check_Format(int fd, int format);
+int Check_Format(int fd, unsigned int format);
 
 #ifdef __cplusplus
 }

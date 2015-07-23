@@ -5,8 +5,10 @@ import android.graphics.Bitmap;
 public class ImageConverter {
 	private final String TAG = this.getClass().getSimpleName();
 
+	public final static int CP_MJPEG 	= 0xA000;
+	public final static int CP_PNG 		= 0xB000;
 	public final static int CP_RGBA8888 = 1;
-	public final static int CP_RGB565 = 4;
+	public final static int CP_RGB565 	= 4;
 	public final static int CP_RGBA4444 = 7;
 	public final static int CP_PAF_NV21 = 0x802;
 	public final static int CP_PAF_NV12 = 0x801;
@@ -27,6 +29,13 @@ public class ImageConverter {
 		handle = -1;
 	}
 	
+	/**
+	 * 
+	 * @param width
+	 * @param height
+	 * @param format  target to convert.
+	 * @return
+	 */
 	public boolean initial(int width, int height, int format) {
 		handle = image_init(width, height, format);
 		return handle != -1;
@@ -52,6 +61,7 @@ public class ImageConverter {
 		case CP_RGBA4444:
 			return w * h * 2;
 		case CP_RGBA8888 :
+		case CP_MJPEG:
 			return w * h * 4;
 		default :;
 		}

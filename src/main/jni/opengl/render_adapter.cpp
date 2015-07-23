@@ -21,15 +21,15 @@ typedef struct glesrender_t {
 #endif
 }RENDER_HANDLE, *LPRENDER_HANDLE;
 
-static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint fps);
+static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint format, jint fps);
 static jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint height);
-static jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height, jint format);
+static jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height);
 static jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle);
 
 static JNINativeMethod gMethods[] = {
-	{"render_init", "(III)I",(void*)NGLR_initial},
+	{"render_init", "(IIII)I",(void*)NGLR_initial},
 	{"render_changed", "(III)I",(void*)NGLR_changed},
-	{"render_process", "(I[BIII)I",(void*)NGLR_process},
+	{"render_process", "(I[BII)I",(void*)NGLR_process},
 	{"render_uninit", "(I)I",(void*)NGLR_uninitial},
 };
 
@@ -88,14 +88,14 @@ jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle)
 	free(engine);
 }
 
-jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint fps)
+jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint format, jint fps)
 {
 	LPRENDER_HANDLE handle = (LPRENDER_HANDLE)malloc(sizeof(RENDER_HANDLE));
 #ifdef _DEBUG
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
-	handle->handler = GLInit(mirror, ori);
+	handle->handler = GLInit(mirror, ori, format);
 	handle->showfps = fps;
 	return (jint)handle;
 }
@@ -107,7 +107,7 @@ jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint hei
 	return 0;
 }
 
-jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height, jint format)
+jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
 	jboolean isCopy = false;
@@ -120,7 +120,7 @@ jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jin
 	if (engine->showfps == 1) {
 		LOGD("NGLR FPS = %ld", GFps_GetCurFps());
 	}
-	GLRender(engine->handler, (unsigned char *)buffer, width, height, format);
+	GLRender(engine->handler, (unsigned char *)buffer, width, height);
 
 	env->ReleaseByteArrayElements(data, buffer, isCopy);
 
