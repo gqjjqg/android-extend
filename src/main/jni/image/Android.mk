@@ -15,13 +15,16 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE    := imagebase
+LOCAL_SRC_FILES := image.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)	
+include $(BUILD_STATIC_LIBRARY)
 
-LOCAL_MODULE    := cache
-LOCAL_SRC_FILES := cache_adapter.cpp \
-				   rbtree.c \
-				   dllist.c \
-				   cache_data.c \
-				   cache.c	   
+include $(CLEAR_VARS)
+LOCAL_MODULE    := image
+LOCAL_SRC_FILES := image_adapter.cpp
+   
 LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 

@@ -2,9 +2,6 @@ package com.guo.android_extend.network;
 
 import android.util.Log;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -65,7 +62,7 @@ public class DownloaderManager<T> extends Thread implements Downloader.OnMonitor
     }
 
     @Override
-    public void onFinish(Downloader downloader, boolean isSuccess) {
+    public void onFinish(Downloader<?> downloader, boolean isSuccess) {
         synchronized(mDataPool) {
             mDataPool.remove(downloader.getID());
         }

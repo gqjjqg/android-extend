@@ -1,24 +1,19 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 10
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
 
-        ndk {
-            moduleName'cache'
-            ldLibs'jnigraphics','log'
-            abiFilters 'armeabi'
-        }
-
         sourceSets.main {
-            //jniLibs.srcDirs = ['src/main/libs']
-            //jni.srcDirs = []
+            jniLibs.srcDirs = ['src/main/libs']
+            //jni.srcDirs = ['src/main/jni']
+            jni.srcDirs = []
             java.srcDirs = ['src/main/src']
         }
     }
@@ -28,8 +23,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
+
+task ndkBuild(type: Exec) {
+    def ndkBuildPath = 'ndk-build.cmd'
+    println 'NDK-BUILD:'
+    commandLine ndkBuildPath,                           // <-- Use this one instead
+            'NDK_PROJECT_PATH=build',
+            'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+            'NDK_APPLICATION_MK=src/main/jni/Application.mk'
+}
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn ndkBuild
+}
+
