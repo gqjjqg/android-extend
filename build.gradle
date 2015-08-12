@@ -35,7 +35,7 @@ task ndkBuild(type: Exec) {
     def ndkBuildPath = 'ndk-build.cmd'
     println 'NDK-BUILD:'
     commandLine ndkBuildPath,                           // <-- Use this one instead
-            'NDK_PROJECT_PATH=build',
+            'NDK_PROJECT_PATH=src/main',
             'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
             'NDK_APPLICATION_MK=src/main/jni/Application.mk'
 }

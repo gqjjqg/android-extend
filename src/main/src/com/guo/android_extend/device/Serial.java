@@ -24,7 +24,7 @@ public class Serial {
 		if (mHandle > 0) {
 			String VAL = new String("N");
 			setSerial(mHandle, rate, 8, VAL.getBytes()[0], 1);
-			Log.d(TAG, "Serial init success!");
+			Log.d(TAG, "Serial init :" + mHandle);
 		}
 		mReceive = new byte[1025];
 	}
@@ -40,7 +40,9 @@ public class Serial {
 	public String receive() {
 		if (mHandle > 0) {
 			int size = receiveData(mHandle, mReceive, 1024, 1);
-			return new String(mReceive).substring(0, size);
+			if (size > 0) {
+				return new String(mReceive).substring(0, size);
+			}
 		}
 		return null;
 	}

@@ -95,7 +95,7 @@ int GLInit(int mirror, int ori, int format)
 	GLuint	fragmentShader;
 	GLint	linked;
 
-	LOGD("glesInit() <---");
+	LOGD("glesInit() <--- format = %d", format);
 
 	engine = (LPOPENGLES)malloc(sizeof(OPENGLES));
 	engine->m_hProgramObject		= 0;
@@ -152,9 +152,9 @@ int GLInit(int mirror, int ori, int format)
 		return 0;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glEnable(GL_TEXTURE_2D);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	//glEnable(GL_TEXTURE_2D);
 
 	LOGD("glGenTextures");
 	// Textures
@@ -175,11 +175,11 @@ int GLInit(int mirror, int ori, int format)
 
 	//VBO
 	glGenBuffers(3, engine->m_nBufs);
-	float scale_factor = 1.0f;
-	GLfloat vVertices[] = { -scale_factor,  scale_factor, 0.0f, 1.0f,  // Position 0
-                           -scale_factor, -scale_factor, 0.0f, 1.0f, // Position 1
-                            scale_factor, -scale_factor, 0.0f, 1.0f, // Position 2
-                            scale_factor,  scale_factor, 0.0f, 1.0f,  // Position 3
+	GLfloat vScale = 1.0;
+	GLfloat vVertices[] = { -vScale,  vScale, 0.0f, //1.0f,  // Position 0
+                            -vScale, -vScale, 0.0f, //1.0f, // Position 1
+                             vScale, -vScale, 0.0f, //1.0f, // Position 2
+                             vScale,  vScale, 0.0f, //1.0f,  // Position 3
                          };
 
 	GLfloat tCoords[] = {0.0f,  0.0f, 
@@ -208,11 +208,11 @@ int GLInit(int mirror, int ori, int format)
 	GLushort indexs[] = { 0, 1, 2, 0, 2, 3 };
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*16, vVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*8, tCoords, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tCoords), tCoords, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->m_nBufs[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*6, indexs, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexs), indexs, GL_STATIC_DRAW);
 
 	LOGD("glesInit() --->");
 
@@ -266,11 +266,11 @@ void GLRender(int handle, unsigned char* pData, int w, int h)
 	glUniform1i(textureUniformU, 1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glVertexAttribPointer ( 0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0 );
+	glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-	glVertexAttribPointer ( 1, 2, GL_FLOAT,GL_FALSE, 2 * sizeof(GLfloat), 0 );
+	glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(1);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->m_nBufs[2]);
