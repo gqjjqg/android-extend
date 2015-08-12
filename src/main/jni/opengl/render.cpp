@@ -20,6 +20,17 @@ typedef struct opengl_t {
 	int	m_nPixelFormat;
 }OPENGLES, *LPOPENGLES;
 
+
+/**
+ *  When an array element i is transferred to the GL by the DrawArrays or DrawElements commands, 
+ *  each generic attribute is expanded to four components. If size is one then the x component 
+ *  of the attribute is specified by the array; the y, z, and w components are implicitly set to
+ *  zero, zero, and one, respectively. If size is two then the x and y components of the attribute
+ *  are specified by the array; the z, and w components are implicitly set to zero, and one, 
+ *  respectively. If size is three then x, y, and z are specified, and w is implicitly set to one. 
+ *  If size is four then all components are specified.
+ *  
+ */
 const char* pVertexShaderStr =
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
