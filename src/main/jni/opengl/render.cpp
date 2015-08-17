@@ -205,7 +205,7 @@ int GLInit(int mirror, int ori, int format)
 		tCoords[0] = tCoords[2]; tCoords[1] = tCoords[3];
 		tCoords[2] = tCoords[4]; tCoords[3] = tCoords[5];
 		tCoords[4] = tCoords[6]; tCoords[5] = tCoords[7];
-		tCoords[6] = tCoords[0]; tCoords[7] = tCoords[1];
+		tCoords[6] = temp[0]; tCoords[7] = temp[1];
 	}
 		
 	if (engine->m_bMirror == 1){
