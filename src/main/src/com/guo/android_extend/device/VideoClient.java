@@ -29,12 +29,10 @@ public class VideoClient extends Thread {
 	
 	public interface OnCameraListener {
 		/**
-		 * not in main thread.
+		 *
 		 * @param data
+		 * @param size
 		 * @param camera
-		 * @param w
-		 * @param h
-		 * @param format
 		 */
 		public void onPreview(byte[] data, int size, int camera);
 	}
@@ -47,8 +45,13 @@ public class VideoClient extends Thread {
 		mPreviewHeight = 480;
 		mFormat = ImageConverter.CP_PAF_NV21;
 		mCameraID = port;
-		
-		mVideo = new Video(port);
+		try {
+			mVideo = new Video(port);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Create VideoClient ERROR");
+		}
+
 		mFrameHelper = new FrameHelper();
 		
 		mBufferQueue = new LinkedList<byte[]>();

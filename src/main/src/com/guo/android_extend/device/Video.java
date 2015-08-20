@@ -14,9 +14,12 @@ public class Video {
 	
 	private int mHandle;
 	
-	public Video(int port) {
+	public Video(int port) throws Exception {
 		// TODO Auto-generated constructor stub
 		mHandle = initVideo(port);
+		if (mHandle == 0) {
+			throw new RuntimeException("Open Video device error!");
+		}
 	}
 	
 	public void setVideo(int width, int height, int format) {

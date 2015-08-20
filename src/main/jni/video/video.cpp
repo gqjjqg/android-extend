@@ -149,15 +149,17 @@ jint NV_Init(JNIEnv *env, jobject object, jint port)
 	engine->pSourceBuffer = NULL;
 	engine->pTargetBuffer = NULL;
 
+	engine->mHandle = Open_Video(port);
+	if (engine->mHandle != 0) {
+		LOGE("Open_Video = %d\n", engine->mHandle);
+		free(engine);
+		return NULL;
+	}
+
 #ifdef DEBUG_DUMP
 	engine->pfile = fopen("/sdcard/frame1.mjpeg", "wb");
 	engine->frame = 1;
 #endif
-
-	engine->mHandle = Open_Video(port);
-	if (engine->mHandle != 0) {
-		LOGE("Open_Video = %d\n", engine->mHandle);
-	}
 
 	return (jint)engine;
 }
