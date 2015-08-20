@@ -38,32 +38,21 @@ public class ExtGLSurfaceView extends GLSurfaceView {
 	@Override
 	protected void onMeasure(int widthSpec, int heightSpec) {
 		// TODO Auto-generated method stub
-		 int previewWidth = MeasureSpec.getSize(widthSpec);
-        int previewHeight = MeasureSpec.getSize(heightSpec);
+		int width = MeasureSpec.getSize(widthSpec);
+        int height = MeasureSpec.getSize(heightSpec);
 
-        // Get the padding of the border background.
-        int hPadding = getPaddingLeft() + getPaddingRight();
-        int vPadding = getPaddingTop() + getPaddingBottom();
-
-        // Resize the preview frame with correct aspect ratio.
-        previewWidth -= hPadding;
-        previewHeight -= vPadding;
         if (mAspectRatio != 0) {
-	        if (previewWidth > previewHeight * mAspectRatio) {
-	            previewWidth = (int) (previewHeight * mAspectRatio + .5);
+	        if (width > height * mAspectRatio) {
+	            width = (int) (height * mAspectRatio + .5);
 	        } else {
-	            previewHeight = (int) (previewWidth / mAspectRatio + .5);
+	            height = (int) (width / mAspectRatio + .5);
 	        }
         }
 
-        // Add the padding of the border.
-        previewWidth += hPadding;
-        previewHeight += vPadding;
+		widthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+		heightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
 
-        // Ask children to follow the new preview dimension.
-        super.onMeasure(MeasureSpec.makeMeasureSpec(previewWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(previewHeight, MeasureSpec.EXACTLY));
-		
+        super.onMeasure(widthSpec, heightSpec);
 	}
 
 	
