@@ -36,12 +36,24 @@ public class Serial {
 		}
 		return false;
 	}
-	
-	public String receive() {
+
+	public boolean send(byte[] data) {
+		if (mHandle > 0) {
+			sendData(mHandle, data, data.length);
+			return true;
+		}
+		return false;
+	}
+
+	public byte[] receive() {
 		if (mHandle > 0) {
 			int size = receiveData(mHandle, mReceive, 1024, 1);
 			if (size > 0) {
-				return new String(mReceive).substring(0, size);
+				byte[] raw = new byte[size];
+				for (int i = 0; i < raw.length; i++) {
+					raw[i] = mReceive[i];
+				}
+				return raw;
 			}
 		}
 		return null;

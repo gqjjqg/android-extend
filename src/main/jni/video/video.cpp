@@ -150,10 +150,10 @@ jint NV_Init(JNIEnv *env, jobject object, jint port)
 	engine->pTargetBuffer = NULL;
 
 	engine->mHandle = Open_Video(port);
-	if (engine->mHandle != 0) {
+	if (engine->mHandle < 0 && engine->mHandle >= -7) {
 		LOGE("Open_Video = %d\n", engine->mHandle);
 		free(engine);
-		return NULL;
+		return -1;
 	}
 
 #ifdef DEBUG_DUMP

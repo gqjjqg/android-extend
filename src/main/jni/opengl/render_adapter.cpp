@@ -8,16 +8,21 @@
 #include "render.h"
 #include "loger.h"
 
+//#define DEBUG_DUMP
+
 typedef struct glesrender_t {
 	int handler;
 	int showfps;
+#ifdef DEBUG_DUMP
+	int count;
+	FILE *file;
+#endif
+
 #ifdef _DEBUG
 	unsigned char *pBuffer;
 	int width;
 	int height;
 	int format;
-	FILE *file;
-	int count;
 #endif
 }RENDER_HANDLE, *LPRENDER_HANDLE;
 
@@ -91,9 +96,12 @@ jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle)
 jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint format, jint fps)
 {
 	LPRENDER_HANDLE handle = (LPRENDER_HANDLE)malloc(sizeof(RENDER_HANDLE));
-#ifdef _DEBUG
-	handle->count = 100;
+#ifdef DEBUG_DUMP
+	handle->count = 3;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
+	if (handle->file == 0) {
+		LOGE("ERROR fopen");
+	}
 #endif
 	handle->handler = GLInit(mirror, ori, format);
 	handle->showfps = fps;
@@ -116,6 +124,17 @@ jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jin
 		LOGI("buffer failed!\n");
 		return 0;
 	}
+#ifdef DEBUG_DUMP
+	if (engine->count > 0) {
+		int size = fwrite(buffer, sizeof(char), width * height * 3 / 2, engine->file);
+		LOGE("fwrite %d %d, %x, %x, ret = %d", width, height, buffer, engine->file, size);
+		engine->count--;
+	} else if (engine->count == 0) {
+		fclose(engine->file);
+		engine->count--;
+		LOGE("fclose");
+	}
+#endif
 
 	if (engine->showfps == 1) {
 		LOGD("NGLR FPS = %ld", GFps_GetCurFps());

@@ -21,6 +21,13 @@ public class SerialClient extends Thread {
 		mHandler = handle;
 	}
 
+	public SerialClient(Handler handle,  int rate, int port) {
+		// TODO Auto-generated constructor stub
+		mPort = new Serial(port, rate);
+		mBlinker = this;
+		mHandler = handle;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Thread#run()
 	 */
@@ -31,9 +38,8 @@ public class SerialClient extends Thread {
 		
 		while (mBlinker == thisThread) {
 			//synchronized (mPort4) {
-				String data = mPort.receive();
+				byte[] data = mPort.receive();
 				if (data != null) {
-					Log.d(TAG, data);
 					Message msg = new Message();
 					msg.what = SERIAL_CODE;
 	                msg.arg1 = RECEIVE_MSG;
@@ -68,6 +74,12 @@ public class SerialClient extends Thread {
 	public boolean sendData(String data) {
 		//synchronized (mPort4) {
 			return mPort.send(data);
+		//}
+	}
+
+	public boolean sendData(byte[] data) {
+		//synchronized (mPort4) {
+		return mPort.send(data);
 		//}
 	}
 	
