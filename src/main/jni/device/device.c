@@ -50,7 +50,7 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 	//fprintf(stdout,"The Fucntion Set_Port() Begin!\n");
 
 	if (tcgetattr(fd, &oldtio) != 0) {
-		perror("Setup Serial:");
+		LOGE("Setup Serial:");
 		return -1;
 	}
 
@@ -145,7 +145,7 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 	tcflush(fd, TCIFLUSH);
 
 	if ((tcsetattr(fd, TCSANOW, &newtio)) != 0) {
-		perror("Com set error");
+		LOGE("Com set error");
 		return -1;
 	}
 
@@ -154,20 +154,28 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 	return 0;
 }
 
-int Open_Port(int com_port, int *error)
+int Open_Port(int com_port, int *error, int type)
 {
 	int fd = 0;
 	//fprintf(stdout,"Function Open_Port Begin!\n");
 
-	char *dev[] = { "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/ttyS3",
+	char *devSerial[] = { "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/ttyS3",
 			"/dev/ttyS4", "/dev/ttyS5", "/dev/ttyS6" };
+
+	char *devUSBSerial[] = { "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3",
+					"/dev/ttyUSB4", "/dev/ttyUSB5", "/dev/ttyUSB6" };
 
 	if ((com_port < 0) || (com_port > 6)) {
 		return -1;
 	}
 
 	//Open the port
-	fd = open(dev[com_port], O_RDWR | O_NOCTTY | O_NDELAY);
+	if (type == DEF_SERIAL) {
+		fd = open(devSerial[com_port], O_RDWR | O_NOCTTY | O_NDELAY);
+	} else {
+		fd = open(devUSBSerial[com_port], O_RDWR | O_NOCTTY | O_NDELAY);
+	}
+
 	//fd = open("/dev/ttyS2", O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd < 0) {
 		*error = errno;

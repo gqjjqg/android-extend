@@ -28,6 +28,13 @@ public class SerialClient extends Thread {
 		mHandler = handle;
 	}
 
+	public SerialClient(Handler handle,  int rate, int port, int type) {
+		// TODO Auto-generated constructor stub
+		mPort = new Serial(port, rate, type);
+		mBlinker = this;
+		mHandler = handle;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Thread#run()
 	 */

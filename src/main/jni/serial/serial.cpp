@@ -40,14 +40,14 @@ typedef struct engine_t {
 #define MSG_SwingUp 		3
 
 //public method.
-static jint NS_Init(JNIEnv *env, jobject object, jint port);
+static jint NS_Init(JNIEnv *env, jobject object, jint port, jint type);
 static jint NS_UnInit(JNIEnv *env, jobject object, jint handler);
 static jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits);
 static jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size);
 static jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time);
 
 static JNINativeMethod gMethods[] = {
-    {"initSerial", "(I)I",(void*)NS_Init},
+    {"initSerial", "(II)I",(void*)NS_Init},
     {"uninitSerial", "(I)I",(void*)NS_UnInit},
     {"setSerial", "(IIIBI)I", (void*)NS_Set},
 	{"sendData", "(I[BI)I", (void*)NS_SendData},
@@ -90,12 +90,13 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NS_Init(JNIEnv *env, jobject object, jint port)
+jint NS_Init(JNIEnv *env, jobject object, jint port, jint type)
 {
 	int error;
 	LPSERIAL engine = (LPSERIAL)malloc(sizeof(SERIAL));
 	if (engine == NULL) {
-		return -2;
+		LOGE("memory not enough!");
+		return 0;
 	}
 	memset(engine, 0, sizeof(SERIAL));
 
@@ -108,7 +109,7 @@ jint NS_Init(JNIEnv *env, jobject object, jint port)
 	engine->frame = 5;
 #endif
 
-	engine->mHandle = Open_Port(port, &error);
+	engine->mHandle = Open_Port(port, &error, type);
 	if (engine->mHandle < 0) {
 		engine->mStatus =  engine->mHandle;
 	} else {
@@ -117,16 +118,18 @@ jint NS_Init(JNIEnv *env, jobject object, jint port)
 
 	if (engine->mStatus == -1) {
 		LOGE("The port is out range");
-		return -1;
+		return 0;
 	} else if (engine->mStatus == -2) {
 		LOGE("Open serial port FAIL %d", error);
-		return -2;
+		return 0;
 	} else if (engine->mStatus == -3) {
 		LOGE("fcntl F_SETFL");
-		return -3;
+		return 0;
 	} else if (engine->mStatus == -4) {
 		LOGE("isatty is not a terminal device");
-		return -4;
+		return 0;
+	} else {
+		LOGI("Open_Port = %d", engine->mHandle);
 	}
 
 	return (jint)engine;
@@ -152,7 +155,7 @@ jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data
 	LPSERIAL engine = (LPSERIAL)handler;
 
 	if (Set_Port(engine->mHandle, baud_rate, data_bits, parity, stop_bits) == -1) {
-		perror("Set_Port fail");
+		LOGE("Set_Port fail");
 		return -1;
 	}
 
