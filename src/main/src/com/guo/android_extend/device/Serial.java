@@ -24,31 +24,21 @@ public class Serial {
 	public Serial(int port, int rate) {
 		// TODO Auto-generated constructor stub
 		mHandle = initSerial(port, TYPE_SERIAL);
-		if (mHandle != 0) {
-			String VAL = new String("N");
-			setSerial(mHandle, rate, 8, VAL.getBytes()[0], 1);
-			Log.d(TAG, "Serial init :" + mHandle);
+		if (mHandle == 0) {
+			throw new RuntimeException("Open Serial device error!");
 		}
+		setSerial(mHandle, rate, 8, (byte) 'N', 1);
 		mReceive = new byte[1025];
 	}
 
 	public Serial(int port, int rate, int type) {
 		// TODO Auto-generated constructor stub
 		mHandle = initSerial(port, type);
-		if (mHandle != 0) {
-			String VAL = new String("N");
-			setSerial(mHandle, rate, 8, VAL.getBytes()[0], 1);
-			Log.d(TAG, "Serial init :" + mHandle);
+		if (mHandle == 0) {
+			throw new RuntimeException("Open Serial device error!");
 		}
+		setSerial(mHandle, rate, 8, (byte) 'N', 1);
 		mReceive = new byte[1025];
-	}
-	
-	public boolean send(String data) {
-		if (mHandle != 0) {
-			sendData(mHandle, data.getBytes(), data.length());
-			return true;
-		}
-		return false;
 	}
 
 	public boolean send(byte[] data) {
@@ -74,7 +64,9 @@ public class Serial {
 	}
 	
 	public void destroy() {
-		uninitSerial(mHandle);
+		if (mHandle != 0) {
+			uninitSerial(mHandle);
+		}
 	}
 	
 }

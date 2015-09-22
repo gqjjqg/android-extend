@@ -23,14 +23,21 @@ public class Video {
 	}
 	
 	public void setVideo(int width, int height, int format) {
-		setVideo(mHandle, width, height, format);
+		if (mHandle != 0) {
+			setVideo(mHandle, width, height, format);
+		}
 	}
 	
 	public void destroy() {
-		uninitVideo(mHandle);
+		if (mHandle != 0) {
+			uninitVideo(mHandle);
+		}
 	}
 	
 	public int readFrame(byte[] data) {
-		return readData(mHandle, data, data.length);
+		if (mHandle != 0) {
+			return readData(mHandle, data, data.length);
+		}
+		return 0;
 	}
 }

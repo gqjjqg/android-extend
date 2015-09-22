@@ -16,21 +16,37 @@ public class SerialClient extends Thread {
 	
 	public SerialClient(Handler handle, int port) {
 		// TODO Auto-generated constructor stub
-		mPort = new Serial(port, 115200);
+		try {
+			mPort = new Serial(port, 115200);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Create SerialClient ERROR");
+		}
+
 		mBlinker = this;
 		mHandler = handle;
 	}
 
 	public SerialClient(Handler handle,  int rate, int port) {
 		// TODO Auto-generated constructor stub
-		mPort = new Serial(port, rate);
+		try {
+			mPort = new Serial(port, rate);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Create SerialClient ERROR");
+		}
 		mBlinker = this;
 		mHandler = handle;
 	}
 
 	public SerialClient(Handler handle,  int rate, int port, int type) {
 		// TODO Auto-generated constructor stub
-		mPort = new Serial(port, rate, type);
+		try {
+			mPort = new Serial(port, rate, type);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Create SerialClient ERROR");
+		}
 		mBlinker = this;
 		mHandler = handle;
 	}
@@ -44,23 +60,14 @@ public class SerialClient extends Thread {
 		Thread thisThread = Thread.currentThread();
 		
 		while (mBlinker == thisThread) {
-			//synchronized (mPort4) {
-				byte[] data = mPort.receive();
-				if (data != null) {
-					Message msg = new Message();
-					msg.what = SERIAL_CODE;
-	                msg.arg1 = RECEIVE_MSG;
-	                msg.obj = data;
-					mHandler.sendMessage(msg);
-				}
-			//}
-			
-			//try {
-			//	sleep(10);
-			//} catch (InterruptedException e) {
-			//	// TODO Auto-generated catch block
-			//	e.printStackTrace();
-			//}
+			byte[] data = mPort.receive();
+			if (data != null) {
+				Message msg = new Message();
+				msg.what = SERIAL_CODE;
+				msg.arg1 = RECEIVE_MSG;
+				msg.obj = data;
+				mHandler.sendMessage(msg);
+			}
 		}
 		mPort.destroy();
 	}
@@ -79,15 +86,11 @@ public class SerialClient extends Thread {
 	}
 	
 	public boolean sendData(String data) {
-		//synchronized (mPort4) {
-			return mPort.send(data);
-		//}
+		return mPort.send(data.getBytes());
 	}
 
 	public boolean sendData(byte[] data) {
-		//synchronized (mPort4) {
 		return mPort.send(data);
-		//}
 	}
 	
 }

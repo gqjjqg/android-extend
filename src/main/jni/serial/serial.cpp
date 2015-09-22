@@ -128,8 +128,6 @@ jint NS_Init(JNIEnv *env, jobject object, jint port, jint type)
 	} else if (engine->mStatus == -4) {
 		LOGE("isatty is not a terminal device");
 		return 0;
-	} else {
-		LOGI("Open_Port = %d", engine->mHandle);
 	}
 
 	return (jint)engine;
