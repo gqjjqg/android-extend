@@ -24,8 +24,16 @@ public class ExtGLSurfaceView extends GLSurfaceView {
 	private void onCreate() {
 		mAspectRatio = 0.0;
 	}
-	
+
 	public void setAspectRatio(double ratio) {
+		if (mAspectRatio != ratio) {
+			mAspectRatio = ratio;
+			requestLayout();
+		}
+	}
+
+	public void setAspectRatio(int width, int height) {
+		double ratio = ((double)width / (double)height);
         if (mAspectRatio != ratio) {
             mAspectRatio = ratio;
             requestLayout();
