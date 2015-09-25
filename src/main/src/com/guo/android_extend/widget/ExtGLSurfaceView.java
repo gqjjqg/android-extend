@@ -4,6 +4,11 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+/**
+ * @Note create by gqjjqg,.
+ *    easy to use opengl surface..
+ */
+
 public class ExtGLSurfaceView extends GLSurfaceView {
 	private final String TAG = this.getClass().getSimpleName();
 

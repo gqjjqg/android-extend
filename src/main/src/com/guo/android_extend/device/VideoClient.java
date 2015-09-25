@@ -2,7 +2,7 @@ package com.guo.android_extend.device;
 
 import java.util.LinkedList;
 
-import com.guo.android_extend.FrameHelper;
+import com.guo.android_extend.tools.FrameHelper;
 import com.guo.android_extend.image.ImageConverter;
 
 import android.os.Handler;

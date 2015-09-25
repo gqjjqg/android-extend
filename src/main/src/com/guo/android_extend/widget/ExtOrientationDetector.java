@@ -1,4 +1,4 @@
-package com.guo.android_extend;
+package com.guo.android_extend.widget;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +15,7 @@ import android.view.WindowManager;
  * for orientation event detector.
  */
 
-public class CustomOrientationDetector extends OrientationEventListener {
+public class ExtOrientationDetector extends OrientationEventListener {
 	private final String TAG = this.getClass().toString();
 
 	public final static int ROTATE_POSITIVE = 0;
@@ -65,10 +65,6 @@ public class CustomOrientationDetector extends OrientationEventListener {
 	 */
 	public interface OnOrientationListener {
 		/**
-		 * DEFAULT ANIMATION TIME.
-		 */
-		static final int ANIMATION_TIME = 300;
-		/**
 		 * @param degree
 		 * @param offset
 		 * @param flag
@@ -81,13 +77,13 @@ public class CustomOrientationDetector extends OrientationEventListener {
 		int	getCurrentOrientationDegree();
 	}
 	
-	public CustomOrientationDetector(Context context, int rate) {
+	public ExtOrientationDetector(Context context, int rate) {
 		super(context, rate);
 		// TODO Auto-generated constructor stub
 		PreCreate(context);
 	}
 
-	public CustomOrientationDetector(Context context) {
+	public ExtOrientationDetector(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		PreCreate(context);
@@ -127,15 +123,15 @@ public class CustomOrientationDetector extends OrientationEventListener {
 			int offset = ORIENTATION_OFFSET;
 			while (it.hasNext()) {
 				OnOrientationListener listener = it.next();
-				if (flag == CustomOrientationDetector.ROTATE_FORCE_REDO) {
+				if (flag == ExtOrientationDetector.ROTATE_FORCE_REDO) {
 					param = getRotateFlag(listener.getCurrentOrientationDegree(), degree);
 				}
 				// 0 - 180 should rotate 180degree.otherwise 90 degree.
 				offset = Math.abs(listener.getCurrentOrientationDegree() - degree);
 				offset = offset > 180 ? (360 - offset) : offset;
-				if (param == CustomOrientationDetector.ROTATE_NEGATIVE) {
+				if (param == ExtOrientationDetector.ROTATE_NEGATIVE) {
 					offset = -offset;
-				} else if (param == CustomOrientationDetector.ROTATE_POSITIVE) {
+				} else if (param == ExtOrientationDetector.ROTATE_POSITIVE) {
 					//offset = offset;
 				} else {
 					continue;

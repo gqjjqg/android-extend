@@ -1,7 +1,6 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.RotateRunable;
-import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -29,7 +28,7 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	/**
 	 * animation during time.
 	 */
-	private final int ANIMATION_TIME = OnOrientationListener.ANIMATION_TIME;
+	private final int ANIMATION_TIME = RotateRunable.ANIMATION_TIME;
 	
 	/**
 	 * for animation .

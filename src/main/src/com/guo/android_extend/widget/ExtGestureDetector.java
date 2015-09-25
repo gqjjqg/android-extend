@@ -1,4 +1,4 @@
-package com.guo.android_extend;
+package com.guo.android_extend.widget;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -12,7 +12,7 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
-public class CustomGestureDetector extends GestureDetector {
+public class ExtGestureDetector extends GestureDetector {
 	private final String TAG = this.getClass().toString();
 	
 	public static final int MOVE_UNKNOWN =	0;
@@ -76,7 +76,7 @@ public class CustomGestureDetector extends GestureDetector {
 	
 	private int MAX_DISTANCE_MOVE;
 	
-	public CustomGestureDetector(Context context, OnCustomGestureListener listener) {
+	public ExtGestureDetector(Context context, OnCustomGestureListener listener) {
 		super(context, listener);
 		// TODO Auto-generated constructor stub
 		mListener = listener;

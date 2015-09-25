@@ -1,7 +1,6 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.RotateRunable;
-import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Handler;
@@ -15,7 +14,7 @@ import android.widget.ImageButton;
 
 /**
  * @author gqj3375
- * @see RotatableImageButton
+ * @see ExtImageButton
  * 
  * @support rotatable and scalable.
  * @note background will not rotate and scale .
@@ -24,12 +23,12 @@ import android.widget.ImageButton;
 public class ExtImageButton extends ImageButton implements OnOrientationListener, AnimationListener {
 	private final String TAG = this.getClass().toString();
 	
-	private Handler	mHandler;
+	private Handler mHandler;
 	
 	/**
 	 * animation during time.
 	 */
-	private final int ANIMATION_TIME = OnOrientationListener.ANIMATION_TIME;
+	private final int ANIMATION_TIME = RotateRunable.ANIMATION_TIME;
 	
 	/**
 	 * for animation .

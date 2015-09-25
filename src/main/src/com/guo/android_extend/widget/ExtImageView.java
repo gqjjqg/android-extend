@@ -13,14 +13,13 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
-import com.guo.android_extend.CustomOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.RotateRunable;
+import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
 import com.guo.android_extend.controller.AbstractController;
 import com.guo.android_extend.controller.AbstractController.ControllerListener;
 
 /**
  * @author gqj3375
- * @see RotatableImageButton
+ * @see ExtImageButton
  * 
  * @support rotatable and scalable.
  * @note background will not rotate and scale .
@@ -34,7 +33,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	/**
 	 * animation during time.
 	 */
-	private final int ANIMATION_TIME = OnOrientationListener.ANIMATION_TIME;
+	private final int ANIMATION_TIME = RotateRunable.ANIMATION_TIME;
 	
 	/**
 	 * for animation .

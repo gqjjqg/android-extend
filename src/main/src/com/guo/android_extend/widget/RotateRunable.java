@@ -1,15 +1,18 @@
-package com.guo.android_extend;
+package com.guo.android_extend.widget;
 
 import android.view.View;
 import android.view.animation.Animation;
 
 /**
  * @author qijiang.guo
- * @see RotatableImageButton
- * @see SwitchImageButton
+ * @see com.guo.android_extend.widget.ExtImageButton
  */
 public class RotateRunable implements Runnable {
-	
+	/**
+	 * DEFAULT ANIMATION TIME.
+	 */
+	static final int ANIMATION_TIME = 300;
+
 	/**
 	 * rotate animation.
 	 */

@@ -1,6 +1,6 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.FrameHelper;
+import com.guo.android_extend.tools.FrameHelper;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -12,6 +12,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+/**
+ * @Note create by gqjjqg,.
+ *    easy to use camera.
+ */
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback {
 	private final String TAG = this.getClass().getSimpleName();
 
