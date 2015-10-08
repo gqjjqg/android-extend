@@ -14,8 +14,8 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
-import com.guo.android_extend.controller.AbstractController;
-import com.guo.android_extend.controller.AbstractController.ControllerListener;
+import com.guo.android_extend.widget.controller.AbstractController;
+import com.guo.android_extend.widget.controller.AbstractController.ControllerListener;
 
 /**
  * @author gqj3375
