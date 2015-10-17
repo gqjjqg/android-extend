@@ -43,7 +43,7 @@ typedef struct V4L2_Video_t {
 
 static int xioctl(int fd, int request, void *arg);
 
-int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
+int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits, int vtime, int vmin)
 {
 	struct termios newtio, oldtio; //
 
@@ -139,8 +139,8 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 		break;
 	}
 
-	newtio.c_cc[VTIME] = 1;
-	newtio.c_cc[VMIN] = 255; //Read Comport Buffer when the bytes in Buffer is more than VMIN bytes!
+	newtio.c_cc[VTIME] = vtime; //1 == 100ms
+	newtio.c_cc[VMIN] = vmin; //255 default, Read Comport Buffer when the bytes in Buffer is more than VMIN bytes!
 
 	tcflush(fd, TCIFLUSH);
 
@@ -152,6 +152,46 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits)
 	//fprintf(stdout,"The Fucntion Set_Port() End!\n");
 
 	return 0;
+}
+
+int Write_Port(int fd, void * buffer, int size)
+{
+	int ret = 0;
+	//tcflush(fd, TCIFLUSH);
+	ret = write(fd, buffer, size);
+	//ioctl(fd, TCSBRK, (void *)(intptr_t)1);
+	return ret;
+}
+
+int Read_Port(int fd, void * buffer, int size)
+{
+	int ret = 0;
+	//tcflush(fd, TCOFLUSH);
+	fd_set rd;
+	FD_ZERO(&rd);
+	FD_SET(fd, &rd);
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100; //100ms
+#ifdef DEBUG
+	unsigned long cost = GTimeGet();
+#endif
+	int retval = select(fd + 1, &rd, NULL, NULL, &timeout);
+#ifdef DEBUG
+	LOGE("select cost %ld", GTimeGet() - cost);
+#endif
+
+	switch (retval) {
+		case 0:
+			break;
+		case -1:
+			LOGE("SELECT ERROR!");
+			break;
+		default:
+			return read(fd, buffer, size);
+	}					//end of switch
+
+	return ret;
 }
 
 int Open_Port(int com_port, int *error, int type)
@@ -182,7 +222,7 @@ int Open_Port(int com_port, int *error, int type)
 		return -2;
 	}
 
-	if (fcntl(fd, F_SETFL, 0) < 0) {
+	if (fcntl(fd, F_SETFL, 0) < 0) { //阻塞
 		return -3;
 	}
 

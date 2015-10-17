@@ -20,7 +20,7 @@
 
 #define BUFFER_SIZE		1024
 
-//#define DEBUG
+#define DEBUG
 //#define DEBUG_DUMP
 
 typedef struct engine_t {
@@ -42,14 +42,14 @@ typedef struct engine_t {
 //public method.
 static jint NS_Init(JNIEnv *env, jobject object, jint port, jint type);
 static jint NS_UnInit(JNIEnv *env, jobject object, jint handler);
-static jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits);
+static jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin);
 static jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size);
 static jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time);
 
 static JNINativeMethod gMethods[] = {
     {"initSerial", "(II)I",(void*)NS_Init},
     {"uninitSerial", "(I)I",(void*)NS_UnInit},
-    {"setSerial", "(IIIBI)I", (void*)NS_Set},
+    {"setSerial", "(IIIBIII)I", (void*)NS_Set},
 	{"sendData", "(I[BI)I", (void*)NS_SendData},
 	{"receiveData", "(I[BII)I", (void*)NS_ReceiveData},
 };
@@ -100,7 +100,6 @@ jint NS_Init(JNIEnv *env, jobject object, jint port, jint type)
 	}
 	memset(engine, 0, sizeof(SERIAL));
 
-
 	engine->pWriteBuffer = (unsigned char *)malloc(BUFFER_SIZE);
 	engine->pReadBuffer = (unsigned char *)malloc(BUFFER_SIZE + 1);
 
@@ -148,11 +147,11 @@ jint NS_UnInit(JNIEnv *env, jobject object, jint handler)
 	return 0;
 }
 
-jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits)
+jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 
-	if (Set_Port(engine->mHandle, baud_rate, data_bits, parity, stop_bits) == -1) {
+	if (Set_Port(engine->mHandle, baud_rate, data_bits, parity, stop_bits, vtime, vmin) == -1) {
 		LOGE("Set_Port fail");
 		return -1;
 	}
@@ -167,7 +166,7 @@ jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 #endif
 	LPSERIAL engine = (LPSERIAL)handler;
 	env->GetByteArrayRegion(data, 0, size, (signed char*)engine->pWriteBuffer);
-	write(engine->mHandle, engine->pWriteBuffer, size);
+	Write_Port(engine->mHandle, engine->pWriteBuffer, size);
 #ifdef DEBUG
 	engine->pWriteBuffer[size] = '\0';
 	LOGI("(%s,%d) cost = %ld",  engine->pWriteBuffer, size, GTimeGet() - cost);
@@ -178,47 +177,21 @@ jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
-	fd_set rd;
-	FD_ZERO(&rd);
-	FD_SET(engine->mHandle, &rd);
-	struct timeval timeout;
-	timeout.tv_sec = time;
-	timeout.tv_usec = 0;
 	int i;
-#ifdef DEBUG
-	unsigned long cost = GTimeGet();
-#endif
-	int retval = select(engine->mHandle + 1, &rd, NULL, NULL, &timeout);
-#ifdef DEBUG
-	LOGE("select cost %ld", GTimeGet() - cost);
-#endif
-
-	switch (retval) {
-	case 0:
-		break;
-	case -1:
-		LOGE("SELECT ERROR!");
-		break;
-	default:
-		if ((retval = read(engine->mHandle, engine->pReadBuffer, BUFFER_SIZE)) > 0) {
-			jboolean isCopy = false;
-			signed char* buffer = env->GetByteArrayElements(data, &isCopy);
-			if (buffer == NULL) {
-				LOGI("buffer failed!\n");
-				return 0;
-			}
-			for (i = 0; i < retval; i++) {
-				buffer[i] = engine->pReadBuffer[i];
-			}
-			buffer[i] = '\0';
-			env->ReleaseByteArrayElements(data, buffer, isCopy);
-#ifdef DEBUG
-			LOGI("(%s,%d) cost = %ld ms", buffer, retval, GTimeGet() - cost);
-#endif
-			return retval;
+	int retval = BUFFER_SIZE > size ? size : BUFFER_SIZE;
+	if ((retval = Read_Port(engine->mHandle, engine->pReadBuffer, retval)) > 0) {
+		jboolean isCopy = false;
+		signed char* buffer = env->GetByteArrayElements(data, &isCopy);
+		if (buffer == NULL) {
+			LOGI("buffer failed!\n");
+			return 0;
 		}
-	}					//end of switch
-
-
+		for (i = 0; i < retval; i++) {
+			buffer[i] = engine->pReadBuffer[i];
+		}
+		buffer[i] = '\0';
+		env->ReleaseByteArrayElements(data, buffer, isCopy);
+		return retval;
+	}
 	return 0;
 }

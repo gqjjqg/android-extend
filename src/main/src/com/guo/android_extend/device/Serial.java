@@ -7,9 +7,31 @@ public class Serial {
 
 	public static final int TYPE_SERIAL = 0;
 	public static final int TYPE_USB_SERIAL = 1;
+	public static final int MAX_RECEIVE_SIZE = 255;
+	public static final int MAX_RECEIVE_TIMEOUT = 1;	//S
 
+	/**
+	 *
+	 * @param port		0 == ttyS0
+	 * @param type		ttyUSB0 / ttyS0
+	 * @return
+	 */
 	private native int initSerial(int port, int type);
-	private native int setSerial(int handle, int baud_rate, int data_bits, byte parity, int stop_bits);
+
+	/**
+	 *
+	 * @param handle
+	 * @param baud_rate		9600 19200 115200
+	 * @param data_bits		7 8
+	 * @param parity			'N' 'O' 'E' 'S'
+	 * @param stop_bits		1 2
+	 * @param vtime			1 (100ms), 0 (0ms)
+	 * @param vmin				255  (read buffer size.)
+	 * @param vtime			read wait time. 1=(100ms)
+	 * @param vmin				read min buffer size.
+	 * @return
+	 */
+	private native int setSerial(int handle, int baud_rate, int data_bits, byte parity, int stop_bits, int vtime, int vmin);
 	private native int sendData(int handle, byte[] data, int length);
 	private native int receiveData(int handle, byte[] data, int max, int timeout);
 	private native int uninitSerial(int handle);
@@ -21,24 +43,26 @@ public class Serial {
 		System.loadLibrary("serial");
 	}
 
-	public Serial(int port, int rate) {
-		// TODO Auto-generated constructor stub
-		mHandle = initSerial(port, TYPE_SERIAL);
-		if (mHandle == 0) {
-			throw new RuntimeException("Open Serial device error!");
-		}
-		setSerial(mHandle, rate, 8, (byte) 'N', 1);
-		mReceive = new byte[1025];
-	}
-
-	public Serial(int port, int rate, int type) {
-		// TODO Auto-generated constructor stub
+	public Serial(int port, int type) {
 		mHandle = initSerial(port, type);
 		if (mHandle == 0) {
 			throw new RuntimeException("Open Serial device error!");
 		}
-		setSerial(mHandle, rate, 8, (byte) 'N', 1);
-		mReceive = new byte[1025];
+		mReceive = new byte[MAX_RECEIVE_SIZE];
+	}
+
+	/**
+	 *
+	 * @param rate				9600 19200 115200
+	 * @param data_bits		7 8
+	 * @param parity			'N' 'O' 'E' 'S'
+	 * @param stop_bits		1 2
+	 * @param vtime			1 (100ms), 0 (0ms)
+	 * @param vmin				255  (read buffer size.)
+	 * @return
+	 */
+	public boolean setConfig(int rate, int data_bits, byte parity, int stop_bits, int vtime, int vmin ) {
+		return 0 == setSerial(mHandle, rate, data_bits, parity, stop_bits, vtime, vmin);
 	}
 
 	public boolean send(byte[] data) {
@@ -51,7 +75,7 @@ public class Serial {
 
 	public byte[] receive() {
 		if (mHandle != 0) {
-			int size = receiveData(mHandle, mReceive, 1024, 1);
+			int size = receiveData(mHandle, mReceive, MAX_RECEIVE_SIZE, MAX_RECEIVE_TIMEOUT);
 			if (size > 0) {
 				byte[] raw = new byte[size];
 				for (int i = 0; i < raw.length; i++) {

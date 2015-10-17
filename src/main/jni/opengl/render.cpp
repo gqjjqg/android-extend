@@ -32,70 +32,77 @@ typedef struct opengl_t {
  *  
  */
 const char* pVertexShaderStr =
-      "attribute vec4 a_position;   \n"
-      "attribute vec2 a_texCoord;   \n"
-      "varying highp vec2 v_texCoord;     \n"
-      "void main()                  \n"
-      "{                            \n"
-      "   gl_Position = a_position; \n"
-      "   v_texCoord = a_texCoord;  \n"
-      "}                            \n";
+"attribute vec4 a_position;   	\n \
+attribute vec2 a_texCoord;   	\n \
+varying highp vec2 v_texCoord; \n \
+void main()                  	\n \
+{                            	\n \
+ gl_Position = a_position; 		\n \
+ v_texCoord = a_texCoord;  		\n \
+}                            	\n";
 
 
 const char* pFragmentShaderYUYV =
-"precision highp float;\n"
-"uniform sampler2D y_texture;\n"
-"uniform sampler2D uv_texture;\n"
-"varying highp vec2 v_texCoord;\n"
-"void main()\n"
-"{\n"
-"    mediump vec3 yuv;\n"
-"    highp vec3 rgb; \n"
-"    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"	//
-"    yuv.y = texture2D(uv_texture, v_texCoord).g-0.5;\n" //
-"    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;\n" //
-"    rgb = mat3(      1,       1,       1,\n"
-"              0, -0.344, 1.770,\n"
-"              1.403, -0.714,       0) * yuv;\n"
-"    gl_FragColor = vec4(rgb, 1);\n"
-"}\n";
+"precision highp float;										\n \
+uniform sampler2D y_texture;								\n \
+uniform sampler2D uv_texture;								\n \
+varying highp vec2 v_texCoord;								\n \
+void main()													\n \
+{																\n \
+    mediump vec3 yuv;										\n \
+    highp vec3 rgb; 											\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).g-0.5;	\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
+    rgb = mat3(      1,       1,       1,					\n \
+              0, -0.344, 1.770,							\n \
+              1.403, -0.714,       0) * yuv;				\n \
+    gl_FragColor = vec4(rgb, 1);							\n \
+}																\n";
 
 const char* pFragmentShaderNV21 =
-"precision highp float;\n"
-"uniform sampler2D y_texture;\n"
-"uniform sampler2D uv_texture;\n"
-"varying highp vec2 v_texCoord;\n"
-"void main()\n"
-"{\n"
-"    mediump vec3 yuv;\n"
-"    highp vec3 rgb; \n"
-"    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"
-"    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;\n"
-"    yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;\n"
-"    rgb = mat3(      1,       1,       1,\n"
-"              0, -0.344, 1.770,\n"
-"              1.403, -0.714,       0) * yuv;\n"
-"    gl_FragColor = vec4(rgb, 1);\n"
-"}\n";
+"precision highp float;										\n \
+uniform sampler2D y_texture;								\n \
+uniform sampler2D uv_texture;								\n \
+varying highp vec2 v_texCoord;								\n \
+void main()													\n \
+{			 													\n \
+    mediump vec3 yuv;										\n \
+    highp vec3 rgb; 											\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;	\n \
+    rgb = mat3(      1,       1,       1,					\n \
+              0, -0.344, 1.770,							\n \
+              1.403, -0.714,       0) * yuv;				\n \
+    gl_FragColor = vec4(rgb, 1);							\n \
+}																\n";
 
 const char* pFragmentShaderNV12 =
-"precision highp float;\n"
-"uniform sampler2D y_texture;\n"
-"uniform sampler2D uv_texture;\n"
-"varying highp vec2 v_texCoord;\n"
-"void main()\n"
-"{\n"
-"    mediump vec3 yuv;\n"
-"    highp vec3 rgb; \n"
-"    yuv.x = texture2D(y_texture, v_texCoord).r;  \n"
-"    yuv.y = texture2D(uv_texture, v_texCoord).r-0.5;\n"
-"    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;\n"
-"    rgb = mat3(      1,       1,       1,\n"
-"              0, -0.344, 1.770,\n"
-"              1.403, -0.714,       0) * yuv;\n"
-"    gl_FragColor = vec4(rgb, 1);\n"
-"}\n";
+"precision highp float; 									\n	\
+uniform sampler2D y_texture;								\n \
+uniform sampler2D uv_texture;								\n \
+varying highp vec2 v_texCoord;								\n \
+void main()													\n \
+{																\n \
+    mediump vec3 yuv;										\n \
+    highp vec3 rgb; 											\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).r-0.5;	\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
+    rgb = mat3(      1,       1,       1,					\n \
+              0, -0.344, 1.770,							\n \
+              1.403, -0.714,       0) * yuv;				\n \
+    gl_FragColor = vec4(rgb, 1);							\n \
+}																\n";
 
+const char* pFragmentShaderColor =
+"precision mediump float;									\n \
+uniform vec4 vColor;											\n \
+void main()													\n \
+{																\n \
+ 	gl_FragColor = vColor;									\n \
+}																\n";
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
@@ -239,6 +246,14 @@ void GLChanged(int handle, int w, int h)
 	LOGD("glesChanged() --->");
 }
 
+void GLRenderRect( int left, int top, int right, int bottom)
+{
+	//clean
+	glClear ( GL_COLOR_BUFFER_BIT );
+
+	// use shader
+}
+
 void GLRender(int handle, unsigned char* pData, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
@@ -289,6 +304,7 @@ void GLRender(int handle, unsigned char* pData, int w, int h)
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+
 }
 
 void GLUnInit(int handle)
@@ -323,7 +339,7 @@ GLuint LoadShader(GLenum shaderType, const char* pSource)
                             shaderType, buf);
                     free(buf);
                 }
-                glDeleteShader(shader); // �ͷ�
+                glDeleteShader(shader);
                 shader = 0;
             }
 			return 0;

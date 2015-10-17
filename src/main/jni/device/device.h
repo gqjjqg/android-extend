@@ -12,7 +12,9 @@ extern "C" {
 #endif
 //serial
 int Open_Port(int com_port, int *error ,int type);
-int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits);
+int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits, int vtime, int vmin);
+int Write_Port(int fd, void * buffer, int size);
+int Read_Port(int fd, void * buffer, int size);
 int Close_Port(int fd);
 //video
 int Open_Video(int port);
