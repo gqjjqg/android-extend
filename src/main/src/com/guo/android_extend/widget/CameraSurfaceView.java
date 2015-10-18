@@ -29,23 +29,15 @@ import javax.microedition.khronos.opengles.GL10;
  * @Note create by gqjjqg,.
  *    easy to use camera.
  */
-public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback, GLSurfaceView.Renderer {
+public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback, CameraGLSurfaceView.OnRenderListener {
 	private final String TAG = this.getClass().getSimpleName();
 
 	private Camera mCamera;
 	private int mWidth, mHeight, mFormat;
 	private OnCameraListener mOnCameraListener;
 	private FrameHelper mFrameHelper;
-	private GLES2Render mGLES2Render;
-	private GLSurfaceView mGLSurfaceView;
+	private CameraGLSurfaceView mGLSurfaceView;
 	private BlockingQueue<byte[]> mImageDataBuffers;
-	private BlockingQueue<byte[]> mImageRenderBuffers;
-
-	private int mDegree;
-	private int mRenderDegree;
-	private boolean mAutofit;
-	private boolean mMirror;
-	private boolean mDebugRender;
 
 	public interface OnCameraListener {
 		/**
@@ -111,11 +103,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		arg0.addCallback(this);
 
 		mFrameHelper = new FrameHelper();
-
-		mMirror = false;
-		mDegree = 0;
 		mImageDataBuffers = new LinkedBlockingQueue<>();
-		mImageRenderBuffers = new LinkedBlockingQueue<>();
 	}
 
 	private boolean openCamera() {
@@ -136,18 +124,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 				mHeight = imageSize.height;
 				mFormat = mCamera.getParameters().getPreviewFormat();
 
-				if (mAutofit) {
-					try {
-						ExtGLSurfaceView view = (ExtGLSurfaceView) mGLSurfaceView;
-						if (mDegree == 0 || mDegree == 180) {
-							view.setAspectRatio(mWidth, mHeight);
-						} else {
-							view.setAspectRatio(mHeight, mWidth);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
+				mGLSurfaceView.setImageConfig(mWidth, mHeight, mFormat);
+				mGLSurfaceView.setAspectRatio(mWidth, mHeight);
+
 				int lineBytes = imageSize.width * ImageFormat.getBitsPerPixel(mFormat) / 8;
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
@@ -209,11 +188,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 			if (mOnCameraListener != null) {
 				mOnCameraListener.onPreview(buffer, mWidth, mHeight, mFormat);
 			}
-			if (!mImageRenderBuffers.offer(buffer)) {
-				Log.e(TAG, "RENDER QUEUE FULL!");
-			} else {
-				mGLSurfaceView.requestRender();
-			}
+			mGLSurfaceView.requestRender(buffer);
 		}
 		if (mCamera != null) {
 			mCamera.addCallbackBuffer(data);
@@ -221,34 +196,16 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	}
 
 	@Override
-	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		Camera.Parameters parameters = mCamera.getParameters();
-		int format = parameters.getPreviewFormat();
-		int convert = 0;
-		switch(format) {
-		case ImageFormat.NV21 : convert = ImageConverter.CP_PAF_NV21; break;
-		case ImageFormat.RGB_565 : convert = ImageConverter.CP_RGB565; break;
-		default: Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
+	public void onRender(byte[] data, int width, int height, int format) {
+		if (mOnCameraListener != null) {
+			mOnCameraListener.onPreviewRender(data, mWidth, mHeight, mFormat);
 		}
-		mGLES2Render = new GLES2Render(mMirror, mRenderDegree, convert, mDebugRender);
 	}
 
 	@Override
-	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		mGLES2Render.setViewPort(width, height);
-	}
-
-	@Override
-	public void onDrawFrame(GL10 gl) {
-		byte[] buffer = mImageRenderBuffers.poll();
-		if (buffer != null) {
-			if (mOnCameraListener != null) {
-				mOnCameraListener.onPreviewRender(buffer, mWidth, mHeight, mFormat);
-			}
-			mGLES2Render.render(buffer, mWidth, mHeight);
-			if (!mImageDataBuffers.offer(buffer)) {
-				Log.e(TAG, "PREVIEW QUEUE FULL!");
-			}
+	public void onRenderFinish(byte[] buffer) {
+		if (!mImageDataBuffers.offer(buffer)) {
+			Log.e(TAG, "PREVIEW QUEUE FULL!");
 		}
 	}
 
@@ -256,20 +213,15 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		mOnCameraListener = l;
 	}
 
-	public void setupGLSurafceView(GLSurfaceView glv, boolean autofit, boolean mirror, int degree, int render_egree) {
+	public void setupGLSurafceView(CameraGLSurfaceView glv, boolean autofit, boolean mirror, int render_egree) {
 		mGLSurfaceView = glv;
-		mGLSurfaceView.setEGLContextClientVersion(2);
-		mGLSurfaceView.setRenderer(this);
-		mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-		mGLSurfaceView.setZOrderMediaOverlay(true);
-		mDegree = degree;
-		mRenderDegree = render_egree;
-		mMirror = mirror;
-		mAutofit = autofit;
+		mGLSurfaceView.setOnRenderListener(this);
+		mGLSurfaceView.setRenderConfig(render_egree, mirror);
+		mGLSurfaceView.setAutoFitMax(autofit);
 	}
 
 	public void debug_print_fps(boolean preview, boolean render) {
-		mDebugRender = render;
+		mGLSurfaceView.debug_print_fps(render);
 		mFrameHelper.enable(preview);
 	}
 }
