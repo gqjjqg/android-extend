@@ -42,9 +42,10 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	private BlockingQueue<byte[]> mImageRenderBuffers;
 
 	private int mDegree;
+	private int mRenderDegree;
 	private boolean mAutofit;
 	private boolean mMirror;
-	private boolean mDebugFPS;
+	private boolean mDebugRender;
 
 	public interface OnCameraListener {
 		/**
@@ -110,8 +111,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		arg0.addCallback(this);
 
 		mFrameHelper = new FrameHelper();
-		mDebugFPS = false;
-		mFrameHelper.setShow(mDebugFPS);
 
 		mMirror = false;
 		mDegree = 0;
@@ -153,9 +152,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.add(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.add(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.add(new byte[lineBytes * mHeight]);
+				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
 				mCamera.setPreviewCallbackWithBuffer(this);
 				return true;
 			}
@@ -203,7 +202,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		// TODO Auto-generated method stub
-		long time = System.currentTimeMillis();
 		mFrameHelper.printFPS();
 		byte[] buffer = mImageDataBuffers.poll();
 		if (buffer != null) {
@@ -220,7 +218,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		if (mCamera != null) {
 			mCamera.addCallbackBuffer(data);
 		}
-		Log.d(TAG, "onPreviewFrame COST=" + (System.currentTimeMillis() - time));
 	}
 
 	@Override
@@ -233,7 +230,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		case ImageFormat.RGB_565 : convert = ImageConverter.CP_RGB565; break;
 		default: Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
 		}
-		mGLES2Render = new GLES2Render(mMirror, mDegree, convert, mDebugFPS);
+		mGLES2Render = new GLES2Render(mMirror, mRenderDegree, convert, mDebugRender);
 	}
 
 	@Override
@@ -259,19 +256,20 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		mOnCameraListener = l;
 	}
 
-	public void setupGLSurafceView(GLSurfaceView glv, boolean autofit, boolean mirror, int degree) {
+	public void setupGLSurafceView(GLSurfaceView glv, boolean autofit, boolean mirror, int degree, int render_egree) {
 		mGLSurfaceView = glv;
 		mGLSurfaceView.setEGLContextClientVersion(2);
 		mGLSurfaceView.setRenderer(this);
 		mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		mGLSurfaceView.setZOrderMediaOverlay(true);
 		mDegree = degree;
+		mRenderDegree = render_egree;
 		mMirror = mirror;
 		mAutofit = autofit;
 	}
 
-	public void debug_print_fps(boolean open) {
-		//mDebugFPS = open;
-		mFrameHelper.setShow(open);
+	public void debug_print_fps(boolean preview, boolean render) {
+		mDebugRender = render;
+		mFrameHelper.enable(preview);
 	}
 }

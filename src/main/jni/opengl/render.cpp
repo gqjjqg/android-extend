@@ -200,11 +200,13 @@ int GLInit(int mirror, int ori, int format)
                              vScale,  vScale, 0.0f, //1.0f,  // Position 3
                          };
 
-	GLfloat tCoords[] = {0.0f,  0.0f, 
-						 0.0f,  1.0f, 
-						 1.0f,  1.0f, 
+	GLfloat tCoords[] = {0.0f,  0.0f,
+						 0.0f,  1.0f,
+						 1.0f,  1.0f,
 						 1.0f,  0.0f};
+
 	int degree = 0;
+
 	while (engine->m_nDisplayOrientation > degree) {
 		GLfloat temp[2];
 		degree += 90;
@@ -214,13 +216,23 @@ int GLInit(int mirror, int ori, int format)
 		tCoords[4] = tCoords[6]; tCoords[5] = tCoords[7];
 		tCoords[6] = temp[0]; tCoords[7] = temp[1];
 	}
-		
-	if (engine->m_bMirror == 1){
-		GLfloat temp[2];
-		LOGD("set mirror is true");
-		temp[0] = tCoords[0]; temp[1] = tCoords[2];
-		tCoords[0] = tCoords[4]; tCoords[2] = tCoords[6];
-		tCoords[4] = temp[0]; tCoords[6] = temp[1];
+
+	if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
+		if (engine->m_bMirror == 1){
+			GLfloat temp[2];
+			LOGD("set mirror is true");
+			temp[0] = tCoords[0]; temp[1] = tCoords[2];
+			tCoords[0] = tCoords[4]; tCoords[2] = tCoords[6];
+			tCoords[4] = temp[0]; tCoords[6] = temp[1];
+		}
+	} else {
+		if (engine->m_bMirror == 1){
+			GLfloat temp[2];
+			LOGD("set mirror is true");
+			temp[0] = tCoords[1]; temp[1] = tCoords[3];
+			tCoords[1] = tCoords[5]; tCoords[3] = tCoords[7];
+			tCoords[5] = temp[0]; tCoords[7] = temp[1];
+		}
 	}
 
 	GLushort indexs[] = { 0, 1, 2, 0, 2, 3 };

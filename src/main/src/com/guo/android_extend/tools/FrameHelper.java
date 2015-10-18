@@ -36,10 +36,10 @@ public class FrameHelper {
 		 mFrames = 0;
 	}
 	
-	public void setShow(boolean isShow) {
+	public void enable(boolean show) {
 		if (isShow) {
 			reset();
 		}
-		this.isShow = isShow;
+		this.isShow = show;
 	}
 }
