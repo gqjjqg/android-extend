@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class SerialClient extends Thread {
+public class SerialClient extends Thread implements SerialInterface {
     private final String TAG = this.getClass().toString();
 
     public static final int SERIAL_CODE = 0x4000;
