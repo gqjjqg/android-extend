@@ -5,5 +5,5 @@ package com.guo.android_extend.device;
  */
 public interface SerialInterface {
     public boolean sendData(byte[] data);
-    public void setSerialListener(SerialClient.SerialListener lis);
+    public void setSerialListener(SerialListener lis);
 }

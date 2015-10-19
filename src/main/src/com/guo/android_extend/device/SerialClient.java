@@ -14,10 +14,6 @@ public class SerialClient extends Thread implements SerialInterface {
     private Serial mPort;
     private SerialListener mSerialListener;
 
-    public interface SerialListener {
-        public void onSerialReceivce(Serial serial, byte[] data);
-    }
-
     public SerialClient(int port, int type) {
         this(port, type, 115200, 1, 255);
     }
