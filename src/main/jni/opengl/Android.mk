@@ -17,7 +17,7 @@ include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := render
-LOCAL_SRC_FILES := render_adapter.cpp
+LOCAL_SRC_FILES := render_adapter.cpp Matrix.cpp
    
 LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)

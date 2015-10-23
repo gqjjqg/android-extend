@@ -24,7 +24,7 @@ public class FrameHelper {
 			} else {
 				mFrames++;
 				if (mFrames >= 10) {
-					Log.d(TAG, "FPS = " + (int)(1000.0*mFrames/(System.currentTimeMillis() - mStartTime)));
+					Log.e(TAG, "FPS = " + (int)(1000.0*mFrames/(System.currentTimeMillis() - mStartTime)));
 					mStartTime = 0;
 				}
 			}

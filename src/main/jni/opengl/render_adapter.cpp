@@ -12,6 +12,7 @@
 
 typedef struct glesrender_t {
 	int handler;
+	int drawer;
 	int showfps;
 #ifdef DEBUG_DUMP
 	int count;
@@ -103,7 +104,8 @@ jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint forma
 		LOGE("ERROR fopen");
 	}
 #endif
-	handle->handler = GLInit(mirror, ori, format);
+	handle->handler = GLImageInit(mirror, ori, format);
+	handle->drawer = GLDrawInit(mirror, ori, format);
 	handle->showfps = fps;
 	return (jint)handle;
 }
@@ -118,6 +120,7 @@ jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint hei
 jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
+	int pos[8] ={100, 100, 300, 100, 300, 200, 100, 200};
 	jboolean isCopy = false;
 	signed char* buffer = env->GetByteArrayElements(data, &isCopy);
 	if (buffer == NULL) {
@@ -139,7 +142,9 @@ jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jin
 	if (engine->showfps == 1) {
 		LOGD("NGLR FPS = %ld", GFps_GetCurFps());
 	}
-	GLRender(engine->handler, (unsigned char *)buffer, width, height);
+	GLImageRender(engine->handler, (unsigned char *)buffer, width, height);
+
+	GLDrawLines(engine->drawer, width, height, pos, 8);
 
 	env->ReleaseByteArrayElements(data, buffer, isCopy);
 

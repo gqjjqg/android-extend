@@ -104,6 +104,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
 		mFrameHelper = new FrameHelper();
 		mImageDataBuffers = new LinkedBlockingQueue<>();
+		mGLSurfaceView = null;
 	}
 
 	private boolean openCamera() {
@@ -123,17 +124,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 				mWidth = imageSize.width;
 				mHeight = imageSize.height;
 				mFormat = mCamera.getParameters().getPreviewFormat();
-
-				mGLSurfaceView.setImageConfig(mWidth, mHeight, mFormat);
-				mGLSurfaceView.setAspectRatio(mWidth, mHeight);
-
 				int lineBytes = imageSize.width * ImageFormat.getBitsPerPixel(mFormat) / 8;
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
-				mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+
+				if (mGLSurfaceView != null) {
+					mGLSurfaceView.setImageConfig(mWidth, mHeight, mFormat);
+					mGLSurfaceView.setAspectRatio(mWidth, mHeight);
+					mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+					mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+					mImageDataBuffers.offer(new byte[lineBytes * mHeight]);
+				}
+
 				mCamera.setPreviewCallbackWithBuffer(this);
 				return true;
 			}
@@ -182,13 +185,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		// TODO Auto-generated method stub
 		mFrameHelper.printFPS();
-		byte[] buffer = mImageDataBuffers.poll();
-		if (buffer != null) {
-			System.arraycopy(data, 0, buffer, 0, buffer.length);
-			if (mOnCameraListener != null) {
-				mOnCameraListener.onPreview(buffer, mWidth, mHeight, mFormat);
+		if (mGLSurfaceView != null) {
+			byte[] buffer = mImageDataBuffers.poll();
+			if (buffer != null) {
+				System.arraycopy(data, 0, buffer, 0, buffer.length);
+				if (mOnCameraListener != null) {
+					mOnCameraListener.onPreview(buffer, mWidth, mHeight, mFormat);
+				}
+				mGLSurfaceView.requestRender(buffer);
 			}
-			mGLSurfaceView.requestRender(buffer);
+		} else {
+			if (mOnCameraListener != null) {
+				mOnCameraListener.onPreview(data.clone(), mWidth, mHeight, mFormat);
+			}
 		}
 		if (mCamera != null) {
 			mCamera.addCallbackBuffer(data);
@@ -221,7 +230,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	}
 
 	public void debug_print_fps(boolean preview, boolean render) {
-		mGLSurfaceView.debug_print_fps(render);
+		if (mGLSurfaceView != null) {
+			mGLSurfaceView.debug_print_fps(render);
+		}
 		mFrameHelper.enable(preview);
 	}
 }

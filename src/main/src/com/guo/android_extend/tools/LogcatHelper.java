@@ -19,21 +19,26 @@ public class LogcatHelper {
 	private static String PATH_LOGCAT;
 	private LogDumper mLogDumper = null;
 	private int mPId;
+	private Context mContext;
+	private boolean isInitial;
 
 	/**
 	 * 
 	 * 初始化目录
 	 * 
 	 * */
-	public void init(Context context, String subPath) {
-		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-			PATH_LOGCAT = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + subPath;
-		} else {
-			PATH_LOGCAT = context.getFilesDir().getAbsolutePath() + File.separator + subPath;
-		}
-		File file = new File(PATH_LOGCAT);
-		if (!file.exists()) {
-			file.mkdirs();
+	public void setupLogPath(Context context, String subPath) {
+		if (!isInitial) {
+			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+				PATH_LOGCAT = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + subPath;
+			} else {
+				PATH_LOGCAT = context.getFilesDir().getAbsolutePath() + File.separator + subPath;
+			}
+			File file = new File(PATH_LOGCAT);
+			if (!file.exists()) {
+				file.mkdirs();
+			}
+			isInitial = true;
 		}
 	}
 
@@ -45,11 +50,13 @@ public class LogcatHelper {
 	}
 
 	private LogcatHelper(Context context) {
-		init(context, context.getPackageName());
+		mContext = context;
 		mPId = android.os.Process.myPid();
+		isInitial = false;
 	}
 
 	public void start() {
+		setupLogPath(mContext, mContext.getPackageName());
 		if (mLogDumper == null) {
 			mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
 		}

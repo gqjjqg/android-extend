@@ -6,6 +6,8 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include "Matrix.h"
+
 #include "image.h"
 #include "loger.h"
 #include "render.h"
@@ -14,6 +16,11 @@ typedef struct opengl_t {
 	GLuint	m_hProgramObject;
 	GLuint	m_nTextureIds[2];
 	GLuint	m_nBufs[3];
+	GLfloat m_ViewMatrix[16];
+	GLfloat m_ObjectMatrix[16];
+	GLfloat m_Colors[4];
+	GLfloat m_pFloatData[8];
+	int m_FloatDataSize;
 	int	m_bTexInit;
 	int	m_bMirror;
 	int	m_nDisplayOrientation;
@@ -32,72 +39,81 @@ typedef struct opengl_t {
  *  
  */
 const char* pVertexShaderStr =
-"attribute vec4 a_position;   	\n \
-attribute vec2 a_texCoord;   	\n \
-varying highp vec2 v_texCoord; \n \
-void main()                  	\n \
-{                            	\n \
- gl_Position = a_position; 		\n \
- v_texCoord = a_texCoord;  		\n \
-}                            	\n";
+"attribute vec4 a_position;   								\n \
+attribute vec2 a_texCoord;   								\n \
+varying highp vec2 v_texCoord; 								\n \
+void main()                  								\n \
+{                            								\n \
+	gl_Position = a_position; 								\n \
+	v_texCoord = a_texCoord;  								\n \
+}                            								\n";
+
+
+const char* pVertexShaderStrMatrix =
+"uniform mat4 u_MVMatrix;					       				\n \
+uniform mat4 u_PMatrix;						    			\n \
+attribute vec4 a_position;							    	\n \
+void main() {									    			\n \
+	gl_Position = u_PMatrix * u_MVMatrix * a_position;		\n \
+}													   			\n";
 
 
 const char* pFragmentShaderYUYV =
 "precision highp float;										\n \
-uniform sampler2D y_texture;								\n \
+uniform sampler2D y_texture;									\n \
 uniform sampler2D uv_texture;								\n \
 varying highp vec2 v_texCoord;								\n \
 void main()													\n \
 {																\n \
-    mediump vec3 yuv;										\n \
+    mediump vec3 yuv;											\n \
     highp vec3 rgb; 											\n \
-    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
-    yuv.y = texture2D(uv_texture, v_texCoord).g-0.5;	\n \
-    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  			\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).g-0.5;		\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;		\n \
     rgb = mat3(      1,       1,       1,					\n \
-              0, -0.344, 1.770,							\n \
+              0, -0.344, 1.770,								\n \
               1.403, -0.714,       0) * yuv;				\n \
-    gl_FragColor = vec4(rgb, 1);							\n \
+    gl_FragColor = vec4(rgb, 1);								\n \
 }																\n";
 
 const char* pFragmentShaderNV21 =
 "precision highp float;										\n \
-uniform sampler2D y_texture;								\n \
+uniform sampler2D y_texture;									\n \
 uniform sampler2D uv_texture;								\n \
 varying highp vec2 v_texCoord;								\n \
 void main()													\n \
 {			 													\n \
-    mediump vec3 yuv;										\n \
+    mediump vec3 yuv;											\n \
     highp vec3 rgb; 											\n \
-    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
-    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
-    yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;	\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  			\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).a-0.5;		\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).r-0.5;		\n \
     rgb = mat3(      1,       1,       1,					\n \
-              0, -0.344, 1.770,							\n \
+              0, -0.344, 1.770,								\n \
               1.403, -0.714,       0) * yuv;				\n \
-    gl_FragColor = vec4(rgb, 1);							\n \
+    gl_FragColor = vec4(rgb, 1);								\n \
 }																\n";
 
 const char* pFragmentShaderNV12 =
-"precision highp float; 									\n	\
-uniform sampler2D y_texture;								\n \
+"precision highp float; 										\n	\
+uniform sampler2D y_texture;									\n \
 uniform sampler2D uv_texture;								\n \
 varying highp vec2 v_texCoord;								\n \
 void main()													\n \
 {																\n \
-    mediump vec3 yuv;										\n \
+    mediump vec3 yuv;											\n \
     highp vec3 rgb; 											\n \
-    yuv.x = texture2D(y_texture, v_texCoord).r;  		\n \
-    yuv.y = texture2D(uv_texture, v_texCoord).r-0.5;	\n \
-    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;	\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  			\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).r-0.5;		\n \
+    yuv.z = texture2D(uv_texture, v_texCoord).a-0.5;		\n \
     rgb = mat3(      1,       1,       1,					\n \
-              0, -0.344, 1.770,							\n \
+              0, -0.344, 1.770,								\n \
               1.403, -0.714,       0) * yuv;				\n \
-    gl_FragColor = vec4(rgb, 1);							\n \
+    gl_FragColor = vec4(rgb, 1);								\n \
 }																\n";
 
 const char* pFragmentShaderColor =
-"precision mediump float;									\n \
+"precision mediump float;										\n \
 uniform vec4 vColor;											\n \
 void main()													\n \
 {																\n \
@@ -106,7 +122,72 @@ void main()													\n \
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
-int GLInit(int mirror, int ori, int format)
+int GLDrawInit(int mirror, int ori, int format)
+{
+	LPOPENGLES engine;
+	GLuint	vertexShader;
+	GLuint	fragmentShader;
+	GLint	linked;
+
+	LOGD("glesInit() <--- format = %d", format);
+
+	engine = (LPOPENGLES)malloc(sizeof(OPENGLES));
+	engine->m_hProgramObject		= 0;
+	engine->m_bTexInit				= -1;
+	engine->m_bMirror				= mirror;
+	engine->m_nDisplayOrientation	= ori;
+	engine->m_nPixelFormat 			= format;
+
+	vertexShader = LoadShader(GL_VERTEX_SHADER, pVertexShaderStrMatrix);
+	fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderColor);
+
+	engine->m_hProgramObject = glCreateProgram();
+
+	glAttachShader(engine->m_hProgramObject, vertexShader);
+	glAttachShader(engine->m_hProgramObject, fragmentShader);
+
+	glBindAttribLocation(engine->m_hProgramObject, 0, "a_position");
+
+	glLinkProgram(engine->m_hProgramObject);
+
+	LOGD("glLinkProgram");
+
+	glGetProgramiv( engine->m_hProgramObject, GL_LINK_STATUS, &linked);
+	if (0 == linked) {
+		GLint	infoLen = 0;
+		LOGE("link failed");
+		glGetProgramiv( engine->m_hProgramObject, GL_INFO_LOG_LENGTH, &infoLen);
+
+		if (infoLen > 1) {
+			char* infoLog = (char*)malloc(sizeof(char) * infoLen);
+
+			glGetProgramInfoLog( engine->m_hProgramObject, infoLen, NULL, infoLog);
+			LOGE( "Error linking program: %s", infoLog);
+
+			free(infoLog);
+			infoLog = NULL;
+		}
+
+		glDeleteProgram( engine->m_hProgramObject);
+		return 0;
+	}
+
+	glValidateProgram(engine->m_hProgramObject);
+	glGetProgramiv( engine->m_hProgramObject, GL_VALIDATE_STATUS, &linked);
+	if (linked == 0) {
+		LOGE("program failed");
+		return 0;
+	}
+
+	//VBO
+	glGenBuffers(1, engine->m_nBufs);
+	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+
+	LOGD("glesInit() --->");
+	return (int)engine;
+}
+
+int GLImageInit(int mirror, int ori, int format)
 {
 	LPOPENGLES engine;
 	GLuint	vertexShader;
@@ -258,15 +339,72 @@ void GLChanged(int handle, int w, int h)
 	LOGD("glesChanged() --->");
 }
 
-void GLRenderRect( int left, int top, int right, int bottom)
+void GLDrawLines( int handle, int w, int h, int *pos, int len)
 {
-	//clean
-	glClear ( GL_COLOR_BUFFER_BIT );
+	LPOPENGLES engine = (LPOPENGLES)handle;
+	if (engine == NULL) {
+		LOGE("engine == MNull");
+		return;
+	}
+
+	const GLfloat ratio = (GLfloat) w / h;
+	const float left = 	-0.5f;		//-ratio;
+	const float right =	0.5f;		//ratio;
+	const float bottom = 	-0.5f;		//-1.0f;
+	const float top = 		0.5f;		//1.0f;
+	const float near = 	2;			//1.0f;
+	const float far = 		6;			//10.0f;
+
+
+	Matrix::matrixFrustumM((float*)engine->m_ObjectMatrix, left, right, bottom, top, near, far);
+
+	const GLfloat eyeX = 0.0f;
+	const GLfloat eyeY = 0.0f;
+	const GLfloat eyeZ = 4.0f;
+
+	const GLfloat lookX = 0.0f;
+	const GLfloat lookY = 0.0f;
+	const GLfloat lookZ = 0.0f;
+
+	const GLfloat upX = 0.0f;
+	const GLfloat upY = 1.0f;
+	const GLfloat upZ = 0.0f;
+	Matrix::matrixLookAtM(engine->m_ViewMatrix, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+
+	Matrix::matrixRotateM(engine->m_ViewMatrix, 360 - 0, 0, 0, 1);
 
 	// use shader
+	glUseProgram ( engine->m_hProgramObject );
+
+	engine->m_Colors[0] = 255;
+	engine->m_Colors[1] = 0;
+	engine->m_Colors[2] = 0;
+	engine->m_Colors[3] = 1.0f;
+
+	GLuint m1 = glGetUniformLocation(engine->m_hProgramObject, "u_MVMatrix");
+	GLuint m2 = glGetUniformLocation(engine->m_hProgramObject, "u_PMatrix");
+	GLuint c1 = glGetUniformLocation(engine->m_hProgramObject, "vColor");
+
+	glUniformMatrix4fv(m1, 1, GL_FALSE, engine->m_ViewMatrix);
+	glUniformMatrix4fv(m2, 1, GL_FALSE, engine->m_ObjectMatrix);
+	glUniform4fv(c1, 1, engine->m_Colors);
+
+	for (int i = 0; i < len; i += 2){
+		engine->m_pFloatData[i] = ((2.0f * pos[i]) / (w - 1)) - 1.0f;
+		engine->m_pFloatData[i + 1] = 1.0f - ((2.0f * pos[i + 1]) / (h - 1));
+	}
+
+	glLineWidth(4.0f);
+
+	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->m_pFloatData), engine->m_pFloatData, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer ( 0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0 );
+	glEnableVertexAttribArray(0);
+	glDrawArrays(GL_LINE_STRIP, 0, 4);
+	glDisableVertexAttribArray(0);
 }
 
-void GLRender(int handle, unsigned char* pData, int w, int h)
+void GLImageRender(int handle, unsigned char* pData, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
 	if (pData == NULL) {

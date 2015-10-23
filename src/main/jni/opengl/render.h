@@ -5,9 +5,12 @@
 extern "C" {
 #endif
 
-int GLInit(int mirror, int ori, int format);
+int GLDrawInit(int mirror, int ori, int format);
+void GLDrawLines( int handle, int w, int h, int *pos, int len);
+
+int GLImageInit(int mirror, int ori, int format);
 void GLChanged(int engine, int w, int h);
-void GLRender(int engine, unsigned char* pData, int w, int h);
+void GLImageRender(int engine, unsigned char* pData, int w, int h);
 void GLUnInit(int engine);
 
 #ifdef __cplusplus
