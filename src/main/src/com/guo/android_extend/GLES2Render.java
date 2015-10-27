@@ -1,5 +1,7 @@
 package com.guo.android_extend;
 
+import android.graphics.Rect;
+
 public class GLES2Render {
 	private final String TAG = this.getClass().getSimpleName();
 
@@ -7,7 +9,7 @@ public class GLES2Render {
 	private native int render_changed(int handler, int width, int height);
 	private native int render_process(int handler, byte[] data, int width, int height);
 	private native int render_uninit(int handler);
-	
+	//private native int render_drawrect(int handler, int width, int height, Rect[] rect, int count, int rgb, int size);
 	static {
 		System.loadLibrary("render");
 	}
@@ -37,6 +39,5 @@ public class GLES2Render {
 	public void render(byte[] data, int width, int height) {
 		render_process(handle, data, width, height);
 	}
-	
 
 }

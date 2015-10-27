@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 int GLDrawInit(int mirror, int ori, int format);
-void GLDrawLines( int handle, int w, int h, int *pos, int len);
+void GLDrawLines( int handle, int w, int h, int *pos, int len, int rgb, int size);
 
 int GLImageInit(int mirror, int ori, int format);
 void GLChanged(int engine, int w, int h);

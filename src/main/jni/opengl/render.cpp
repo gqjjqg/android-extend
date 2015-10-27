@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
@@ -17,7 +18,7 @@ typedef struct opengl_t {
 	GLuint	m_nTextureIds[2];
 	GLuint	m_nBufs[3];
 	GLfloat m_ViewMatrix[16];
-	GLfloat m_ObjectMatrix[16];
+	GLfloat m_ModelMatrix[16];
 	GLfloat m_Colors[4];
 	GLfloat m_pFloatData[8];
 	int m_FloatDataSize;
@@ -50,11 +51,17 @@ void main()                  								\n \
 
 
 const char* pVertexShaderStrMatrix =
-"uniform mat4 u_MVMatrix;					       				\n \
-uniform mat4 u_PMatrix;						    			\n \
+"uniform mat4 u_MMatrix;					       				\n \
+uniform mat4 u_VMatrix;						    			\n \
 attribute vec4 a_position;							    	\n \
 void main() {									    			\n \
-	gl_Position = u_PMatrix * u_MVMatrix * a_position;		\n \
+	gl_Position = a_position * u_MMatrix * u_VMatrix ;	\n \
+}													   			\n";
+
+const char* pVertexShaderSimple =
+"attribute vec4 a_position;							    	\n \
+void main() {									    			\n \
+	gl_Position = a_position ;								\n \
 }													   			\n";
 
 
@@ -120,6 +127,13 @@ void main()													\n \
  	gl_FragColor = vColor;									\n \
 }																\n";
 
+const char* pFragmentShaderSimple =
+"precision mediump float;										\n \
+void main()													\n \
+{																\n \
+	 gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); 				\n \
+}																\n";
+
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
 int GLDrawInit(int mirror, int ori, int format)
@@ -138,7 +152,7 @@ int GLDrawInit(int mirror, int ori, int format)
 	engine->m_nDisplayOrientation	= ori;
 	engine->m_nPixelFormat 			= format;
 
-	vertexShader = LoadShader(GL_VERTEX_SHADER, pVertexShaderStrMatrix);
+	vertexShader = LoadShader(GL_VERTEX_SHADER, pVertexShaderStrMatrix); //
 	fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderColor);
 
 	engine->m_hProgramObject = glCreateProgram();
@@ -179,9 +193,14 @@ int GLDrawInit(int mirror, int ori, int format)
 		return 0;
 	}
 
-	//VBO
 	glGenBuffers(1, engine->m_nBufs);
+
+	//VBO
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->m_pFloatData), engine->m_pFloatData, GL_STREAM_DRAW);
+
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), engine->m_pFloatData);
 
 	LOGD("glesInit() --->");
 	return (int)engine;
@@ -339,7 +358,7 @@ void GLChanged(int handle, int w, int h)
 	LOGD("glesChanged() --->");
 }
 
-void GLDrawLines( int handle, int w, int h, int *pos, int len)
+void GLDrawLines( int handle, int w, int h, int *pos, int len, int rgb, int size)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
 	if (engine == NULL) {
@@ -352,56 +371,51 @@ void GLDrawLines( int handle, int w, int h, int *pos, int len)
 	const float right =	0.5f;		//ratio;
 	const float bottom = 	-0.5f;		//-1.0f;
 	const float top = 		0.5f;		//1.0f;
-	const float near = 	2;			//1.0f;
-	const float far = 		6;			//10.0f;
-
-
-	Matrix::matrixFrustumM((float*)engine->m_ObjectMatrix, left, right, bottom, top, near, far);
+	const float near = 	1;			//1.0f;
+	const float far = 		10;			//10.0f;
+	Matrix::matrixFrustumM(engine->m_ModelMatrix, left, right, bottom, top, near, far);
 
 	const GLfloat eyeX = 0.0f;
 	const GLfloat eyeY = 0.0f;
-	const GLfloat eyeZ = 4.0f;
-
+	const GLfloat eyeZ = 2.0f;
 	const GLfloat lookX = 0.0f;
 	const GLfloat lookY = 0.0f;
 	const GLfloat lookZ = 0.0f;
-
 	const GLfloat upX = 0.0f;
 	const GLfloat upY = 1.0f;
 	const GLfloat upZ = 0.0f;
 	Matrix::matrixLookAtM(engine->m_ViewMatrix, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-
-	Matrix::matrixRotateM(engine->m_ViewMatrix, 360 - 0, 0, 0, 1);
+	Matrix::matrixRotateM(engine->m_ViewMatrix, 0, 0, 0, 1);
 
 	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 
-	engine->m_Colors[0] = 255;
-	engine->m_Colors[1] = 0;
-	engine->m_Colors[2] = 0;
+	engine->m_Colors[0] = 1.0f;//(rgb & 0xFF);
+	engine->m_Colors[1] = 0;//((rgb >> 8) & 0xFF);
+	engine->m_Colors[2] = 0;//((rgb >> 16) & 0xFF);
 	engine->m_Colors[3] = 1.0f;
 
-	GLuint m1 = glGetUniformLocation(engine->m_hProgramObject, "u_MVMatrix");
-	GLuint m2 = glGetUniformLocation(engine->m_hProgramObject, "u_PMatrix");
+	GLuint m1 = glGetUniformLocation(engine->m_hProgramObject, "u_VMatrix");
+	GLuint m2 = glGetUniformLocation(engine->m_hProgramObject, "u_MMatrix");
 	GLuint c1 = glGetUniformLocation(engine->m_hProgramObject, "vColor");
 
 	glUniformMatrix4fv(m1, 1, GL_FALSE, engine->m_ViewMatrix);
-	glUniformMatrix4fv(m2, 1, GL_FALSE, engine->m_ObjectMatrix);
+	glUniformMatrix4fv(m2, 1, GL_FALSE, engine->m_ModelMatrix);
 	glUniform4fv(c1, 1, engine->m_Colors);
 
 	for (int i = 0; i < len; i += 2){
 		engine->m_pFloatData[i] = ((2.0f * pos[i]) / (w - 1)) - 1.0f;
-		engine->m_pFloatData[i + 1] = 1.0f - ((2.0f * pos[i + 1]) / (h - 1));
+		engine->m_pFloatData[i + 1] =  1.0f - ((2.0f * pos[i + 1]) / (h - 1));
 	}
 
-	glLineWidth(4.0f);
-
+	// update data.
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->m_pFloatData), engine->m_pFloatData, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer ( 0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0 );
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(engine->m_pFloatData), engine->m_pFloatData);
+
+	glLineWidth(4);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(0);
-	glDrawArrays(GL_LINE_STRIP, 0, 4);
-	glDisableVertexAttribArray(0);
+	glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
 void GLImageRender(int handle, unsigned char* pData, int w, int h)
@@ -451,9 +465,6 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->m_nBufs[2]);
 	glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
 
 }
 
