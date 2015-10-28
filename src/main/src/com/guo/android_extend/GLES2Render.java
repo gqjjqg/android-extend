@@ -1,5 +1,6 @@
 package com.guo.android_extend;
 
+import android.graphics.Color;
 import android.graphics.Rect;
 
 public class GLES2Render {
@@ -9,7 +10,7 @@ public class GLES2Render {
 	private native int render_changed(int handler, int width, int height);
 	private native int render_process(int handler, byte[] data, int width, int height);
 	private native int render_uninit(int handler);
-	//private native int render_drawrect(int handler, int width, int height, Rect[] rect, int count, int rgb, int size);
+	private native int render_draw_rect(int handler, Rect[] rect, int count, int rgb, int stroke);
 	static {
 		System.loadLibrary("render");
 	}
@@ -40,4 +41,7 @@ public class GLES2Render {
 		render_process(handle, data, width, height);
 	}
 
+	public void draw_rect(Rect[] rect, int color, int stroke) {
+		render_draw_rect(handle, rect, rect.length, color, stroke);
+	}
 }

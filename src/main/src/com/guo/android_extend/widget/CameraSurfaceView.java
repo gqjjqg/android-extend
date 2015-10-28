@@ -77,6 +77,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		 * @param format
 		 */
 		public void onPreviewRender(byte[] data, int width, int height, int format);
+
+		public void onPreviewDraw(GLES2Render render);
 	}
 
 	public CameraSurfaceView(Context context, AttributeSet attrs, int defStyle) {
@@ -201,6 +203,13 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		}
 		if (mCamera != null) {
 			mCamera.addCallbackBuffer(data);
+		}
+	}
+
+	@Override
+	public void onDrawOverlap(GLES2Render render) {
+		if (mOnCameraListener != null) {
+			mOnCameraListener.onPreviewDraw(render);
 		}
 	}
 

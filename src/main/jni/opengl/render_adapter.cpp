@@ -13,7 +13,15 @@
 typedef struct glesrender_t {
 	int handler;
 	int drawer;
-	int points[8];
+
+	int width;
+	int height;
+
+	//draw data
+	int *points;
+	int points_count;
+
+
 	int showfps;
 #ifdef DEBUG_DUMP
 	int count;
@@ -22,8 +30,6 @@ typedef struct glesrender_t {
 
 #ifdef _DEBUG
 	unsigned char *pBuffer;
-	int width;
-	int height;
 	int format;
 #endif
 }RENDER_HANDLE, *LPRENDER_HANDLE;
@@ -31,7 +37,7 @@ typedef struct glesrender_t {
 static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint format, jint fps);
 static jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint height);
 static jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height);
-//static jint NGLR_drawrect(JNIEnv* env, jobject object, jint handle, jint width, jint height, jobjectArray rectes, jint count, jint rgb, jint size);
+static jint NGLR_drawrect(JNIEnv* env, jobject object, jint handle, jobjectArray rectes, jint count, jint rgb, jint size);
 static jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle);
 
 static int convert_to_points(JNIEnv *env, jobjectArray faceArray, int* points, int count);
@@ -40,7 +46,7 @@ static JNINativeMethod gMethods[] = {
 	{"render_init", "(IIII)I",(void*)NGLR_initial},
 	{"render_changed", "(III)I",(void*)NGLR_changed},
 	{"render_process", "(I[BII)I",(void*)NGLR_process},
-	//{"render_drawrect", "(III[Landroid/graphics/Rect;III)I",(void*)NGLR_drawrect},
+	{"render_draw_rect", "(I[Landroid/graphics/Rect;III)I",(void*)NGLR_drawrect},
 	{"render_uninit", "(I)I",(void*)NGLR_uninitial},
 };
 
@@ -92,6 +98,9 @@ jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle)
 
 	GLUnInit(engine->drawer);
 
+	if (engine->points != NULL) {
+		free(engine->points);
+	}
 #ifdef _DEBUG
 	if (engine->pBuffer != NULL) {
 		free(engine->pBuffer);
@@ -114,14 +123,10 @@ jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint forma
 	handle->handler = GLImageInit(mirror, ori, format);
 	handle->drawer = GLDrawInit(mirror, ori, format);
 
-	handle->points[0] = 100;
-	handle->points[1] = 100;
-	handle->points[2] = 200;
-	handle->points[3] = 100;
-	handle->points[4] = 200;
-	handle->points[5] = 300;
-	handle->points[6] = 100;
-	handle->points[7] = 300;
+	handle->points_count = 0;
+	handle->points = NULL;
+	handle->width = 0;
+	handle->height = 0;
 
 	handle->showfps = fps;
 	return (jint)handle;
@@ -158,34 +163,34 @@ jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jin
 	if (engine->showfps == 1) {
 		LOGD("NGLR FPS = %ld", GFps_GetCurFps());
 	}
-	GLImageRender(engine->handler, (unsigned char *)buffer, width, height);
 
-
-	engine->points[0]++;
-	if (engine->points[0] > 300) {
-		engine->points[0] = 100;
+	if (engine->width != width || engine->height != height) {
+		engine->width = width;
+		engine->height = height;
 	}
-
-	GLDrawLines(engine->drawer, width, height, engine->points, 8, 0, 4);
+	GLImageRender(engine->handler, (unsigned char *)buffer, engine->width, engine->height);
 
 	env->ReleaseByteArrayElements(data, buffer, isCopy);
 
 	return 0;
 }
 
-jint NGLR_drawrect(JNIEnv* env, jobject object, jint handle, jint width, jint height, jobjectArray rectes, jint count, jint rgb, jint size)
+jint NGLR_drawrect(JNIEnv* env, jobject object, jint handle, jobjectArray rectes, jint count, jint rgb, jint size)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
-	//int pos[8] ={100, 100, 200, 100, 200, 300, 100, 300};
-	//if (engine->point_count != count) {
-	//	if (engine->points != NULL) {
-	//		free(engine->points);
-	//	}
-	//	engine->points = (int *)malloc(count * 8 * sizeof(int));
-	//	engine->point_count = count;
-	//}
-	//convert_to_points(env, rectes, engine->points, count);
-	//GLDrawLines(engine->drawer, width, height, pos, count * 8, rgb, size);
+	int i;
+	if (engine->points_count != count) {
+		if (engine->points != NULL) {
+			free(engine->points);
+		}
+		engine->points = (int *)malloc(count * 8 * sizeof(int));
+		engine->points_count = count;
+	}
+	convert_to_points(env, rectes, engine->points, engine->points_count);
+
+	for (i = 0; i < engine->points_count; i++) {
+		GLDrawRect(engine->drawer, engine->width, engine->height, (engine->points + i * 8), rgb, size);
+	}
 }
 
 static int convert_to_points(JNIEnv *env, jobjectArray faceArray, int* points, int count)

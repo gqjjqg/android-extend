@@ -1,7 +1,9 @@
 package com.guo.android_extend.widget;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
@@ -34,6 +36,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	private OnRenderListener mOnRenderListener;
 
 	public interface OnRenderListener {
+		public void onDrawOverlap(GLES2Render render);
 		public void onRender(byte[] data, int width, int height, int format);
 		public void onRenderFinish(byte[] buffer);
 	}
@@ -79,6 +82,9 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 			if (mOnRenderListener != null) {
 				mOnRenderListener.onRenderFinish(buffer);
 			}
+		}
+		if (mOnRenderListener != null) {
+			mOnRenderListener.onDrawOverlap(mGLES2Render);
 		}
 	}
 

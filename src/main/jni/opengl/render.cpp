@@ -358,42 +358,35 @@ void GLChanged(int handle, int w, int h)
 	LOGD("glesChanged() --->");
 }
 
-void GLDrawLines( int handle, int w, int h, int *pos, int len, int rgb, int size)
+void GLDrawRect( int handle, int w, int h, int *point, int rgb, int size)
 {
+	int i;
 	LPOPENGLES engine = (LPOPENGLES)handle;
 	if (engine == NULL) {
 		LOGE("engine == MNull");
 		return;
 	}
 
-	const GLfloat ratio = (GLfloat) w / h;
-	const float left = 	-0.5f;		//-ratio;
-	const float right =	0.5f;		//ratio;
-	const float bottom = 	-0.5f;		//-1.0f;
-	const float top = 		0.5f;		//1.0f;
-	const float near = 	1;			//1.0f;
-	const float far = 		10;			//10.0f;
-	Matrix::matrixFrustumM(engine->m_ModelMatrix, left, right, bottom, top, near, far);
-
-	const GLfloat eyeX = 0.0f;
-	const GLfloat eyeY = 0.0f;
-	const GLfloat eyeZ = 2.0f;
-	const GLfloat lookX = 0.0f;
-	const GLfloat lookY = 0.0f;
-	const GLfloat lookZ = 0.0f;
-	const GLfloat upX = 0.0f;
-	const GLfloat upY = 1.0f;
-	const GLfloat upZ = 0.0f;
-	Matrix::matrixLookAtM(engine->m_ViewMatrix, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-	Matrix::matrixRotateM(engine->m_ViewMatrix, 0, 0, 0, 1);
+	/**
+	 * left right bottom, top, near, far
+	 */
+	Matrix::matrixFrustumM(engine->m_ModelMatrix, -0.5f, 0.5f, -0.5f, 0.5f, 1, 10);
+	/**
+	 * eye x, y, z, 	look x, y, z, 	up x, y ,z
+	 */
+	Matrix::matrixLookAtM(engine->m_ViewMatrix, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	Matrix::matrixRotateM(engine->m_ViewMatrix, engine->m_nDisplayOrientation, 0, 0, 1);
+	if (engine->m_bMirror == 1) {
+		Matrix::matrixScaleM(engine->m_ViewMatrix, -1.0f, 1.0f, 1.0f);
+	}
 
 	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 
-	engine->m_Colors[0] = 1.0f;//(rgb & 0xFF);
-	engine->m_Colors[1] = 0;//((rgb >> 8) & 0xFF);
-	engine->m_Colors[2] = 0;//((rgb >> 16) & 0xFF);
-	engine->m_Colors[3] = 1.0f;
+	engine->m_Colors[0] = (((rgb >> 16) & 0xFF) / 255.0f);
+	engine->m_Colors[1] = (((rgb >> 8) & 0xFF) / 255.0f);
+	engine->m_Colors[2] = ((rgb & 0xFF) / 255.0f);
+	engine->m_Colors[3] = (((rgb >> 24) & 0xFF) / 255.0f);
 
 	GLuint m1 = glGetUniformLocation(engine->m_hProgramObject, "u_VMatrix");
 	GLuint m2 = glGetUniformLocation(engine->m_hProgramObject, "u_MMatrix");
@@ -403,16 +396,16 @@ void GLDrawLines( int handle, int w, int h, int *pos, int len, int rgb, int size
 	glUniformMatrix4fv(m2, 1, GL_FALSE, engine->m_ModelMatrix);
 	glUniform4fv(c1, 1, engine->m_Colors);
 
-	for (int i = 0; i < len; i += 2){
-		engine->m_pFloatData[i] = ((2.0f * pos[i]) / (w - 1)) - 1.0f;
-		engine->m_pFloatData[i + 1] =  1.0f - ((2.0f * pos[i + 1]) / (h - 1));
+	for (i = 0; i < 8; i += 2){
+		engine->m_pFloatData[i] = ((2.0f * point[i]) / (w - 1)) - 1.0f;
+		engine->m_pFloatData[i + 1] =  1.0f - ((2.0f * point[i + 1]) / (h - 1));
 	}
 
 	// update data.
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(engine->m_pFloatData), engine->m_pFloatData);
 
-	glLineWidth(4);
+	glLineWidth(size);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(0);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
