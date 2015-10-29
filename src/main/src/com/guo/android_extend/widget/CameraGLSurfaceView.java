@@ -34,11 +34,15 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	private BlockingQueue<byte[]> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
 	private OnRenderListener mOnRenderListener;
+	private OnDrawListener mOnDrawListener;
+
+	public interface OnDrawListener{
+		public void onDrawOverlap(GLES2Render render);
+	}
 
 	public interface OnRenderListener {
-		public void onDrawOverlap(GLES2Render render);
-		public void onRender(byte[] data, int width, int height, int format);
-		public void onRenderFinish(byte[] buffer);
+		public void onBeforeRender(byte[] data, int width, int height, int format);
+		public void onAfterRender(byte[] buffer);
 	}
 
 	public CameraGLSurfaceView(Context context, AttributeSet attrs) {
@@ -76,15 +80,15 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		byte[] buffer = mImageRenderBuffers.poll();
 		if (buffer != null) {
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onRender(buffer, mWidth, mHeight, mFormat);
+				mOnRenderListener.onBeforeRender(buffer, mWidth, mHeight, mFormat);
 			}
 			mGLES2Render.render(buffer, mWidth, mHeight);
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onRenderFinish(buffer);
+				mOnRenderListener.onAfterRender(buffer);
 			}
 		}
-		if (mOnRenderListener != null) {
-			mOnRenderListener.onDrawOverlap(mGLES2Render);
+		if (mOnDrawListener != null) {
+			mOnDrawListener.onDrawOverlap(mGLES2Render);
 		}
 	}
 
@@ -94,6 +98,10 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		} else {
 			requestRender();
 		}
+	}
+
+	public void setOnDrawListener(OnDrawListener lis) {
+		mOnDrawListener = lis;
 	}
 
 	public void setOnRenderListener(OnRenderListener lis) {
