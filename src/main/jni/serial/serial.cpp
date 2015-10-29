@@ -20,7 +20,7 @@
 
 #define BUFFER_SIZE		1024
 
-#define DEBUG
+//#define DEBUG
 //#define DEBUG_DUMP
 
 typedef struct engine_t {
