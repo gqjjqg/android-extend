@@ -26,7 +26,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceView.Renderer {
 	private final String TAG = this.getClass().getSimpleName();
 
-	private int mWidth, mHeight, mFormat;
+	private int mWidth, mHeight, mFormat, mRenderFormat;
 	private int mDegree;
 	private boolean mMirror;
 	private boolean mDebugFPS;
@@ -67,7 +67,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		mGLES2Render = new GLES2Render(mMirror, mDegree, mFormat, mDebugFPS);
+		mGLES2Render = new GLES2Render(mMirror, mDegree, mRenderFormat, mDebugFPS);
 	}
 
 	@Override
@@ -111,9 +111,10 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	public void setImageConfig(int width, int height, int format) {
 		mWidth = width;
 		mHeight = height;
+		mFormat = format;
 		switch(format) {
-			case ImageFormat.NV21 : mFormat = ImageConverter.CP_PAF_NV21; break;
-			case ImageFormat.RGB_565 : mFormat = ImageConverter.CP_RGB565; break;
+			case ImageFormat.NV21 : mRenderFormat = ImageConverter.CP_PAF_NV21; break;
+			case ImageFormat.RGB_565 : mRenderFormat = ImageConverter.CP_RGB565; break;
 			default: Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
 		}
 	}
