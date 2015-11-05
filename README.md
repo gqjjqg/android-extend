@@ -1,4 +1,4 @@
-# android-widget-extend
+# android-extend
 create useful widget for android.
 
 一些简单好用控件，比如横向listview，旋转按钮，自由拖拽imageview，简单好用的cameraview免去你写一大坨代码来获取图像数据，修改图像数据。
