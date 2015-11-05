@@ -205,14 +205,14 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	}
 
 	@Override
-	public void onRender(byte[] data, int width, int height, int format) {
+	public void onBeforeRender(byte[] data, int width, int height, int format) {
 		if (mOnCameraListener != null) {
 			mOnCameraListener.onPreviewRender(data, mWidth, mHeight, mFormat);
 		}
 	}
 
 	@Override
-	public void onRenderFinish(byte[] buffer) {
+	public void onAfterRender(byte[] buffer) {
 		if (!mImageDataBuffers.offer(buffer)) {
 			Log.e(TAG, "PREVIEW QUEUE FULL!");
 		}

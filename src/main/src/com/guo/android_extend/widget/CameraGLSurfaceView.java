@@ -1,7 +1,9 @@
 package com.guo.android_extend.widget;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
@@ -24,7 +26,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceView.Renderer {
 	private final String TAG = this.getClass().getSimpleName();
 
-	private int mWidth, mHeight, mFormat;
+	private int mWidth, mHeight, mFormat, mRenderFormat;
 	private int mDegree;
 	private boolean mMirror;
 	private boolean mDebugFPS;
@@ -32,10 +34,15 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	private BlockingQueue<byte[]> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
 	private OnRenderListener mOnRenderListener;
+	private OnDrawListener mOnDrawListener;
+
+	public interface OnDrawListener{
+		public void onDrawOverlap(GLES2Render render);
+	}
 
 	public interface OnRenderListener {
-		public void onRender(byte[] data, int width, int height, int format);
-		public void onRenderFinish(byte[] buffer);
+		public void onBeforeRender(byte[] data, int width, int height, int format);
+		public void onAfterRender(byte[] buffer);
 	}
 
 	public CameraGLSurfaceView(Context context, AttributeSet attrs) {
@@ -60,7 +67,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		mGLES2Render = new GLES2Render(mMirror, mDegree, mFormat, mDebugFPS);
+		mGLES2Render = new GLES2Render(mMirror, mDegree, mRenderFormat, mDebugFPS);
 	}
 
 	@Override
@@ -73,12 +80,15 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		byte[] buffer = mImageRenderBuffers.poll();
 		if (buffer != null) {
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onRender(buffer, mWidth, mHeight, mFormat);
+				mOnRenderListener.onBeforeRender(buffer, mWidth, mHeight, mFormat);
 			}
 			mGLES2Render.render(buffer, mWidth, mHeight);
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onRenderFinish(buffer);
+				mOnRenderListener.onAfterRender(buffer);
 			}
+		}
+		if (mOnDrawListener != null) {
+			mOnDrawListener.onDrawOverlap(mGLES2Render);
 		}
 	}
 
@@ -90,6 +100,10 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		}
 	}
 
+	public void setOnDrawListener(OnDrawListener lis) {
+		mOnDrawListener = lis;
+	}
+
 	public void setOnRenderListener(OnRenderListener lis) {
 		mOnRenderListener = lis;
 	}
@@ -97,9 +111,10 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	public void setImageConfig(int width, int height, int format) {
 		mWidth = width;
 		mHeight = height;
+		mFormat = format;
 		switch(format) {
-			case ImageFormat.NV21 : mFormat = ImageConverter.CP_PAF_NV21; break;
-			case ImageFormat.RGB_565 : mFormat = ImageConverter.CP_RGB565; break;
+			case ImageFormat.NV21 : mRenderFormat = ImageConverter.CP_PAF_NV21; break;
+			case ImageFormat.RGB_565 : mRenderFormat = ImageConverter.CP_RGB565; break;
 			default: Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
 		}
 	}
