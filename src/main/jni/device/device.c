@@ -82,6 +82,10 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits, i
 		cfsetispeed(&newtio, B38400);
 		cfsetospeed(&newtio, B38400);
 		break;
+	case 57600:
+		cfsetispeed(&newtio, B57600);
+		cfsetospeed(&newtio, B57600);
+		break;
 	case 115200:
 		cfsetispeed(&newtio, B115200);
 		cfsetospeed(&newtio, B115200);
