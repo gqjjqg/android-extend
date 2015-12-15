@@ -23,6 +23,20 @@ public class SerialClient extends Thread implements SerialInterface {
         this(port, type, rate, 1, 255);
     }
 
+    public SerialClient(String dev, int rate, int vtime, int vmin) {
+        // TODO Auto-generated constructor stub
+        try {
+            mPort = new Serial(dev);
+            mPort.setConfig(rate, 8, (byte) 'N', 1, vtime, vmin);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Create SerialClient ERROR");
+        }
+
+        mBlinker = this;
+        mSerialListener = null;
+    }
+
     public SerialClient(int port, int type, int rate, int vtime, int vmin) {
         // TODO Auto-generated constructor stub
         try {

@@ -40,14 +40,14 @@ typedef struct engine_t {
 #define MSG_SwingUp 		3
 
 //public method.
-static jint NS_Init(JNIEnv *env, jobject object, jint port, jint type);
+static jint NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type);
 static jint NS_UnInit(JNIEnv *env, jobject object, jint handler);
 static jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin);
 static jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size);
 static jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time);
 
 static JNINativeMethod gMethods[] = {
-    {"initSerial", "(II)I",(void*)NS_Init},
+    {"initSerial", "(I[BI)I",(void*)NS_Init},
     {"uninitSerial", "(I)I",(void*)NS_UnInit},
     {"setSerial", "(IIIBIII)I", (void*)NS_Set},
 	{"sendData", "(I[BI)I", (void*)NS_SendData},
@@ -56,7 +56,7 @@ static JNINativeMethod gMethods[] = {
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/device/Serial";
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
+jint JNI_OnLoad(JavaVM* vm, void* reserved){
 
     JNIEnv *env = NULL;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_4)){
@@ -76,7 +76,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
     return JNI_VERSION_1_4;
 }
 
-JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
+void JNI_OnUnload(JavaVM* vm, void* reserved){
 
    JNIEnv *env = NULL;
    if (vm->GetEnv((void**)&env, JNI_VERSION_1_4)){
@@ -90,8 +90,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NS_Init(JNIEnv *env, jobject object, jint port, jint type)
+jint NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type)
 {
+	char dev[256];
 	int error;
 	LPSERIAL engine = (LPSERIAL)malloc(sizeof(SERIAL));
 	if (engine == NULL) {
@@ -107,8 +108,19 @@ jint NS_Init(JNIEnv *env, jobject object, jint port, jint type)
 	engine->pfile = fopen("/sdcard/dump_nv12_800x600.nv21", "wb");
 	engine->frame = 5;
 #endif
+	if (data != NULL) {
+		int size = env->GetArrayLength(data);
+		if (size > 256) {
+			LOGE("The byte is out range");
+			return 0;
+		} else {
+			env->GetByteArrayRegion(data, 0, size, (signed char *)dev);
+			dev[size] = '\0';
+			LOGE("%s;", dev);
+		}
+	}
 
-	engine->mHandle = Open_Port(port, &error, type);
+	engine->mHandle = Open_Port(port, dev, &error, type);
 	if (engine->mHandle < 0) {
 		engine->mStatus =  engine->mHandle;
 	} else {

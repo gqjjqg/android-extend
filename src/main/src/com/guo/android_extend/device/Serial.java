@@ -7,6 +7,8 @@ public class Serial {
 
 	public static final int TYPE_SERIAL = 0;
 	public static final int TYPE_USB_SERIAL = 1;
+	private static final int TYPE_FREE_SERIAL = 2;
+
 	public static final int MAX_RECEIVE_SIZE = 255;
 	public static final int MAX_RECEIVE_TIMEOUT = 1;	//S
 
@@ -16,7 +18,7 @@ public class Serial {
 	 * @param type		ttyUSB0 / ttyS0
 	 * @return
 	 */
-	private native int initSerial(int port, int type);
+	private native int initSerial(int port, byte[] dev, int type);
 
 	/**
 	 *
@@ -43,8 +45,16 @@ public class Serial {
 		System.loadLibrary("serial");
 	}
 
+	public Serial(String dev) {
+		mHandle = initSerial(-1, dev.getBytes(), TYPE_FREE_SERIAL);
+		if (mHandle == 0) {
+			throw new RuntimeException("Open Serial device error!");
+		}
+		mReceive = new byte[MAX_RECEIVE_SIZE];
+	}
+
 	public Serial(int port, int type) {
-		mHandle = initSerial(port, type);
+		mHandle = initSerial(port, null, type);
 		if (mHandle == 0) {
 			throw new RuntimeException("Open Serial device error!");
 		}

@@ -198,7 +198,7 @@ int Read_Port(int fd, void * buffer, int size)
 	return ret;
 }
 
-int Open_Port(int com_port, int *error, int type)
+int Open_Port(int com_port, char * dev, int *error, int type)
 {
 	int fd = 0;
 	//fprintf(stdout,"Function Open_Port Begin!\n");
@@ -209,15 +209,19 @@ int Open_Port(int com_port, int *error, int type)
 	char *devUSBSerial[] = { "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3",
 					"/dev/ttyUSB4", "/dev/ttyUSB5", "/dev/ttyUSB6" };
 
-	if ((com_port < 0) || (com_port > 6)) {
-		return -1;
-	}
-
 	//Open the port
 	if (type == DEF_SERIAL) {
+		if ((com_port < 0) || (com_port > 6)) {
+			return -1;
+		}
 		fd = open(devSerial[com_port], O_RDWR | O_NOCTTY | O_NDELAY);
-	} else {
+	} else if (type == USB_TO_SERIAL) {
+		if ((com_port < 0) || (com_port > 6)) {
+			return -1;
+		}
 		fd = open(devUSBSerial[com_port], O_RDWR | O_NOCTTY | O_NDELAY);
+	} else {
+		fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY);
 	}
 
 	//fd = open("/dev/ttyS2", O_RDWR | O_NOCTTY | O_NDELAY);
