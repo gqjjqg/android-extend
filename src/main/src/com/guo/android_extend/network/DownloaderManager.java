@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by gqj3375 on 2014/12/31.
  */
-public class DownloaderManager<T> extends Thread implements Downloader.OnMonitoring {
+public class DownloaderManager<T> implements Downloader.OnMonitoring {
     private String TAG = "DownloaderManager";
 
     private ExecutorService mThreadPool;

@@ -4,13 +4,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class SerialClient extends Thread implements SerialInterface {
+import com.guo.android_extend.java.AbsLoop;
+
+public class SerialClient extends AbsLoop implements SerialInterface {
     private final String TAG = this.getClass().toString();
 
     public static final int SERIAL_CODE = 0x4000;
     public static final int RECEIVE_MSG = 0x4001;
 
-    private volatile Thread mBlinker;
     private Serial mPort;
     private SerialListener mSerialListener;
 
@@ -25,6 +26,7 @@ public class SerialClient extends Thread implements SerialInterface {
 
     public SerialClient(String dev, int rate, int vtime, int vmin) {
         // TODO Auto-generated constructor stub
+        super();
         try {
             mPort = new Serial(dev);
             mPort.setConfig(rate, 8, (byte) 'N', 1, vtime, vmin);
@@ -32,13 +34,12 @@ public class SerialClient extends Thread implements SerialInterface {
             e.printStackTrace();
             throw new RuntimeException("Create SerialClient ERROR");
         }
-
-        mBlinker = this;
         mSerialListener = null;
     }
 
     public SerialClient(int port, int type, int rate, int vtime, int vmin) {
         // TODO Auto-generated constructor stub
+        super();
         try {
             mPort = new Serial(port, type);
             mPort.setConfig(rate, 8, (byte) 'N', 1, vtime, vmin);
@@ -46,41 +47,27 @@ public class SerialClient extends Thread implements SerialInterface {
             e.printStackTrace();
             throw new RuntimeException("Create SerialClient ERROR");
         }
-
-        mBlinker = this;
         mSerialListener = null;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Thread#run()
-     */
     @Override
-    public void run() {
-        // TODO Auto-generated method stub
-        Thread thisThread = Thread.currentThread();
+    public void setup() {
 
-        while (mBlinker == thisThread) {
-            byte[] data  = mPort.receive();
-            if (data != null) {
-                if (mSerialListener != null) {
-                    mSerialListener.onSerialReceivce(mPort, data);
-                }
-            }
-        }
-        mPort.destroy();
     }
 
-    public void shutdown() {
-        mBlinker = null;
-        try {
-            synchronized (this) {
-                this.notifyAll();
+    @Override
+    public void loop() {
+        byte[] data  = mPort.receive();
+        if (data != null) {
+            if (mSerialListener != null) {
+                mSerialListener.onSerialReceivce(mPort, data);
             }
-            this.join();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void over() {
+        mPort.destroy();
     }
 
     public boolean sendData(String data) {
