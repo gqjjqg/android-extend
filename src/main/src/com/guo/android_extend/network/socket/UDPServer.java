@@ -1,10 +1,11 @@
-package com.guo.android_extend.network;
+package com.guo.android_extend.network.socket;
 
 import android.os.Handler;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -19,13 +20,17 @@ import java.util.List;
 public class UDPServer extends AbsLoop {
 	private String TAG = this.getClass().getSimpleName();
 
-	public static final int UDP_LOCAL_PORT = 4200;
+	public static final int UDP_PORT_R = 4200;
+	public static final int UDP_PORT_S = 4201;
+
 	public static final int NAME_BUFFER_LENGTH = 8192;
 
 	private List<Slaver> mSlaves;
 	private DatagramSocket mDatagramSocket;
 	private byte[] mBuffer;
+	private byte[] mName;
 	private OnServerListener mOnServerListener;
+	private Sender mSender;
 
 	public class Slaver {
 		String mName;
@@ -41,10 +46,12 @@ public class UDPServer extends AbsLoop {
 		public void onReceiveDevice(String name, String ip);
 	}
 
-	public UDPServer() {
+	public UDPServer(String server_name) {
 		super();
 		mSlaves = new ArrayList<Slaver>();
 		mBuffer = new byte[NAME_BUFFER_LENGTH];
+		mName = server_name.getBytes().clone();
+		mSender = null;
 	}
 
 	public void setOnServerListener(OnServerListener osl) {
@@ -54,7 +61,7 @@ public class UDPServer extends AbsLoop {
 	@Override
 	public void setup() {
 		try {
-			mDatagramSocket = new DatagramSocket(UDP_LOCAL_PORT);
+			mDatagramSocket = new DatagramSocket(UDP_PORT_R);
 			mDatagramSocket.setBroadcast(true);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -64,7 +71,7 @@ public class UDPServer extends AbsLoop {
 	@Override
 	public void loop() {
 		try {
-			sleep(2000);
+			sleep(1000);
 			// 构造接收数据报
 			DatagramPacket receive = new DatagramPacket(mBuffer, mBuffer.length);
 			// 接收数据报
@@ -88,6 +95,11 @@ public class UDPServer extends AbsLoop {
 				if (mOnServerListener != null) {
 					mOnServerListener.onReceiveDevice(name, ip);
 				}
+				if (mSender != null) {
+					mSender.shutdown();
+				}
+				mSender = new Sender(ip);
+				mSender.start();
 			}
 
 		} catch (Exception e) {
@@ -99,6 +111,52 @@ public class UDPServer extends AbsLoop {
 	public void over() {
 		if (mDatagramSocket != null) {
 			mDatagramSocket.close();
+		}
+		if (mSender != null) {
+			mSender.shutdown();
+		}
+	}
+
+	class Sender extends AbsLoop {
+
+		private DatagramSocket mDatagramSocket;
+
+		private String mIP;
+
+		public Sender(String ip) {
+			super();
+			mIP = ip;
+		}
+
+		@Override
+		public void setup() {
+			try {
+				mDatagramSocket = new DatagramSocket(UDP_PORT_S);
+				mDatagramSocket.setBroadcast(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void loop() {
+			try {
+				sleep(1000);
+				// 构造发送数据报 把自己的名字发送出去
+				DatagramPacket send = new DatagramPacket(mName, mName.length, InetAddress.getByName(mIP), UDPClient.UDP_PORT_R);
+				// 发送数据报
+				mDatagramSocket.send(send);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void over() {
+			if (mDatagramSocket != null) {
+				mDatagramSocket.close();
+			}
 		}
 	}
 

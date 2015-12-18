@@ -27,12 +27,17 @@ public abstract class AbsLoop extends Thread {
 	}
 
 	public void shutdown() {
-		mBlinker = null;
-		try {
-			this.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Thread thisThread = Thread.currentThread();
+		if (thisThread != mBlinker) {
+			mBlinker = null;
+			try {
+				this.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			mBlinker = null;
 		}
 	}
 }

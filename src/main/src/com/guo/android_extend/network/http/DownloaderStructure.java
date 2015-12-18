@@ -1,4 +1,4 @@
-package com.guo.android_extend.network;
+package com.guo.android_extend.network.http;
 
 import java.io.File;
 

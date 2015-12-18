@@ -1,4 +1,4 @@
-package com.guo.android_extend.network;
+package com.guo.android_extend.network.http;
 
 import android.util.Log;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
  * Created by gqj3375 on 2014/12/31.
  */
 public class DownloaderManager<T> implements Downloader.OnMonitoring {
-    private String TAG = "DownloaderManager";
+    private String TAG = this.getClass().getSimpleName();
 
     private ExecutorService mThreadPool;
     private int mMaxTask;
