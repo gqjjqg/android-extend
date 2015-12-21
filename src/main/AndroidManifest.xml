@@ -7,5 +7,13 @@
     <uses-sdk
         android:minSdkVersion="10"
         android:targetSdkVersion="17" />
-    
+
+    <!-- wifi -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <!-- camera -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- sdcard -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+
 </manifest>
