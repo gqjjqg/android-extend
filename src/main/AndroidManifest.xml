@@ -8,8 +8,9 @@
         android:minSdkVersion="10"
         android:targetSdkVersion="17" />
 
-    <!-- wifi -->
+    <!-- wifi internet -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- camera -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- sdcard -->
