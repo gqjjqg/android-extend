@@ -1,4 +1,4 @@
-package com.guo.android_extend.network.socket.TCP;
+package com.guo.android_extend.network.socket;
 
 import android.util.Log;
 
@@ -77,6 +77,9 @@ public class SocketServer {
 			if (mConnectService.mSocket != null) {
 				mConnectService.mSocket.close();
 			}
+			if (mServerSocket != null) {
+				mServerSocket.close();
+			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -93,6 +96,9 @@ public class SocketServer {
 			try {
 				mSocket = mServerSocket.accept();
 				Log.d(TAG, "connected: " + mSocket.getRemoteSocketAddress());
+				if (mOnSocketListener != null) {
+					mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_CONNECTED);
+				}
 				mTCPDeliver = new TCPDeliver(mSocket);
 				mTCPDeliver.setOnDeliverListener(this);
 				mTCPDeliver.start();
