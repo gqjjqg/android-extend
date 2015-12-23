@@ -1,4 +1,4 @@
-package com.guo.android_extend.network.socket.TCP;
+package com.guo.android_extend.network.socket;
 
 import android.util.Log;
 
@@ -85,7 +85,7 @@ public class TCPReceiver extends AbsLoop {
 					DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file_path)));
 
 					for (int size = 0, read = 0; size < length; size += read) {
-						read = mDataRead.read(mBuffer);
+						read = mDataRead.read(mBuffer, 0, Math.min((int)length, mBuffer.length));
 						output.write(mBuffer, 0, read);
 					}
 					output.flush();
@@ -100,7 +100,7 @@ public class TCPReceiver extends AbsLoop {
 					long length = mDataRead.readLong();
 					byte[] data = new byte[(int)length];
 					for (int size = 0, read = 0; size < length; size += read) {
-						read = mDataRead.read(mBuffer);
+						read = mDataRead.read(mBuffer, 0, Math.min((int) length, mBuffer.length));
 						System.arraycopy(mBuffer, 0, data, size, read);
 					}
 

@@ -1,6 +1,4 @@
-package com.guo.android_extend.network.socket.TCP;
-
-import android.util.Log;
+package com.guo.android_extend.network.socket;
 
 import com.guo.android_extend.java.AbsLoop;
 
@@ -10,14 +8,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
-import java.util.Queue;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -59,7 +52,7 @@ public class TCPDeliver extends AbsLoop {
 	}
 
 	public TCPDeliver(Socket mSocket) {
-		this.mTaskQueue = new LinkedBlockingQueue<DeliverData>();
+		this.mTaskQueue = new LinkedBlockingQueue<DeliverData>(5);
 		this.mBuffer = new byte[BUFFER_LENGTH];
 		this.mSocket = mSocket;
 	}

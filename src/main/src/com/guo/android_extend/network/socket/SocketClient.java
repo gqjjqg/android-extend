@@ -1,10 +1,9 @@
-package com.guo.android_extend.network.socket.TCP;
+package com.guo.android_extend.network.socket;
 
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
@@ -99,6 +98,9 @@ public class SocketClient {
 			try {
 				mSocket = new Socket(mIP, mPort);
 				Log.d(TAG, "connected: " + mSocket.getRemoteSocketAddress());
+				if (mOnSocketListener != null) {
+					mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_CONNECTED);
+				}
 				mTCPDeliver = new TCPDeliver(mSocket);
 				mTCPDeliver.setOnDeliverListener(this);
 				mTCPDeliver.start();
@@ -107,9 +109,9 @@ public class SocketClient {
 				mTCPReceiver.start();
 			} catch (Exception e) {
 				Log.d(TAG, e.getCause().getMessage());
-				int error = TCPDataProtocol.ERROR_NONE;
+				int error = OnSocketListener.ERROR_NONE;
 				if (e.getCause().equals("connect failed: ECONNREFUSED (Connection refused)")) {
-					error = TCPDataProtocol.ERROR_CONNECT_REJECT;
+					error = OnSocketListener.ERROR_CONNECT_REJECT;
 				}
 				if (mOnSocketListener != null) {
 					mOnSocketListener.onSocketException(error);
