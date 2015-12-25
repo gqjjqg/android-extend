@@ -120,7 +120,7 @@ public class SocketClient {
 		}
 
 		@Override
-		public void onError() {
+		public void onError(int error) {
 			mTCPReceiver.shutdown();
 			mTCPDeliver.shutdown();
 			try {
@@ -129,6 +129,9 @@ public class SocketClient {
 				}
 			} catch (IOException e1) {
 				e1.printStackTrace();
+			}
+			if (mOnSocketListener != null) {
+				mOnSocketListener.onSocketException(error);
 			}
 			mConnectService = new ConnectService();
 			mConnectService.start();
