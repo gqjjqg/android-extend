@@ -16,6 +16,7 @@ public class SocketServer {
 	public static final int PORT = 4203;
 
 	private String mLocalDir ;
+	private boolean isConnected;
 
 	ServerSocket mServerSocket;
 	ConnectService mConnectService;
@@ -35,6 +36,10 @@ public class SocketServer {
 			e.printStackTrace();
 		}
 
+	}
+
+	public boolean isConnected() {
+		return isConnected;
 	}
 
 	/**
@@ -94,7 +99,10 @@ public class SocketServer {
 		@Override
 		public void run() {
 			try {
+				isConnected = false;
+				Log.d(TAG, "wait for connect...");
 				mSocket = mServerSocket.accept();
+				isConnected = true;
 				Log.d(TAG, "connected: " + mSocket.getRemoteSocketAddress());
 				if (mOnSocketListener != null) {
 					mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_CONNECTED);
@@ -114,15 +122,20 @@ public class SocketServer {
 		}
 
 		@Override
-		public void onError() {
+		public void onError(int error) {
 			mTCPReceiver.shutdown();
 			mTCPDeliver.shutdown();
 			try {
 				if (mSocket != null) {
-					mSocket.close();
+					if (!mSocket.isClosed()) {
+						mSocket.close();
+					}
 				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			if (mOnSocketListener != null) {
+				mOnSocketListener.onSocketException(error);
 			}
 			mConnectService = new ConnectService();
 			mConnectService.start();

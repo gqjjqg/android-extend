@@ -6,8 +6,9 @@ package com.guo.android_extend.network.socket;
 public interface OnSocketListener {
 	public static int ERROR_NONE = 0;
 	public static int ERROR_CONNECT_REJECT = 1;
+	public static int ERROR_TRANSFER_BROKEN_PIPE = 2;
 
-	public static int EVENT_CONNECTED = 2;
+	public static int EVENT_CONNECTED = 3;
 
 	public void onSocketException(int e);
 	public void onSocketEvent(int e);

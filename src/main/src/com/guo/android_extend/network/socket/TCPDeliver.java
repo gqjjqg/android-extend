@@ -1,5 +1,7 @@
 package com.guo.android_extend.network.socket;
 
+import android.util.Log;
+
 import com.guo.android_extend.java.AbsLoop;
 
 import java.io.BufferedInputStream;
@@ -29,7 +31,7 @@ public class TCPDeliver extends AbsLoop {
 	private byte[] mBuffer;
 
 	public interface OnDeliverListener {
-		public void onError();
+		public void onError(int error);
 		public void onDeliverFinish(String name);
 	}
 
@@ -88,7 +90,9 @@ public class TCPDeliver extends AbsLoop {
 			this.notifyAll();
 		}
 		try {
-			this.join();
+			if (this != Thread.currentThread()) {
+				this.join();
+			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -152,7 +156,7 @@ public class TCPDeliver extends AbsLoop {
 			} catch (Exception e) {
 				e.printStackTrace();
 				if (mOnDeliverListener != null) {
-					mOnDeliverListener.onError();
+					mOnDeliverListener.onError(OnSocketListener.ERROR_TRANSFER_BROKEN_PIPE);
 				}
 			}
 
