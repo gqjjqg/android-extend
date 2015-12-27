@@ -117,6 +117,7 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
                 }
             }
             mSocket = null;
+            mSender = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -128,6 +129,10 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
             mOnSocketListener.onSocketException(error);
         }
         mSocket = null;
+        if (mSender != null) {
+            mSender.shutdown();
+            mSender = null;
+        }
         synchronized (this) {
             this.notify();
         }
