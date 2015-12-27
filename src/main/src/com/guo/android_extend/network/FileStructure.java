@@ -1,16 +1,16 @@
-package com.guo.android_extend.network.http;
+package com.guo.android_extend.network;
 
 import java.io.File;
 
 /**
  * Created by gqj3375 on 2014/12/31.
  */
-public class DownloaderStructure {
+public class FileStructure {
 
     protected String mLocalDir;
     protected String mUrl;
 
-    public DownloaderStructure(String mLocalDir, String mUrl) {
+    public FileStructure(String mLocalDir, String mUrl) {
         this.mLocalDir = mLocalDir;
         this.mUrl = mUrl;
     }
@@ -47,11 +47,7 @@ public class DownloaderStructure {
         return localFile;
     }
 
-    /**
-     * create local download file.
-     * @return
-     */
-    protected String createDownloadCacheFile() {
+    public String createCacheFile() {
         String fileName = getRemoteFileName();
         if (mLocalDir.endsWith("/")) {
             fileName = mLocalDir + fileName +"_cache";
@@ -71,4 +67,5 @@ public class DownloaderStructure {
         }
         return fileName;
     }
+    
 }

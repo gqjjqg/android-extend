@@ -1,5 +1,7 @@
 package com.guo.android_extend.network.http;
 
+import com.guo.android_extend.network.FileStructure;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -10,7 +12,7 @@ import java.net.URL;
 /**
  * Created by gqj3375 on 2014/12/31.
  */
-public abstract class Downloader<T> extends DownloaderStructure implements Runnable {
+public abstract class Downloader<T> extends FileStructure implements Runnable {
 
     private T mID;
     private OnMonitoring mOnMonitoring;
@@ -68,7 +70,7 @@ public abstract class Downloader<T> extends DownloaderStructure implements Runna
     @Override
     public void run() {
         // TODO Auto-generated method stub
-        String cache = createDownloadCacheFile();
+        String cache = createCacheFile();
         try {
             URL url = new URL(mUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

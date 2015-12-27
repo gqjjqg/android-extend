@@ -1,4 +1,4 @@
-package com.guo.android_extend.network.socket.UDP;
+package com.guo.android_extend.network.udp;
 
 /**
  * Created by gqj3375 on 2015/12/22.

@@ -22,7 +22,21 @@ public abstract class AbsLoop extends Thread {
 		over();
 	}
 
-	public void shutdown() {
+	public void break_loop() {
 		mBlinker = null;
+	}
+
+	public void shutdown() {
+		break_loop();
+		try {
+			if (this != Thread.currentThread()) {
+				synchronized (this) {
+					this.notifyAll();
+				}
+				this.join();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }

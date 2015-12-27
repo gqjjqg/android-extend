@@ -1,15 +1,10 @@
-package com.guo.android_extend.network.socket.UDP;
+package com.guo.android_extend.network.udp;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 
-import com.guo.android_extend.java.AbsLoop;
-
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
