@@ -111,7 +111,34 @@ public class ExtOrientationDetector extends OrientationEventListener {
 		mMaxDegree = mDivider[mDivider.length - 1] - ORIENTATION_HYSTERESIS;
 		
 	}
-	
+
+	/**
+	 *
+	 * @param listener
+	 * @param degree
+	 * @param flag
+	 * @return
+	 */
+	private boolean forceOrientationChanged(OnOrientationListener listener, int degree, int flag) {
+		int param = flag;
+		int offset = ORIENTATION_OFFSET;
+		if (flag == ROTATE_FORCE_REDO) {
+			param = getRotateFlag(listener.getCurrentOrientationDegree(), degree);
+		}
+		// 0 - 180 should rotate 180degree.otherwise 90 degree.
+		offset = Math.abs(listener.getCurrentOrientationDegree() - degree);
+		offset = offset > 180 ? (360 - offset) : offset;
+		if (param == ROTATE_NEGATIVE) {
+			offset = -offset;
+		} else if (param == ROTATE_POSITIVE) {
+			//offset = offset;
+		} else {
+			return true;
+		}
+
+		return listener.OnOrientationChanged(degree, offset, ROTATE_FORCE_REDO);
+	}
+
 	/**
 	 * @param degree
 	 * @param flag
@@ -185,6 +212,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	public boolean addReceiver(OnOrientationListener obj) {
 		synchronized (mObjectes) {
 			if (!mObjectes.contains(obj)) {
+				forceOrientationChanged(obj, mDegree, ROTATE_FORCE_REDO);
 				return mObjectes.add(obj);
 			}
 		}

@@ -76,9 +76,11 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	@Override
 	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		// TODO Auto-generated method stub
-		if (!this.isShown()) {
-			Log.i(TAG, "Not Shown!");
-			return false;
+		if (flag != ExtOrientationDetector.ROTATE_FORCE_REDO) {
+			if (!this.isShown()) {
+				Log.i(TAG, "Not Shown!");
+				return false;
+			}
 		}
 		
 		Animation animation = new RotateAnimation (offset, 0,
