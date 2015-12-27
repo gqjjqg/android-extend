@@ -3,7 +3,7 @@ package com.guo.android_extend.network.socket.Transfer;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.FileStructure;
+import com.guo.android_extend.network.NetWrokFile;
 import com.guo.android_extend.network.socket.Data.AbsTransmitObject;
 import com.guo.android_extend.network.socket.Data.TransmitByteData;
 import com.guo.android_extend.network.socket.Data.TransmitFile;
@@ -74,7 +74,7 @@ public class Receiver extends AbsLoop {
 			String name = mDataRead.readUTF();
 			long length = mDataRead.readLong();
 			if (type == AbsTransmitObject.TYPE_FILE) {
-				object = new TransmitFile(new FileStructure(mLocalDir, name).getLocalFile());
+				object = new TransmitFile(new NetWrokFile(mLocalDir, name).getLocalFile());
 			} else if (type == AbsTransmitObject.TYPE_BYTE) {
 				object = new TransmitByteData(name, null, (int) length);
 			} else {

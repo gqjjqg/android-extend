@@ -1,11 +1,7 @@
 package com.guo.android_extend.network.socket.Data;
 
-import com.guo.android_extend.network.FileStructure;
-
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
 
 /**
  * Created by Guo on 2015/12/26.
