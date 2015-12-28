@@ -1,6 +1,6 @@
 package com.guo.android_extend.network.http;
 
-import com.guo.android_extend.network.NetWrokFile;
+import com.guo.android_extend.network.NetWorkFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,7 +12,7 @@ import java.net.URL;
 /**
  * Created by gqj3375 on 2014/12/31.
  */
-public abstract class Downloader<T> extends NetWrokFile implements Runnable {
+public abstract class Downloader<T> extends NetWorkFile implements Runnable {
 
     private T mID;
     private OnMonitoring mOnMonitoring;

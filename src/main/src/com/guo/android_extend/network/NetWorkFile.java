@@ -5,12 +5,12 @@ import java.io.File;
 /**
  * Created by gqj3375 on 2014/12/31.
  */
-public class NetWrokFile {
+public class NetWorkFile {
 
     protected String mLocalDir;
     protected String mUrl;
 
-    public NetWrokFile(String mLocalDir, String mUrl) {
+    public NetWorkFile(String mLocalDir, String mUrl) {
         this.mLocalDir = mLocalDir;
         this.mUrl = mUrl;
     }
