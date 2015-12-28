@@ -31,6 +31,7 @@ public class SocketModule implements SocketReceiver.OnReceiverListener, SocketSe
 		mSocketReceiver.setOnServerRunnable(this);
 		mSocketReceiver.setOnSocketListener(mOnSocketListener);
 		mSocketReceiver.start();
+		mSocketSender = null;
 	}
 
 	public SocketModule(String local_dir) {

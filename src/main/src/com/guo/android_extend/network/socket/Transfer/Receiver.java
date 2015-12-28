@@ -54,7 +54,7 @@ public class Receiver extends AbsLoop {
 		try {
 			mDataRead = new DataInputStream(mSocket.getInputStream());
 		} catch (Exception e) {
-			Log.e(TAG, "setup:" + e.getCause().getMessage());
+			Log.e(TAG, "setup:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_STREAM);
 			}
@@ -104,7 +104,7 @@ public class Receiver extends AbsLoop {
 				}
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "loop:" + e.getCause().getMessage());
+			Log.e(TAG, "loop:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_TRANSFER);
 			}
@@ -119,7 +119,7 @@ public class Receiver extends AbsLoop {
 				mDataRead.close();
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "over:" + e.getCause().getMessage());
+			Log.e(TAG, "over:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_CLOSE);
 			}

@@ -1,4 +1,4 @@
-package com.guo.android_extend.network.udp一;
+package com.guo.android_extend.network.udp;
 
 import android.content.Context;
 import android.net.DhcpInfo;
