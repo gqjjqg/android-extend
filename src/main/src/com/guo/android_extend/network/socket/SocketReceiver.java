@@ -6,8 +6,8 @@ import com.guo.android_extend.java.AbsLoop;
 import com.guo.android_extend.network.socket.Data.AbsTransmitObject;
 import com.guo.android_extend.network.socket.Data.TransmitByteData;
 import com.guo.android_extend.network.socket.Transfer.Receiver;
-import com.guo.android_extend.network.socket.Transfer.Sender;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,22 +15,17 @@ import java.net.Socket;
 /**
  * Created by Guo on 2015/12/27.
  */
-public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListener, Sender.OnSenderListener {
+public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListener {
     private String TAG = this.getClass().getSimpleName();
 
     OnSocketListener mOnSocketListener;
-    OnReceiverListener mOnReceiverListener;
 
     Receiver mReceiver;
     Socket mSocket;
     ServerSocket mServerSocket;
     String mLocalDir;
     int mPort;
-    int mSendPercent, mReceivePercent;
-
-    public interface OnReceiverListener {
-        public void onConnected(String address);
-    }
+    int mReceivePercent;
 
     public SocketReceiver(String localdir, int port) {
         mReceiver = null;
@@ -42,10 +37,6 @@ public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListen
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void setOnServerRunnable(OnReceiverListener mOnServerRunnable) {
-        this.mOnReceiverListener = mOnServerRunnable;
     }
 
     public void setOnSocketListener(OnSocketListener mOnSocketListener) {
@@ -65,19 +56,13 @@ public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListen
             if (mSocket == null) {
                 throw new RuntimeException("server closed!");
             }
-            Log.d(TAG, "connected: " + mSocket.getRemoteSocketAddress());
+            Log.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
         } catch (Exception e) {
             Log.e(TAG, "run:" + e.getMessage());
             if (mOnSocketListener != null) {
-                mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_STOP_ACCEPT);
+                mOnSocketListener.onSocketEvent(mSocket, OnSocketListener.EVENT_STOP_ACCEPT);
             }
             return ;
-        }
-        if (mOnReceiverListener != null) {
-            mOnReceiverListener.onConnected(mSocket.getRemoteSocketAddress().toString());
-        }
-        if (mOnSocketListener != null) {
-            mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_CONNECTED);
         }
 
         try {
@@ -117,28 +102,10 @@ public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListen
         if (mOnSocketListener != null) {
             mOnSocketListener.onSocketException(error);
         }
-    }
-
-    @Override
-    public void onSendProcess(AbsTransmitObject obj, int cur, int total) {
-        if (mOnSocketListener != null) {
-            int percent = cur * 100 / total;
-            if (mSendPercent != percent) {
-                mSendPercent = percent;
-                if (obj.getType() == AbsTransmitObject.TYPE_BYTE) {
-                    mOnSocketListener.onDataSendProcess(obj.getName(), percent);
-                    if (cur == total) {
-                        mOnSocketListener.onDataSended(obj.getName());
-                        mReceivePercent = 0;
-                    }
-                } else if (obj.getType() == AbsTransmitObject.TYPE_FILE) {
-                    mOnSocketListener.onFileSendProcess(obj.getName(), percent);
-                    if (cur == total) {
-                        mOnSocketListener.onFileSended(obj.getName());
-                        mReceivePercent = 0;
-                    }
-                }
-            }
+        mSocket = null;
+        if (mReceiver != null) {
+            mReceiver.shutdown();
+            mReceiver = null;
         }
     }
 
@@ -162,6 +129,20 @@ public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListen
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void onReceiveInitial(Socket socket, DataInputStream dis) {
+        if (mOnSocketListener != null) {
+            mOnSocketListener.onSocketEvent(socket, OnSocketListener.EVENT_RECEIVER_CONNECTED);
+        }
+    }
+
+    @Override
+    public void onReceiveDestroy(Socket socket) {
+        if (mOnSocketListener != null) {
+            mOnSocketListener.onSocketEvent(socket, OnSocketListener.EVENT_RECEIVER_DISCONNECTED);
         }
     }
 }

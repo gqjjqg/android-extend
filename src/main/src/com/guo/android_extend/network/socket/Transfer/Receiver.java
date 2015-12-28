@@ -33,6 +33,8 @@ public class Receiver extends AbsLoop {
 	public interface OnReceiverListener {
 		public void onException(int error);
 		public void onReceiveProcess(AbsTransmitObject obj, int cur, int total);
+		public void onReceiveInitial(Socket socket, DataInputStream dis);
+		public void onReceiveDestroy(Socket socket);
 	}
 
 	public Receiver(String local_dir, Socket socket) {
@@ -58,6 +60,10 @@ public class Receiver extends AbsLoop {
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_STREAM);
 			}
+			return;
+		}
+		if (mOnReceiverListener != null) {
+			mOnReceiverListener.onReceiveInitial(mSocket, mDataRead);
 		}
 	}
 
@@ -98,7 +104,7 @@ public class Receiver extends AbsLoop {
 					mOnReceiverListener.onReceiveProcess(object, (int) length, (int) length);
 				}
 			} catch (IOException e) {
-				Log.e(TAG, "loop:" + e.getCause().getMessage());
+				Log.e(TAG, "loop:" + e.getMessage());
 				if (mOnReceiverListener != null) {
 					mOnReceiverListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);
 				}
@@ -114,6 +120,9 @@ public class Receiver extends AbsLoop {
 
 	@Override
 	public void over() {
+		if (mOnReceiverListener != null) {
+			mOnReceiverListener.onReceiveDestroy(mSocket);
+		}
 		try {
 			if (mDataRead != null) {
 				mDataRead.close();

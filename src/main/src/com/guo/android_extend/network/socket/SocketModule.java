@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by gqj3375 on 2015/12/22.
  */
-public class SocketModule implements SocketReceiver.OnReceiverListener, SocketSender.OnSenderListener {
+public class SocketModule {
 	private String TAG = this.getClass().getSimpleName();
 
 	public static final int PORT_R = 4203;
@@ -28,7 +28,6 @@ public class SocketModule implements SocketReceiver.OnReceiverListener, SocketSe
 		mLocalDir = local_dir;
 		mOnSocketListener = null;
 		mSocketReceiver = new SocketReceiver(mLocalDir, port);
-		mSocketReceiver.setOnServerRunnable(this);
 		mSocketReceiver.setOnSocketListener(mOnSocketListener);
 		mSocketReceiver.start();
 		mSocketSender = null;
@@ -54,7 +53,6 @@ public class SocketModule implements SocketReceiver.OnReceiverListener, SocketSe
 			mSocketSender.shutdown();
 		}
 		mSocketSender = new SocketSender(mLocalDir, ip, port);
-		mSocketSender.setOnSenderListener(this);
 		mSocketSender.setOnSocketListener(mOnSocketListener);
 		mSocketSender.start();
 	}
@@ -102,10 +100,4 @@ public class SocketModule implements SocketReceiver.OnReceiverListener, SocketSe
 			mSocketSender.shutdown();
 		}
 	}
-
-	@Override
-	public void onConnected(String address) {
-		Log.d(TAG, "onConnected:" + address);
-	}
-
 }

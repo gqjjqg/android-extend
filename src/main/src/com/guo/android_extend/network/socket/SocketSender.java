@@ -9,16 +9,17 @@ import com.guo.android_extend.network.socket.Data.TransmitFile;
 import com.guo.android_extend.network.socket.Transfer.Receiver;
 import com.guo.android_extend.network.socket.Transfer.Sender;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 /**
  * Created by Guo on 2015/12/27.
  */
-public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener, Sender.OnSenderListener {
+public class SocketSender extends AbsLoop implements Sender.OnSenderListener {
     private String TAG = this.getClass().getSimpleName();
 
     OnSocketListener mOnSocketListener;
-    OnSenderListener mOnSenderListener;
 
     Sender mSender;
     Socket mSocket;
@@ -29,6 +30,7 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
 
     public interface OnSenderListener {
         public void onConnected(String address);
+        public void onDisconnected();
     }
 
     public SocketSender(String localdir, String ip, int port) {
@@ -37,10 +39,6 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
         mIP = ip;
         mPort = port;
         mLocalDir = localdir;
-    }
-
-    public void setOnSenderListener(OnSenderListener sl) {
-        this.mOnSenderListener = sl;
     }
 
     public void setOnSocketListener(OnSocketListener mOnSocketListener) {
@@ -79,13 +77,7 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
                     wait(1000);
                 }
                 mSocket = new Socket(mIP, mPort);
-                Log.d(TAG, "connected: " + mSocket.getRemoteSocketAddress());
-                if (mOnSenderListener != null) {
-                    mOnSenderListener.onConnected(mSocket.getRemoteSocketAddress().toString());
-                }
-                if (mOnSocketListener != null) {
-                    mOnSocketListener.onSocketEvent(OnSocketListener.EVENT_CONNECTED);
-                }
+                Log.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
                 mSender = new Sender(mSocket);
                 mSender.setOnSenderListener(this);
                 mSender.start();
@@ -150,19 +142,16 @@ public class SocketSender extends AbsLoop implements Receiver.OnReceiverListener
     }
 
     @Override
-    public void onReceiveProcess(AbsTransmitObject obj, int cur, int total) {
+    public void onSendInitial(Socket socket, DataOutputStream dos) {
         if (mOnSocketListener != null) {
-            if (obj.getType() == AbsTransmitObject.TYPE_BYTE) {
-                mOnSocketListener.onDataReceiveProcess(obj.getName(), cur * 100 / total);
-                if (cur == total) {
-                    mOnSocketListener.onDataReceived(obj.getName(), ((TransmitByteData) obj).getData());
-                }
-            } else if (obj.getType() == AbsTransmitObject.TYPE_FILE) {
-                mOnSocketListener.onFileReceiveProcess(obj.getName(), cur * 100 / total);
-                if (cur == total) {
-                    mOnSocketListener.onFileReceived(obj.getName());
-                }
-            }
+            mOnSocketListener.onSocketEvent(socket, OnSocketListener.EVENT_SENDER_CONNECTED);
+        }
+    }
+
+    @Override
+    public void onSendDestroy(Socket socket) {
+        if (mOnSocketListener != null) {
+            mOnSocketListener.onSocketEvent(socket, OnSocketListener.EVENT_SENDER_DISCONNECTED);
         }
     }
 }

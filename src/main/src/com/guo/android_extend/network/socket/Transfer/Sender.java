@@ -31,6 +31,8 @@ public class Sender extends AbsLoop {
     public interface OnSenderListener {
         public void onException(int error);
         public void onSendProcess(AbsTransmitObject obj, int cur, int total);
+        public void onSendInitial(Socket socket, DataOutputStream dos);
+        public void onSendDestroy(Socket socket);
     }
 
     public Sender(Socket mSocket, int max_queue) {
@@ -74,6 +76,10 @@ public class Sender extends AbsLoop {
             if (mOnSenderListener != null) {
                 mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_STREAM);
             }
+            return;
+        }
+        if (mOnSenderListener != null) {
+            mOnSenderListener.onSendInitial(mSocket, mDataWrite);
         }
     }
 
@@ -103,7 +109,7 @@ public class Sender extends AbsLoop {
                 }
                 mDataWrite.flush();
             } catch (Exception e) {
-                Log.e(TAG, "loop:" + e.getCause().getMessage());
+                Log.e(TAG, "loop:" + e.getMessage());
                 if (mOnSenderListener != null) {
                     mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_TRANSFER);
                 }
@@ -112,7 +118,7 @@ public class Sender extends AbsLoop {
             try {
                 input.close();
             } catch (IOException e) {
-                Log.e(TAG, "loop:" + e.getCause().getMessage());
+                Log.e(TAG, "loop:" + e.getMessage());
                 if (mOnSenderListener != null) {
                     mOnSenderListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);
                 }
@@ -130,10 +136,13 @@ public class Sender extends AbsLoop {
 
     @Override
     public void over() {
+        if (mOnSenderListener != null) {
+            mOnSenderListener.onSendDestroy(mSocket);
+        }
         try {
             mDataWrite.close();
         } catch (IOException e) {
-            Log.e(TAG, "over:" + e.getCause().getMessage());
+            Log.e(TAG, "over:" + e.getMessage());
             if (mOnSenderListener != null) {
                 mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_CLOSE);
             }
