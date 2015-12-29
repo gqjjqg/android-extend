@@ -3,13 +3,11 @@ package com.guo.android_extend.network.socket;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitObject;
+import com.guo.android_extend.network.socket.Data.TransmitInterface;
 import com.guo.android_extend.network.socket.Data.TransmitByteData;
 import com.guo.android_extend.network.socket.Data.TransmitFile;
-import com.guo.android_extend.network.socket.Transfer.Receiver;
 import com.guo.android_extend.network.socket.Transfer.Sender;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 
@@ -27,6 +25,7 @@ public class SocketSender extends AbsLoop implements Sender.OnSenderListener {
 
     String mIP;
     int mPort;
+    int mSendPercent;
 
     public interface OnSenderListener {
         public void onConnected(String address);
@@ -131,12 +130,24 @@ public class SocketSender extends AbsLoop implements Sender.OnSenderListener {
     }
 
     @Override
-    public void onSendProcess(AbsTransmitObject obj, int cur, int total) {
+    public void onSendProcess(TransmitInterface obj, int cur, int total) {
         if (mOnSocketListener != null) {
-            if (obj.getType() == AbsTransmitObject.TYPE_BYTE) {
-                mOnSocketListener.onDataSendProcess(obj.getName(), cur * 100 / total);
-            } else if (obj.getType() == AbsTransmitObject.TYPE_FILE) {
-                mOnSocketListener.onFileSendProcess(obj.getName(), cur * 100 / total);
+            int percent = cur * 100 / total;
+            if (mSendPercent != percent) {
+                mSendPercent = percent;
+                if (obj.getType() == TransmitInterface.TYPE_BYTE) {
+                    mOnSocketListener.onDataSendProcess(obj.getName(), percent);
+                    if (cur == total) {
+                        mOnSocketListener.onDataSended(obj.getName());
+                        mSendPercent = 0;
+                    }
+                } else if (obj.getType() == TransmitInterface.TYPE_FILE) {
+                    mOnSocketListener.onFileSendProcess(obj.getName(), percent);
+                    if (cur == total) {
+                        mOnSocketListener.onFileSended(obj.getName());
+                        mSendPercent = 0;
+                    }
+                }
             }
         }
     }

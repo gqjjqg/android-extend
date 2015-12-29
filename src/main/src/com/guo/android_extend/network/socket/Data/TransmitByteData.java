@@ -11,7 +11,7 @@ import java.io.DataOutputStream;
 /**
  * Created by Guo on 2015/12/26.
  */
-public class TransmitByteData extends AbsTransmitObject {
+public class TransmitByteData implements TransmitInterface {
 
     byte[] mData;
     int mLength;
@@ -19,7 +19,6 @@ public class TransmitByteData extends AbsTransmitObject {
 
     public TransmitByteData(String tag, byte[] data, int length) {
         super();
-        setType(TYPE_BYTE);
         mLength = length;
         mData = data;
         mName = tag;
@@ -39,6 +38,11 @@ public class TransmitByteData extends AbsTransmitObject {
     @Override
     public int getLength() {
         return mLength;
+    }
+
+    @Override
+    public int getType() {
+        return TYPE_BYTE;
     }
 
     @Override

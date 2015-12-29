@@ -3,7 +3,7 @@ package com.guo.android_extend.network.socket.Transfer;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitObject;
+import com.guo.android_extend.network.socket.Data.TransmitInterface;
 import com.guo.android_extend.network.socket.OnSocketListener;
 
 import java.io.DataInputStream;
@@ -22,7 +22,7 @@ public class Sender extends AbsLoop {
     private final static int BUFFER_LENGTH = 8192;
     private final static int QUEUE_MAX_SIZE = 8;
 
-    private BlockingQueue<AbsTransmitObject> mTaskQueue;
+    private BlockingQueue<TransmitInterface> mTaskQueue;
     private DataOutputStream mDataWrite;
     private Socket mSocket;
     private byte[] mBuffer;
@@ -30,13 +30,13 @@ public class Sender extends AbsLoop {
 
     public interface OnSenderListener {
         public void onException(int error);
-        public void onSendProcess(AbsTransmitObject obj, int cur, int total);
+        public void onSendProcess(TransmitInterface obj, int cur, int total);
         public void onSendInitial(Socket socket, DataOutputStream dos);
         public void onSendDestroy(Socket socket);
     }
 
     public Sender(Socket mSocket, int max_queue) {
-        this.mTaskQueue = new LinkedBlockingQueue<AbsTransmitObject>(max_queue);
+        this.mTaskQueue = new LinkedBlockingQueue<TransmitInterface>(max_queue);
         this.mBuffer = new byte[BUFFER_LENGTH];
         this.mSocket = mSocket;
         this.mOnSenderListener = null;
@@ -51,7 +51,7 @@ public class Sender extends AbsLoop {
      * @param object
      * @return
      */
-    public boolean post(AbsTransmitObject object) {
+    public boolean post(TransmitInterface object) {
         boolean success = mTaskQueue.offer(object);
         synchronized (this) {
             this.notifyAll();
@@ -85,7 +85,7 @@ public class Sender extends AbsLoop {
 
     @Override
     public void loop() {
-        AbsTransmitObject data = mTaskQueue.poll();
+        TransmitInterface data = mTaskQueue.poll();
         if (data != null) {
             DataInputStream input = data.getDataInputStream();
             if (input == null) {

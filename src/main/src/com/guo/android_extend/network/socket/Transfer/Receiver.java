@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
 import com.guo.android_extend.network.NetWorkFile;
-import com.guo.android_extend.network.socket.Data.AbsTransmitObject;
+import com.guo.android_extend.network.socket.Data.TransmitInterface;
 import com.guo.android_extend.network.socket.Data.TransmitByteData;
 import com.guo.android_extend.network.socket.Data.TransmitFile;
 import com.guo.android_extend.network.socket.OnSocketListener;
@@ -32,7 +32,7 @@ public class Receiver extends AbsLoop {
 
 	public interface OnReceiverListener {
 		public void onException(int error);
-		public void onReceiveProcess(AbsTransmitObject obj, int cur, int total);
+		public void onReceiveProcess(TransmitInterface obj, int cur, int total);
 		public void onReceiveInitial(Socket socket, DataInputStream dis);
 		public void onReceiveDestroy(Socket socket);
 	}
@@ -75,13 +75,13 @@ public class Receiver extends AbsLoop {
 				return ;
 			}
 
-			AbsTransmitObject object;
+			TransmitInterface object;
 			int type = mDataRead.readInt();
 			String name = mDataRead.readUTF();
 			long length = mDataRead.readLong();
-			if (type == AbsTransmitObject.TYPE_FILE) {
-				object = new TransmitFile(new NetWorkFile(mLocalDir, name).getLocalFile());
-			} else if (type == AbsTransmitObject.TYPE_BYTE) {
+			if (type == TransmitInterface.TYPE_FILE) {
+				object = new TransmitFile(mLocalDir, name);
+			} else if (type == TransmitInterface.TYPE_BYTE) {
 				object = new TransmitByteData(name, null, (int) length);
 			} else {
 				throw new IllegalArgumentException("package type is:" +  type + " not support!");

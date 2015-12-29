@@ -39,6 +39,9 @@ public class NetWorkFile {
     public synchronized String getLocalFile() {
         String localFile = null;
         String fileName = getRemoteFileName();
+        if (mLocalDir == null) {
+            return fileName;
+        }
         if (mLocalDir.endsWith("/")) {
             localFile = mLocalDir + fileName;
         } else {

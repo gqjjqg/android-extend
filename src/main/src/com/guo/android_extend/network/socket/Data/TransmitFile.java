@@ -1,5 +1,7 @@
 package com.guo.android_extend.network.socket.Data;
 
+import com.guo.android_extend.network.NetWorkFile;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -12,21 +14,31 @@ import java.io.FileOutputStream;
 /**
  * Created by Guo on 2015/12/26.
  */
-public class TransmitFile extends AbsTransmitObject {
+public class TransmitFile extends NetWorkFile implements TransmitInterface {
 
     String mName;
     int mLength;
 
-    public TransmitFile(String file) {
-        super();
-        setType(TYPE_FILE);
-        mName = file;
+    public TransmitFile(String local_dir, String remote_file) {
+        super(local_dir, remote_file);
+        mName = super.getLocalFile();
+        mLength = (int)(new File(mName).length());
+    }
+
+    public TransmitFile(String local_file) {
+        super(null, local_file);
+        mName = local_file;
         mLength = (int)(new File(mName).length());
     }
 
     @Override
     public int getLength() {
         return mLength;
+    }
+
+    @Override
+    public int getType() {
+        return TYPE_FILE;
     }
 
     @Override
