@@ -26,7 +26,6 @@ public class Receiver extends AbsLoop {
 	private Socket mSocket;
 	private DataInputStream mDataRead;
 	private byte[] mBuffer;
-	private byte[] mData;
 	private String mLocalDir;
 	private OnReceiverListener mOnReceiverListener;
 
