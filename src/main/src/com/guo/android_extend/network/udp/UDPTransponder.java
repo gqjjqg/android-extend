@@ -11,6 +11,7 @@ import com.guo.android_extend.java.AbsLoop;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 
 /**
  * Created by gqj3375 on 2015/12/21.
@@ -77,6 +78,17 @@ public class UDPTransponder {
 		return InetAddress.getByAddress(quads);
 	}
 
+	public boolean multicastLAN() {
+		try {
+			mInetAddress = InetAddress.getByName("224.0.0.5");
+			Log.d(TAG, "multicast=" + mInetAddress);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
 	/**
 	 * 局域网广播
 	 */
@@ -102,8 +114,13 @@ public class UDPTransponder {
 		if (mReceiver != null) {
 			mReceiver.shutdown();
 		}
-		mReceiver = new Receiver();
-		mReceiver.start();
+		if (multicastLAN()) {
+			mReceiver = new Receiver(mInetAddress, true);
+			mReceiver.start();
+		} else {
+			mReceiver = new Receiver();
+			mReceiver.start();
+		}
 		return true;
 	}
 
@@ -117,6 +134,11 @@ public class UDPTransponder {
 	public boolean startDeliver() {
 		if (mDeliver != null) {
 			mDeliver.shutdown();
+		}
+		if (multicastLAN()) {
+			mDeliver = new Deliver(mInetAddress, true);
+			mDeliver.start();
+			return true;
 		}
 		if (broadcastLAN()) {
 			mDeliver = new Deliver(mInetAddress);
@@ -134,19 +156,31 @@ public class UDPTransponder {
 	}
 
 	class Receiver extends  AbsLoop {
-
+		private boolean isMuliticast;
+		private InetAddress mInetAddress;
 		private DatagramSocket mDatagramSocket;
 		private byte[] mBuffer;
 
+		public Receiver(InetAddress mInetAddress, boolean isMuliticast) {
+			this.mInetAddress = mInetAddress;
+			this.isMuliticast = isMuliticast;
+		}
+
 		public Receiver() {
-			super();
+			this(null, false);
 		}
 
 		@Override
 		public void setup() {
 			try {
-				mDatagramSocket = new DatagramSocket(UDP_PORT_R);
-				mDatagramSocket.setBroadcast(true);
+				if (isMuliticast) {
+					mDatagramSocket = new MulticastSocket(UDP_PORT_R);
+					MulticastSocket server = (MulticastSocket) mDatagramSocket;
+					server.joinGroup(mInetAddress);
+				} else {
+					mDatagramSocket = new DatagramSocket(UDP_PORT_R);
+					mDatagramSocket.setBroadcast(true);
+				}
 				mBuffer = new byte[BUFFER_LENGTH];
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -200,20 +234,29 @@ public class UDPTransponder {
 	}
 
 	class Deliver extends AbsLoop {
-
 		private DatagramSocket mDatagramSocket;
 		private InetAddress mInetAddress;
+		private boolean isMuliticast;
 
-		public Deliver(InetAddress mInetAddress) {
+		public Deliver(InetAddress mInetAddress, boolean isMulticast) {
 			super();
 			this.mInetAddress = mInetAddress;
+			this.isMuliticast = isMulticast;
+		}
+
+		public Deliver(InetAddress mInetAddress) {
+			this(mInetAddress, false);
 		}
 
 		@Override
 		public void setup() {
 			try {
-				mDatagramSocket = new DatagramSocket(UDP_PORT_S);
-				mDatagramSocket.setBroadcast(true);
+				if (isMuliticast) {
+					mDatagramSocket = new MulticastSocket(UDP_PORT_S);
+				} else {
+					mDatagramSocket = new DatagramSocket(UDP_PORT_S);
+					mDatagramSocket.setBroadcast(true);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
