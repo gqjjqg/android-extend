@@ -83,7 +83,8 @@ public class TransmitFile extends AbsTransmiter {
     @Override
     public int send_data(DataOutputStream stream, DataInputStream input, byte[] mBuffer) {
         try {
-            stream.writeInt(this.getLength());
+            stream.writeUTF(this.getName());
+            stream.writeLong(this.getLength());
             for (int size = 0, read = 0; size < this.getLength(); size += read) {
                 read = input.read(mBuffer);
                 stream.write(mBuffer, 0, read);

@@ -71,17 +71,17 @@ public class TransmitByte extends AbsTransmiter {
 
 	public int receive(DataInputStream stream, byte[] mBuffer) {
 		try {
-			int length = stream.readInt();
-			if (length > MAX_PACKAGE_SIZE) {
+			mLength = stream.readInt();
+			if (mLength > MAX_PACKAGE_SIZE) {
 				return OnSocketListener.ERROR_OBJECT_UNKNOWN;
 			}
 
 			DataOutputStream output = this.getDataOutputStream();
-			for (int size = 0, read = 0; size < length; size += read) {
-				read = stream.read(mBuffer, 0, Math.min((int) length - size, mBuffer.length));
+			for (int size = 0, read = 0; size < mLength; size += read) {
+				read = stream.read(mBuffer, 0, Math.min((int) mLength - size, mBuffer.length));
 				output.write(mBuffer, 0, read);
 				if (mOnReceiverListener != null) {
-					mOnReceiverListener.onReceiveProcess(this, size, (int) length);
+					mOnReceiverListener.onReceiveProcess(this, size, (int) mLength);
 				}
 			}
 
@@ -89,7 +89,7 @@ public class TransmitByte extends AbsTransmiter {
 			output.close();
 			//finish
 			if (mOnReceiverListener != null) {
-				mOnReceiverListener.onReceiveProcess(this, (int) length, (int) length);
+				mOnReceiverListener.onReceiveProcess(this, (int) mLength, (int) mLength);
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "loop:" + e.getMessage());

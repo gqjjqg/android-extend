@@ -72,9 +72,13 @@ public class Receiver extends AbsLoop {
 			AbsTransmiter object = null;
 			int type = mDataRead.readByte();
 			if (type == AbsTransmiter.TYPE_FILE) {
-				object = new TransmitFile(mLocalDir);
+				object = new TransmitFile(mLocalDir, null);
+				object.setOnReceiverListener(mOnReceiverListener);
 			} else if (type == AbsTransmiter.TYPE_BYTE) {
 				object = new TransmitByte(AbsTransmiter.TYPE_BYTE);
+				object.setOnReceiverListener(mOnReceiverListener);
+			} else {
+				Log.e(TAG, "ERROR!");
 			}
 
 			if (object != null) {
