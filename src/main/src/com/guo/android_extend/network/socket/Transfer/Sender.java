@@ -3,10 +3,9 @@ package com.guo.android_extend.network.socket.Transfer;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.TransmitInterface;
+import com.guo.android_extend.network.socket.Data.AbsTransmiter;
 import com.guo.android_extend.network.socket.OnSocketListener;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -22,7 +21,7 @@ public class Sender extends AbsLoop {
     private final static int BUFFER_LENGTH = 8192;
     private final static int QUEUE_MAX_SIZE = 8;
 
-    private BlockingQueue<TransmitInterface> mTaskQueue;
+    private BlockingQueue<AbsTransmiter> mTaskQueue;
     private DataOutputStream mDataWrite;
     private Socket mSocket;
     private byte[] mBuffer;
@@ -30,13 +29,13 @@ public class Sender extends AbsLoop {
 
     public interface OnSenderListener {
         public void onException(int error);
-        public void onSendProcess(TransmitInterface obj, int cur, int total);
+        public void onSendProcess(AbsTransmiter obj, int cur, int total);
         public void onSendInitial(Socket socket, DataOutputStream dos);
         public void onSendDestroy(Socket socket);
     }
 
     public Sender(Socket mSocket, int max_queue) {
-        this.mTaskQueue = new LinkedBlockingQueue<TransmitInterface>(max_queue);
+        this.mTaskQueue = new LinkedBlockingQueue<AbsTransmiter>(max_queue);
         this.mBuffer = new byte[BUFFER_LENGTH];
         this.mSocket = mSocket;
         this.mOnSenderListener = null;
@@ -51,7 +50,7 @@ public class Sender extends AbsLoop {
      * @param object
      * @return
      */
-    public boolean post(TransmitInterface object) {
+    public boolean post(AbsTransmiter object) {
         boolean success = mTaskQueue.offer(object);
         synchronized (this) {
             this.notifyAll();
@@ -85,42 +84,13 @@ public class Sender extends AbsLoop {
 
     @Override
     public void loop() {
-        TransmitInterface data = mTaskQueue.poll();
+        AbsTransmiter data = mTaskQueue.poll();
         if (data != null) {
-            DataInputStream input = data.getDataInputStream();
-            if (input == null) {
-                Log.e(TAG, "loop: Bad object!");
+            data.setOnSenderListener(mOnSenderListener);
+            int ex = data.send(mDataWrite, mBuffer);
+            if (ex != OnSocketListener.ERROR_NONE) {
                 if (mOnSenderListener != null) {
-                    mOnSenderListener.onException(OnSocketListener.ERROR_OBJECT_UNKNOWN);
-                }
-                return ;
-            }
-
-            try {
-                mDataWrite.writeInt(data.getType());
-                mDataWrite.writeUTF(data.getName());
-                mDataWrite.writeLong(data.getLength());
-                for (int size = 0, read = 0; size < data.getLength(); size += read) {
-                    read = input.read(mBuffer);
-                    mDataWrite.write(mBuffer, 0, read);
-                    if (mOnSenderListener != null) {
-                        mOnSenderListener.onSendProcess(data, size + read, data.getLength());
-                    }
-                }
-                mDataWrite.flush();
-            } catch (Exception e) {
-                Log.e(TAG, "loop:" + e.getMessage());
-                if (mOnSenderListener != null) {
-                    mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_TRANSFER);
-                }
-            }
-
-            try {
-                input.close();
-            } catch (IOException e) {
-                Log.e(TAG, "loop:" + e.getMessage());
-                if (mOnSenderListener != null) {
-                    mOnSenderListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);
+                    mOnSenderListener.onException(ex);
                 }
             }
         } else {

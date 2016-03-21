@@ -3,8 +3,9 @@ package com.guo.android_extend.network.socket;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.TransmitInterface;
-import com.guo.android_extend.network.socket.Data.TransmitByteData;
+import com.guo.android_extend.network.socket.Data.AbsTransmiter;
+import com.guo.android_extend.network.socket.Data.TransmitByte;
+import com.guo.android_extend.network.socket.Data.TransmitFile;
 import com.guo.android_extend.network.socket.Transfer.Receiver;
 
 import java.io.DataInputStream;
@@ -110,18 +111,18 @@ public class SocketReceiver extends AbsLoop implements Receiver.OnReceiverListen
     }
 
     @Override
-    public void onReceiveProcess(TransmitInterface obj, int cur, int total) {
+    public void onReceiveProcess(AbsTransmiter obj, int cur, int total) {
         if (mOnSocketListener != null) {
             int percent = cur * 100 / total;
             if (mReceivePercent != percent) {
                 mReceivePercent = percent;
-                if (obj.getType() == TransmitInterface.TYPE_BYTE) {
+                if (obj.getType() == AbsTransmiter.TYPE_BYTE) {
                     mOnSocketListener.onDataReceiveProcess(obj.getName(), percent);
                     if (cur == total) {
-                        mOnSocketListener.onDataReceived(obj.getName(), ((TransmitByteData) obj).getData());
+                        mOnSocketListener.onDataReceived(obj.getName(), ((TransmitByte) obj).getData());
                         mReceivePercent = 0;
                     }
-                } else if (obj.getType() == TransmitInterface.TYPE_FILE) {
+                } else if (obj.getType() == AbsTransmiter.TYPE_FILE) {
                     mOnSocketListener.onFileReceiveProcess(obj.getName(), percent);
                     if (cur == total) {
                         mOnSocketListener.onFileReceived(obj.getName());

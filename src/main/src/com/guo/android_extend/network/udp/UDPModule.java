@@ -53,6 +53,10 @@ public class UDPModule implements UDPDataProtocol {
 		mLocalMac = wifiManager.getConnectionInfo().getMacAddress();
 	}
 
+	public void search() {
+		mDevices.clear();
+	}
+
 	public void destroy() {
 		mUDPTransponder.stopDeliver();
 		mUDPTransponder.stopReceiver();

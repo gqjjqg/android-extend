@@ -58,6 +58,16 @@ public class SocketModule {
 	}
 
 	/**
+	 * close sender connect
+	 */
+	public void disconnect() {
+		if (mSocketSender != null) {
+			mSocketSender.shutdown();
+		}
+		mSocketSender = null;
+	}
+
+	/**
 	 * 发送byte数据
 	 * @param data
 	 * @param length

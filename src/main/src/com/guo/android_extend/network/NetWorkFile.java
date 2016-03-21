@@ -15,6 +15,14 @@ public class NetWorkFile {
         this.mUrl = mUrl;
     }
 
+    public void setLocalDir(String mLocalDir) {
+        this.mLocalDir = mLocalDir;
+    }
+
+    public void setUrl(String mUrl) {
+        this.mUrl = mUrl;
+    }
+
     /**
      * get file name from url.
      * @return

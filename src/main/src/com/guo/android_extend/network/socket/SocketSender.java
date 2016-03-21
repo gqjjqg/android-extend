@@ -3,8 +3,8 @@ package com.guo.android_extend.network.socket;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.TransmitInterface;
-import com.guo.android_extend.network.socket.Data.TransmitByteData;
+import com.guo.android_extend.network.socket.Data.AbsTransmiter;
+import com.guo.android_extend.network.socket.Data.TransmitByte;
 import com.guo.android_extend.network.socket.Data.TransmitFile;
 import com.guo.android_extend.network.socket.Transfer.Sender;
 
@@ -48,7 +48,9 @@ public class SocketSender extends AbsLoop implements Sender.OnSenderListener {
         if (mSender == null) {
             return false;
         }
-        return mSender.post(new TransmitByteData(tag, data, length));
+        TransmitByte obj = new TransmitByte();
+        obj.setData(data, length);
+        return mSender.post(obj);
     }
 
     public boolean send(byte[] data, int length) {
@@ -130,18 +132,18 @@ public class SocketSender extends AbsLoop implements Sender.OnSenderListener {
     }
 
     @Override
-    public void onSendProcess(TransmitInterface obj, int cur, int total) {
+    public void onSendProcess(AbsTransmiter obj, int cur, int total) {
         if (mOnSocketListener != null) {
             int percent = cur * 100 / total;
             if (mSendPercent != percent) {
                 mSendPercent = percent;
-                if (obj.getType() == TransmitInterface.TYPE_BYTE) {
+                if (obj.getType() == AbsTransmiter.TYPE_BYTE) {
                     mOnSocketListener.onDataSendProcess(obj.getName(), percent);
                     if (cur == total) {
                         mOnSocketListener.onDataSended(obj.getName());
                         mSendPercent = 0;
                     }
-                } else if (obj.getType() == TransmitInterface.TYPE_FILE) {
+                } else if (obj.getType() == AbsTransmiter.TYPE_FILE) {
                     mOnSocketListener.onFileSendProcess(obj.getName(), percent);
                     if (cur == total) {
                         mOnSocketListener.onFileSended(obj.getName());
