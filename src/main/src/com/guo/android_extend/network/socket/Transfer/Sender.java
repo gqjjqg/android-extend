@@ -3,7 +3,7 @@ package com.guo.android_extend.network.socket.Transfer;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmiter;
+import com.guo.android_extend.network.socket.Data.AbsTransmitter;
 import com.guo.android_extend.network.socket.OnSocketListener;
 
 import java.io.DataOutputStream;
@@ -21,7 +21,7 @@ public class Sender extends AbsLoop {
     private final static int BUFFER_LENGTH = 8192;
     private final static int QUEUE_MAX_SIZE = 8;
 
-    private BlockingQueue<AbsTransmiter> mTaskQueue;
+    private BlockingQueue<AbsTransmitter> mTaskQueue;
     private DataOutputStream mDataWrite;
     private Socket mSocket;
     private byte[] mBuffer;
@@ -29,13 +29,13 @@ public class Sender extends AbsLoop {
 
     public interface OnSenderListener {
         public void onException(int error);
-        public void onSendProcess(AbsTransmiter obj, int cur, int total);
+        public void onSendProcess(AbsTransmitter obj, int cur, int total);
         public void onSendInitial(Socket socket, DataOutputStream dos);
         public void onSendDestroy(Socket socket);
     }
 
     public Sender(Socket mSocket, int max_queue) {
-        this.mTaskQueue = new LinkedBlockingQueue<AbsTransmiter>(max_queue);
+        this.mTaskQueue = new LinkedBlockingQueue<AbsTransmitter>(max_queue);
         this.mBuffer = new byte[BUFFER_LENGTH];
         this.mSocket = mSocket;
         this.mOnSenderListener = null;
@@ -50,7 +50,7 @@ public class Sender extends AbsLoop {
      * @param object
      * @return
      */
-    public boolean post(AbsTransmiter object) {
+    public boolean post(AbsTransmitter object) {
         boolean success = mTaskQueue.offer(object);
         synchronized (this) {
             this.notifyAll();
@@ -84,7 +84,7 @@ public class Sender extends AbsLoop {
 
     @Override
     public void loop() {
-        AbsTransmiter data = mTaskQueue.poll();
+        AbsTransmitter data = mTaskQueue.poll();
         if (data != null) {
             data.setOnSenderListener(mOnSenderListener);
             int ex = data.send(mDataWrite, mBuffer);

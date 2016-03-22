@@ -3,9 +3,7 @@ package com.guo.android_extend.network.socket.Transfer;
 import android.util.Log;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmiter;
-import com.guo.android_extend.network.socket.Data.TransmitByte;
-import com.guo.android_extend.network.socket.Data.TransmitFile;
+import com.guo.android_extend.network.socket.Data.AbsTransmitter;
 import com.guo.android_extend.network.socket.OnSocketListener;
 
 import java.io.DataInputStream;
@@ -28,7 +26,8 @@ public class Receiver extends AbsLoop {
 
 	public interface OnReceiverListener {
 		public void onException(int error);
-		public void onReceiveProcess(AbsTransmiter obj, int cur, int total);
+		public AbsTransmitter onReceiveType(int type);
+		public void onReceiveProcess(AbsTransmitter obj, int cur, int total);
 		public void onReceiveInitial(Socket socket, DataInputStream dis);
 		public void onReceiveDestroy(Socket socket);
 	}
@@ -67,27 +66,18 @@ public class Receiver extends AbsLoop {
 	public void loop() {
 		try {
 			if (mDataRead.available() <= 0) {
+				sleep(1);
 				return ;
 			}
-			AbsTransmiter object = null;
-			int type = mDataRead.readByte();
-			if (type == AbsTransmiter.TYPE_FILE) {
-				object = new TransmitFile(mLocalDir, null);
+			if (mOnReceiverListener != null) {
+				AbsTransmitter object = mOnReceiverListener.onReceiveType(mDataRead.readInt());
 				object.setOnReceiverListener(mOnReceiverListener);
-			} else if (type == AbsTransmiter.TYPE_BYTE) {
-				object = new TransmitByte(AbsTransmiter.TYPE_BYTE);
-				object.setOnReceiverListener(mOnReceiverListener);
-			} else {
-				Log.e(TAG, "ERROR!");
-			}
-
-			if (object != null) {
-				int ex = object.receive(mDataRead, mBuffer);
+				int ex = object.recv(mDataRead, mBuffer);
 				if (ex != OnSocketListener.ERROR_NONE) {
-					if (mOnReceiverListener != null) {
-						mOnReceiverListener.onException(ex);
-					}
+					mOnReceiverListener.onException(ex);
 				}
+			} else {
+				Log.e(TAG, "please set listener!");
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "loop:" + e.getMessage());

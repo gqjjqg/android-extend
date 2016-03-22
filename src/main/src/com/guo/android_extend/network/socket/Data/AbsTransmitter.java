@@ -1,19 +1,17 @@
 package com.guo.android_extend.network.socket.Data;
 
-import android.util.Log;
-
-import com.guo.android_extend.network.socket.OnSocketListener;
 import com.guo.android_extend.network.socket.Transfer.Receiver;
 import com.guo.android_extend.network.socket.Transfer.Sender;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 
 /**
  * Created by gqj3375 on 2016/3/21.
  */
-public abstract class AbsTransmiter {
+public abstract class AbsTransmitter {
+	private String TAG = this.getClass().getSimpleName();
+
 	public final static int TYPE_FILE = 0x70;
 	public final static int TYPE_BYTE = 0x71;
 	public final static int TYPE_BYTE_8B = 0x80;
@@ -27,7 +25,7 @@ public abstract class AbsTransmiter {
 	Sender.OnSenderListener mOnSenderListener;
 	Receiver.OnReceiverListener mOnReceiverListener;
 
-	public AbsTransmiter(int type) {
+	public AbsTransmitter(int type) {
 		mType = type;
 	}
 
@@ -43,39 +41,39 @@ public abstract class AbsTransmiter {
 		this.mOnReceiverListener = mOnReceiverListener;
 	}
 
-	public int send(DataOutputStream stream, byte[] mBuffer) {
-		int ret = OnSocketListener.ERROR_NONE;
-		DataInputStream input = getDataInputStream();
-		if (input == null) {
-			Log.e("TransmitInterface", "loop: Bad object!");
-			return OnSocketListener.ERROR_OBJECT_UNKNOWN;
-		}
+	public byte[] int_to_bytes(int val) {
+		byte[] data = new byte[4];
+		data[0] = (byte)((val >> 24) & 0xFF);
+		data[1] = (byte)((val >> 16) & 0xFF);
+		data[2] = (byte)((val >> 8) & 0xFF);
+		data[3] = (byte)((val >> 0) & 0xFF);
+		return data;
+	}
 
-		try {
-			stream.writeByte(this.getType());
-			ret = send_data(stream, input, mBuffer);
-			stream.flush();
-		} catch (Exception e) {
-			Log.e("TransmitInterface", "loop:" + e.getMessage());
-			ret = OnSocketListener.ERROR_SOCKET_TRANSFER;
-		}
+	public byte[] short_to_bytes(short val) {
+		byte[] data = new byte[2];
+		data[0] = (byte)((val >> 8) & 0xFF);
+		data[1] = (byte)((val >> 0) & 0xFF);
+		return data;
+	}
 
-		try {
-			input.close();
-		} catch (IOException e) {
-			Log.e("TransmitInterface", "loop:" + e.getMessage());
-			ret = OnSocketListener.ERROR_STREAM_CLOSE;
-		}
 
-		return ret;
+	public int bytes_to_int(byte[] val) {
+		int data = 0;
+		data |= ((val[0] << 24) & 0xFF);
+		data |= ((val[1] << 16) & 0xFF);
+		data |= ((val[2] << 8) & 0xFF);
+		data |= ((val[3] << 0) & 0xFF);
+		return data;
 	}
 
 	public abstract String getName();
-	public abstract int getLength();
 
-	public abstract int send_data(DataOutputStream stream, DataInputStream input, byte[] mBuffer);
-	public abstract int receive(DataInputStream stream, byte[] mBuffer);
+	public abstract int send(DataOutputStream stream, byte[] mBuffer);
+
+	public abstract int recv(DataInputStream stream, byte[] mBuffer);
 
 	public abstract DataInputStream getDataInputStream();
+
 	public abstract DataOutputStream getDataOutputStream();
 }

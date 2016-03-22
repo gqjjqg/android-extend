@@ -15,18 +15,30 @@ import java.io.IOException;
 /**
  * Created by gqj3375 on 2016/3/21.
  */
-public class TransmitByte extends AbsTransmiter {
+public class TransmitByte extends AbsTransmitter {
 	private String TAG = this.getClass().getSimpleName();
 
 	byte[] mData;
 	int mLength;
 
+	//receive
 	public TransmitByte() {
 		super(TYPE_BYTE);
+		mData = null;
+		mLength = 0;
 	}
 
-	public TransmitByte(int type) {
-		super(type);
+	//send
+	public TransmitByte(byte[] data, int length) {
+		super(TYPE_BYTE);
+		if (length > MAX_PACKAGE_SIZE) {
+			throw new RuntimeException("byte data length is bigger than 16M");
+		}
+		mLength = length;
+		mData = new byte[mLength + 8];
+		System.arraycopy(int_to_bytes(getType()), 0, mData, 0, 4);	//type
+		System.arraycopy(int_to_bytes(mLength), 0, mData, 4, 4);	//length
+		System.arraycopy(data, 0, mData, 8, mLength);	 			//data
 	}
 
 	@Override
@@ -34,48 +46,46 @@ public class TransmitByte extends AbsTransmiter {
 		return "byte";
 	}
 
-	public boolean setData(byte[] data, int length) {
-		mLength = length;
-		mData = data;
-		if (length > MAX_PACKAGE_SIZE) {
-			throw new RuntimeException("byte data length is bigger than 16M");
-		}
-		return true;
-	}
-
 	public byte[] getData() {
 		return mData;
 	}
 
-	public int getLength() {
-		return mLength;
-	}
+	public int send(DataOutputStream stream, byte[] mBuffer) {
+		int ret = OnSocketListener.ERROR_NONE;
 
+		DataInputStream input = getDataInputStream();
+		if (input == null) {
+			Log.e("TransmitInterface", "loop: Bad object!");
+			return OnSocketListener.ERROR_OBJECT_UNKNOWN;
+		}
 
-	public int send_data(DataOutputStream stream, DataInputStream input, byte[] mBuffer) {
 		try {
-			stream.writeInt(this.getLength());
-			for (int size = 0, read = 0; size < this.getLength(); size += read) {
+			for (int size = 0, read = 0; size < mData.length; size += read) {
 				read = input.read(mBuffer);
 				stream.write(mBuffer, 0, read);
 				if (mOnSenderListener != null) {
-					mOnSenderListener.onSendProcess(this, size + read, this.getLength());
+					mOnSenderListener.onSendProcess(this, size + read, mData.length);
 				}
 			}
+			stream.flush();
 		} catch (Exception e) {
 			Log.e("TransmitInterface", "loop:" + e.getMessage());
-			return OnSocketListener.ERROR_SOCKET_TRANSFER;
+			ret = OnSocketListener.ERROR_SOCKET_TRANSFER;
 		}
-		return OnSocketListener.ERROR_NONE;
+
+		try {
+			input.close();
+		} catch (IOException e) {
+			Log.e("TransmitInterface", "loop:" + e.getMessage());
+			ret = OnSocketListener.ERROR_STREAM_CLOSE;
+		}
+
+		return ret;
 	}
 
-	public int receive(DataInputStream stream, byte[] mBuffer) {
+	public int recv(DataInputStream stream, byte[] mBuffer) {
 		try {
 			mLength = stream.readInt();
-			if (mLength > MAX_PACKAGE_SIZE) {
-				return OnSocketListener.ERROR_OBJECT_UNKNOWN;
-			}
-
 			DataOutputStream output = this.getDataOutputStream();
 			for (int size = 0, read = 0; size < mLength; size += read) {
 				read = stream.read(mBuffer, 0, Math.min((int) mLength - size, mBuffer.length));
@@ -102,7 +112,7 @@ public class TransmitByte extends AbsTransmiter {
 
 	@Override
 	public DataInputStream getDataInputStream() {
-		return new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(mData, 0, mLength)));
+		return new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(mData, 0, mData.length)));
 	}
 
 	@Override

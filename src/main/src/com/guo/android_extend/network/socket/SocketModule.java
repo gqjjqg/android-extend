@@ -11,34 +11,33 @@ import java.util.concurrent.Executors;
 public class SocketModule {
 	private String TAG = this.getClass().getSimpleName();
 
-	public static final int PORT_R = 4203;
-	public static final int PORT_S = 4204;
+	public static final int PORT = 4203;
 
 	private String mLocalDir ;
 	private String mIP;
 	private int mPort;
 
 	private OnSocketListener mOnSocketListener;
-	private SocketReceiver mSocketReceiver;
-	private SocketSender mSocketSender;
+	private SocketServer mSocketServer;
+	private SocketClient mSocketClient;
 
 	public SocketModule(String local_dir, int port) {
 		File file = new File(local_dir);
 		file.mkdirs();
 		mLocalDir = local_dir;
 		mOnSocketListener = null;
-		mSocketReceiver = new SocketReceiver(mLocalDir, port);
-		mSocketReceiver.setOnSocketListener(mOnSocketListener);
-		mSocketReceiver.start();
-		mSocketSender = null;
+		mSocketServer = new SocketServer(mLocalDir, port);
+		mSocketServer.setOnSocketListener(mOnSocketListener);
+		mSocketServer.start();
+		mSocketClient = null;
 	}
 
 	public SocketModule(String local_dir) {
-		this(local_dir, PORT_R);
+		this(local_dir, PORT);
 	}
 
 	public void connect(String ip) {
-		connect(ip, PORT_R);
+		connect(ip, PORT);
 	}
 
 	/**
@@ -49,22 +48,22 @@ public class SocketModule {
 	public void connect(String ip, int port) {
 		mIP = ip;
 		mPort = port;
-		if (mSocketSender != null) {
-			mSocketSender.shutdown();
+		if (mSocketClient != null) {
+			mSocketClient.shutdown();
 		}
-		mSocketSender = new SocketSender(mLocalDir, ip, port);
-		mSocketSender.setOnSocketListener(mOnSocketListener);
-		mSocketSender.start();
+		mSocketClient = new SocketClient(mLocalDir, ip, port);
+		mSocketClient.setOnSocketListener(mOnSocketListener);
+		mSocketClient.start();
 	}
 
 	/**
 	 * close sender connect
 	 */
 	public void disconnect() {
-		if (mSocketSender != null) {
-			mSocketSender.shutdown();
+		if (mSocketClient != null) {
+			mSocketClient.shutdown();
 		}
-		mSocketSender = null;
+		mSocketClient = null;
 	}
 
 	/**
@@ -74,8 +73,8 @@ public class SocketModule {
 	 * @return
 	 */
 	public boolean send(byte[] data, int length) {
-		if (mSocketSender != null) {
-			return mSocketSender.send(data, length);
+		if (mSocketClient != null) {
+			return mSocketClient.send(data, length);
 		}
 		return false;
 	}
@@ -86,28 +85,28 @@ public class SocketModule {
 	 * @return
 	 */
 	public boolean send(String file) {
-		if (mSocketSender != null) {
-			return mSocketSender.send(file);
+		if (mSocketClient != null) {
+			return mSocketClient.send(file);
 		}
 		return false;
 	}
 
 	public void setOnSocketListener(OnSocketListener sl) {
 		mOnSocketListener = sl;
-		if (mSocketReceiver != null) {
-			mSocketReceiver.setOnSocketListener(mOnSocketListener);
+		if (mSocketServer != null) {
+			mSocketServer.setOnSocketListener(mOnSocketListener);
 		}
-		if (mSocketSender != null) {
-			mSocketSender.setOnSocketListener(mOnSocketListener);
+		if (mSocketClient != null) {
+			mSocketClient.setOnSocketListener(mOnSocketListener);
 		}
 	}
 
 	public void destroy() {
-		if (mSocketReceiver != null) {
-			mSocketReceiver.shutdown();
+		if (mSocketServer != null) {
+			mSocketServer.shutdown();
 		}
-		if (mSocketSender != null) {
-			mSocketSender.shutdown();
+		if (mSocketClient != null) {
+			mSocketClient.shutdown();
 		}
 	}
 }
