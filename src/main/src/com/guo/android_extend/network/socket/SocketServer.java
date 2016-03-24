@@ -179,18 +179,10 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 			int percent = cur * 100 / total;
 			if (mSendPercent != percent) {
 				mSendPercent = percent;
-				if (obj.getType() == AbsTransmitter.TYPE_BYTE) {
-					mOnSocketListener.onDataSendProcess(TAG, percent);
-					if (cur == total) {
-						mOnSocketListener.onDataSended(TAG);
-						mSendPercent = 0;
-					}
-				} else if (obj.getType() == AbsTransmitter.TYPE_FILE) {
-					mOnSocketListener.onFileSendProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onFileSended(obj.getName());
-						mSendPercent = 0;
-					}
+				mOnSocketListener.onSendProcess(obj, percent);
+				if (cur == total) {
+					mOnSocketListener.onSended(obj);
+					mSendPercent = 0;
 				}
 			}
 		}
@@ -216,18 +208,10 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 			int percent = cur * 100 / total;
 			if (mReceivePercent != percent) {
 				mReceivePercent = percent;
-				if (obj.getType() == AbsTransmitter.TYPE_BYTE) {
-					mOnSocketListener.onDataReceiveProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onDataReceived(obj.getName(), ((TransmitByte) obj).getData());
-						mReceivePercent = 0;
-					}
-				} else if (obj.getType() == AbsTransmitter.TYPE_FILE) {
-					mOnSocketListener.onFileReceiveProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onFileReceived(obj.getName());
-						mReceivePercent = 0;
-					}
+				mOnSocketListener.onReceiveProcess(obj, percent);
+				if (cur == total) {
+					mOnSocketListener.onReceived(obj);
+					mReceivePercent = 0;
 				}
 			}
 		}

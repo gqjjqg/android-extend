@@ -1,5 +1,7 @@
 package com.guo.android_extend.network.socket;
 
+import com.guo.android_extend.network.socket.Data.AbsTransmitter;
+
 import java.net.Socket;
 
 /**
@@ -24,13 +26,8 @@ public interface OnSocketListener {
 	public void onSocketException(int e);
 	public void onSocketEvent(Socket socket, int e);
 
-	public void onFileReceiveProcess(String file, int percent);
-	public void onFileReceived(String file);
-	public void onFileSendProcess(String file, int percent);
-	public void onFileSended(String file);
-
-	public void onDataReceiveProcess(String tag, int percent);
-	public void onDataReceived(String tag, byte[] data);
-	public void onDataSendProcess(String tag, int percent);
-	public void onDataSended(String tag);
+	public void onReceiveProcess(AbsTransmitter obj, int percent);
+	public void onReceived(AbsTransmitter obj);
+	public void onSendProcess(AbsTransmitter obj, int percent);
+	public void onSended(AbsTransmitter obj);
 }

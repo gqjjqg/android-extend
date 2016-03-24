@@ -18,8 +18,8 @@ import java.io.IOException;
 public class TransmitByte extends AbsTransmitter {
 	private String TAG = this.getClass().getSimpleName();
 
-	byte[] mData;
-	int mLength;
+	protected byte[] mData;
+	protected int mLength;
 
 	//receive
 	public TransmitByte() {
@@ -36,8 +36,8 @@ public class TransmitByte extends AbsTransmitter {
 		}
 		mLength = length;
 		mData = new byte[mLength + 8];
-		System.arraycopy(int_to_bytes(getType()), 0, mData, 0, 4);	//type
-		System.arraycopy(int_to_bytes(mLength), 0, mData, 4, 4);	//length
+		System.arraycopy(int_to_bytes_big(getType()), 0, mData, 0, 4);	//type
+		System.arraycopy(int_to_bytes_big(mLength), 0, mData, 4, 4);	//length
 		System.arraycopy(data, 0, mData, 8, mLength);	 			//data
 	}
 

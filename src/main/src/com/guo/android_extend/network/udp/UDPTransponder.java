@@ -29,10 +29,12 @@ public class UDPTransponder {
 	private Receiver mReceiver;
 	private Deliver mDeliver;
 	private UDPDataProtocol mUDPDataProtocol;
+	private int mDelay;
 
 	public UDPTransponder(Context mContext) {
 		this.mContext = mContext;
-		this. mUDPDataProtocol = null;
+		this.mUDPDataProtocol = null;
+		this.mDelay = 1000;
 	}
 
 	public void setUDPDataProtocol(UDPDataProtocol protocol) {
@@ -131,6 +133,11 @@ public class UDPTransponder {
 		}
 	}
 
+	public boolean startDeliver(int time) {
+		mDelay = time;
+		return startDeliver();
+	}
+
 	public boolean startDeliver() {
 		if (mDeliver != null) {
 			mDeliver.shutdown();
@@ -191,7 +198,7 @@ public class UDPTransponder {
 		public void loop() {
 			try {
 				synchronized (this) {
-					wait(1000);
+					wait(mDelay);
 				}
 				// 构造接收数据报
 				DatagramPacket receive = new DatagramPacket(mBuffer, mBuffer.length);

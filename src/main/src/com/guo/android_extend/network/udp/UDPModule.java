@@ -38,22 +38,30 @@ public class UDPModule implements UDPDataProtocol {
 		public void onReceiveDevice(List<Device> list, String name, String ip);
 	}
 
-	public UDPModule(Context context) {
-		this(context, Build.MODEL);
+	public UDPModule(Context context, int time) {
+		this(context, Build.MODEL, time);
 	}
 
-	public UDPModule(Context context, String name) {
+	public UDPModule(Context context) {
+		this(context, Build.MODEL, 1000);
+	}
+
+	public UDPModule(Context context, String name, int time) {
 		mName = name;
 		mUDPTransponder = new UDPTransponder(context);
 		mUDPTransponder.setUDPDataProtocol(this);
 		mUDPTransponder.startReceiver();
-		mUDPTransponder.startDeliver();
+		mUDPTransponder.startDeliver(time);
 		mDevices = new ArrayList<Device>();
 		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 		mLocalMac = wifiManager.getConnectionInfo().getMacAddress();
 	}
 
-	public void search() {
+	public  List<Device> getResult() {
+		return mDevices;
+	}
+
+	public void clear() {
 		mDevices.clear();
 	}
 

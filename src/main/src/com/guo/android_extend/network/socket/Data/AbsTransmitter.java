@@ -19,11 +19,12 @@ public abstract class AbsTransmitter {
 	public final static int TYPE_BYTE_32B = 0x82;
 	public final static int TYPE_BYTE_16K = 0x91;
 	public final static int TYPE_BYTE_32K = 0x92;
+	public final static int TYPE_BYTE_USER = 0x93;
 	public final static int MAX_PACKAGE_SIZE = (1 << 24); //16M
 
-	int mType;
-	Sender.OnSenderListener mOnSenderListener;
-	Receiver.OnReceiverListener mOnReceiverListener;
+	protected int mType;
+	protected Sender.OnSenderListener mOnSenderListener;
+	protected Receiver.OnReceiverListener mOnReceiverListener;
 
 	public AbsTransmitter(int type) {
 		mType = type;
@@ -41,7 +42,26 @@ public abstract class AbsTransmitter {
 		this.mOnReceiverListener = mOnReceiverListener;
 	}
 
-	public byte[] int_to_bytes(int val) {
+	public static int big_to_sml(int val) {
+		byte[] data = int_to_bytes_big(val);
+		return bytes_to_int_sml(data);
+	}
+
+	public static int sml_to_big(int val) {
+		byte[] data = int_to_bytes_sml(val);
+		return bytes_to_int_big(data);
+	}
+
+	public static byte[] int_to_bytes_sml(int val) {
+		byte[] data = new byte[4];
+		data[0] = (byte)((val >> 0) & 0xFF);
+		data[1] = (byte)((val >> 8) & 0xFF);
+		data[2] = (byte)((val >> 16) & 0xFF);
+		data[3] = (byte)((val >> 24) & 0xFF);
+		return data;
+	}
+
+	public static byte[] int_to_bytes_big(int val) {
 		byte[] data = new byte[4];
 		data[0] = (byte)((val >> 24) & 0xFF);
 		data[1] = (byte)((val >> 16) & 0xFF);
@@ -50,20 +70,28 @@ public abstract class AbsTransmitter {
 		return data;
 	}
 
-	public byte[] short_to_bytes(short val) {
+	public static byte[] short_to_bytes_big(short val) {
 		byte[] data = new byte[2];
 		data[0] = (byte)((val >> 8) & 0xFF);
 		data[1] = (byte)((val >> 0) & 0xFF);
 		return data;
 	}
 
-
-	public int bytes_to_int(byte[] val) {
+	public static int bytes_to_int_big(byte[] val) {
 		int data = 0;
-		data |= ((val[0] << 24) & 0xFF);
-		data |= ((val[1] << 16) & 0xFF);
-		data |= ((val[2] << 8) & 0xFF);
-		data |= ((val[3] << 0) & 0xFF);
+		data |= ((val[0]  & 0xFF)<< 24);
+		data |= ((val[1]  & 0xFF)<< 16);
+		data |= ((val[2]  & 0xFF)<< 8);
+		data |= ((val[3]  & 0xFF)<< 0);
+		return data;
+	}
+
+	public static int bytes_to_int_sml(byte[] val) {
+		int data = 0;
+		data |= ((val[0] & 0xFF) << 0);
+		data |= ((val[1] & 0xFF) << 8);
+		data |= ((val[2] & 0xFF) << 16);
+		data |= ((val[3] & 0xFF) << 24);
 		return data;
 	}
 

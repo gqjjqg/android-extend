@@ -46,10 +46,10 @@ public class TransmitFile extends AbsTransmitter {
         }
         mLength = (int)(max);
         mData = new byte[mName.getBytes().length + 10];
-        System.arraycopy(int_to_bytes(getType()), 0, mData, 0, 4);	                          //type
-        System.arraycopy(short_to_bytes((short) mName.getBytes().length), 0, mData, 4, 2);  // name length
+        System.arraycopy(int_to_bytes_big(getType()), 0, mData, 0, 4);	                          //type
+        System.arraycopy(short_to_bytes_big((short) mName.getBytes().length), 0, mData, 4, 2);  // name length
         System.arraycopy(mName.getBytes(), 0, mData, 6, mName.getBytes().length);           //name
-        System.arraycopy(int_to_bytes(mLength), 0, mData, mName.getBytes().length + 6, 4);  //length
+        System.arraycopy(int_to_bytes_big(mLength), 0, mData, mName.getBytes().length + 6, 4);  //length
     }
 
     @Override

@@ -59,11 +59,34 @@ public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, R
 	public void connect(String ip, int port) {
 		mIP = ip;
 		mPort = port;
-		start();
+		if (!this.isAlive()) {
+			start();
+		}
+		disconnect();
+		synchronized (this) {
+			this.notify();
+		}
 	}
 
 	public void disconnect() {
-		shutdown();
+		try {
+			if (mSender != null) {
+				mSender.shutdown();
+			}
+			if (mReceiver != null) {
+				mReceiver.shutdown();
+			}
+			if (mSocket != null) {
+				if (!mSocket.isClosed()) {
+					mSocket.close();
+				}
+			}
+			mSocket = null;
+			mSender = null;
+			mReceiver = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public boolean send(AbsTransmitter obj) {
@@ -127,24 +150,7 @@ public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, R
 
 	public void break_loop() {
 		super.break_loop();
-		try {
-			if (mSender != null) {
-				mSender.shutdown();
-			}
-			if (mReceiver != null) {
-				mReceiver.shutdown();
-			}
-			if (mSocket != null) {
-				if (!mSocket.isClosed()) {
-					mSocket.close();
-				}
-			}
-			mSocket = null;
-			mSender = null;
-			mReceiver = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		disconnect();
 	}
 
 	@Override
@@ -182,18 +188,10 @@ public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, R
 			int percent = cur * 100 / total;
 			if (mReceivePercent != percent) {
 				mReceivePercent = percent;
-				if (obj.getType() == AbsTransmitter.TYPE_BYTE) {
-					mOnSocketListener.onDataReceiveProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onDataReceived(obj.getName(), ((TransmitByte) obj).getData());
-						mReceivePercent = 0;
-					}
-				} else if (obj.getType() == AbsTransmitter.TYPE_FILE) {
-					mOnSocketListener.onFileReceiveProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onFileReceived(obj.getName());
-						mReceivePercent = 0;
-					}
+				mOnSocketListener.onReceiveProcess(obj, percent);
+				if (cur == total) {
+					mOnSocketListener.onReceived(obj);
+					mReceivePercent = 0;
 				}
 			}
 		}
@@ -219,18 +217,10 @@ public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, R
 			int percent = cur * 100 / total;
 			if (mSendPercent != percent) {
 				mSendPercent = percent;
-				if (obj.getType() == AbsTransmitter.TYPE_BYTE) {
-					mOnSocketListener.onDataSendProcess(TAG, percent);
-					if (cur == total) {
-						mOnSocketListener.onDataSended(TAG);
-						mSendPercent = 0;
-					}
-				} else if (obj.getType() == AbsTransmitter.TYPE_FILE) {
-					mOnSocketListener.onFileSendProcess(obj.getName(), percent);
-					if (cur == total) {
-						mOnSocketListener.onFileSended(obj.getName());
-						mSendPercent = 0;
-					}
+				mOnSocketListener.onSendProcess(obj, percent);
+				if (cur == total) {
+					mOnSocketListener.onSended(obj);
+					mSendPercent = 0;
 				}
 			}
 		}
