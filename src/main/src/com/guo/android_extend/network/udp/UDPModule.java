@@ -38,6 +38,11 @@ public class UDPModule implements UDPDataProtocol {
 		public void onReceiveDevice(List<Device> list, String name, String ip);
 	}
 
+	/**
+	 *
+	 * @param context
+	 * @param time		delay time 5000
+	 */
 	public UDPModule(Context context, int time) {
 		this(context, Build.MODEL, time);
 	}
