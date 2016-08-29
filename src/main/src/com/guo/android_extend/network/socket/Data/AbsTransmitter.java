@@ -12,14 +12,15 @@ import java.io.DataOutputStream;
 public abstract class AbsTransmitter {
 	private String TAG = this.getClass().getSimpleName();
 
-	public final static int TYPE_FILE = 0x70;
-	public final static int TYPE_BYTE = 0x71;
-	public final static int TYPE_BYTE_8B = 0x80;
-	public final static int TYPE_BYTE_16B = 0x81;
-	public final static int TYPE_BYTE_32B = 0x82;
-	public final static int TYPE_BYTE_16K = 0x91;
-	public final static int TYPE_BYTE_32K = 0x92;
-	public final static int TYPE_BYTE_USER = 0x93;
+	public final static int TYPE_FILE = 0x70EF0000;
+	public final static int TYPE_BYTE = 0x71EF0000;
+	public final static int TYPE_BYTE_8B = 0x80EF0000;
+	public final static int TYPE_BYTE_16B = 0x81EF0000;
+	public final static int TYPE_BYTE_32B = 0x82EF0000;
+	public final static int TYPE_BYTE_16K = 0x91EF0000;
+	public final static int TYPE_BYTE_32K = 0x92EF0000;
+	public final static int TYPE_BYTE_USER = 0x93EF0000;
+	public final static int TYPE_END_CODE = 0xEADC0000;
 	public final static int MAX_PACKAGE_SIZE = (1 << 24); //16M
 
 	protected int mType;
@@ -86,6 +87,15 @@ public abstract class AbsTransmitter {
 		return data;
 	}
 
+	public static int bytes_to_int_big(byte[] val, int offset) {
+		int data = 0;
+		data |= ((val[offset + 0]  & 0xFF)<< 24);
+		data |= ((val[offset + 1]  & 0xFF)<< 16);
+		data |= ((val[offset + 2]  & 0xFF)<< 8);
+		data |= ((val[offset + 3]  & 0xFF)<< 0);
+		return data;
+	}
+
 	public static int bytes_to_int_sml(byte[] val) {
 		int data = 0;
 		data |= ((val[0] & 0xFF) << 0);
@@ -95,13 +105,30 @@ public abstract class AbsTransmitter {
 		return data;
 	}
 
+	public static int bytes_to_int_sml(byte[] val, int offset) {
+		int data = 0;
+		data |= ((val[offset + 0] & 0xFF) << 0);
+		data |= ((val[offset + 1] & 0xFF) << 8);
+		data |= ((val[offset + 2] & 0xFF) << 16);
+		data |= ((val[offset + 3] & 0xFF) << 24);
+		return data;
+	}
+
 	public abstract String getName();
 
 	public abstract int send(DataOutputStream stream, byte[] mBuffer);
 
 	public abstract int recv(DataInputStream stream, byte[] mBuffer);
 
+	/**
+	 * use for send
+	 * @return
+	 */
 	public abstract DataInputStream getDataInputStream();
 
+	/**
+	 * use for recv
+	 * @return
+	 */
 	public abstract DataOutputStream getDataOutputStream();
 }

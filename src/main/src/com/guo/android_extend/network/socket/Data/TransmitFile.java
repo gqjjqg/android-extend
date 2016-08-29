@@ -73,6 +73,7 @@ public class TransmitFile extends AbsTransmitter {
                     mOnSenderListener.onSendProcess(this, size + read, mLength);
                 }
             }
+            stream.write(int_to_bytes_big(TYPE_END_CODE));
             stream.flush();
         } catch (Exception e) {
             Log.e("TransmitInterface", "loop:" + e.getMessage());
@@ -105,14 +106,16 @@ public class TransmitFile extends AbsTransmitter {
                     mOnReceiverListener.onReceiveProcess(this, size, (int) length);
                 }
             }
-
+            if (stream.readInt() != TYPE_END_CODE) {
+                throw new Exception("received end code error!");
+            }
             output.flush();
             output.close();
             //finish
             if (mOnReceiverListener != null) {
                 mOnReceiverListener.onReceiveProcess(this, (int) length, (int) length);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.e("", "loop:" + e.getMessage());
             if (mOnReceiverListener != null) {
                 mOnReceiverListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);

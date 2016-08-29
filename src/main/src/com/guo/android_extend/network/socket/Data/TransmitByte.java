@@ -36,9 +36,10 @@ public class TransmitByte extends AbsTransmitter {
 		}
 		mLength = length;
 		mData = new byte[mLength + 8];
-		System.arraycopy(int_to_bytes_big(getType()), 0, mData, 0, 4);	//type
-		System.arraycopy(int_to_bytes_big(mLength), 0, mData, 4, 4);	//length
-		System.arraycopy(data, 0, mData, 8, mLength);	 			//data
+		System.arraycopy(int_to_bytes_big(getType()), 0, mData, 0, 4);					//type
+		System.arraycopy(int_to_bytes_big(mLength), 0, mData, 4, 4);					//length
+		System.arraycopy(data, 0, mData, 8, mLength);	 								//data
+		System.arraycopy(int_to_bytes_big(TYPE_END_CODE), 0, mData, 8 + mLength, 4);	//end code
 	}
 
 	@Override
@@ -94,7 +95,9 @@ public class TransmitByte extends AbsTransmitter {
 					mOnReceiverListener.onReceiveProcess(this, size, (int) mLength);
 				}
 			}
-
+			if (stream.readInt() != TYPE_END_CODE) {
+				throw new Exception("received end code error!");
+			}
 			output.flush();
 			output.close();
 			//finish

@@ -16,7 +16,7 @@ import java.net.Socket;
 /**
  * Created by gqj3375 on 2016/3/22.
  */
-public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, Receiver.OnReceiverListener {
+public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Receiver.OnReceiverListener {
 	private String TAG = this.getClass().getSimpleName();
 
 	OnSocketListener mOnSocketListener;
@@ -214,10 +214,10 @@ public class SocketClient  extends AbsLoop implements Sender.OnSenderListener, R
 	@Override
 	public void onSendProcess(AbsTransmitter obj, int cur, int total) {
 		if (mOnSocketListener != null) {
-			int percent = cur * 100 / total;
+			long percent = (long)cur * 100 / (long)total;
 			if (mSendPercent != percent) {
-				mSendPercent = percent;
-				mOnSocketListener.onSendProcess(obj, percent);
+				mSendPercent = (int)percent;
+				mOnSocketListener.onSendProcess(obj, (int)percent);
 				if (cur == total) {
 					mOnSocketListener.onSended(obj);
 					mSendPercent = 0;
