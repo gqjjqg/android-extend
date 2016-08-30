@@ -176,7 +176,7 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 	@Override
 	public void onSendProcess(AbsTransmitter obj, int cur, int total) {
 		if (mOnSocketListener != null) {
-			int percent = cur * 100 / total;
+			int percent = cur / total * 100;
 			if (mSendPercent != percent) {
 				mSendPercent = percent;
 				mOnSocketListener.onSendProcess(obj, percent);
@@ -205,7 +205,7 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 	@Override
 	public void onReceiveProcess(AbsTransmitter obj, int cur, int total) {
 		if (mOnSocketListener != null) {
-			int percent = cur * 100 / total;
+			int percent = cur / total * 100;
 			if (mReceivePercent != percent) {
 				mReceivePercent = percent;
 				mOnSocketListener.onReceiveProcess(obj, percent);

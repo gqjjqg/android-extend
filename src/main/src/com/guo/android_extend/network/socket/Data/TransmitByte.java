@@ -56,7 +56,7 @@ public class TransmitByte extends AbsTransmitter {
 
 		DataInputStream input = getDataInputStream();
 		if (input == null) {
-			Log.e("TransmitInterface", "loop: Bad object!");
+			Log.e(TAG, "loop: Bad object!");
 			return OnSocketListener.ERROR_OBJECT_UNKNOWN;
 		}
 
@@ -70,14 +70,14 @@ public class TransmitByte extends AbsTransmitter {
 			}
 			stream.flush();
 		} catch (Exception e) {
-			Log.e("TransmitInterface", "loop:" + e.getMessage());
+			Log.e(TAG, "loop:" + e.getMessage());
 			ret = OnSocketListener.ERROR_SOCKET_TRANSFER;
 		}
 
 		try {
 			input.close();
 		} catch (IOException e) {
-			Log.e("TransmitInterface", "loop:" + e.getMessage());
+			Log.e(TAG, "loop:" + e.getMessage());
 			ret = OnSocketListener.ERROR_STREAM_CLOSE;
 		}
 

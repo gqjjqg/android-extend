@@ -158,15 +158,7 @@ public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Re
 		if (mOnSocketListener != null) {
 			mOnSocketListener.onSocketException(error);
 		}
-		mSocket = null;
-		if (mSender != null) {
-			mSender.shutdown();
-			mSender = null;
-		}
-		if (mReceiver != null) {
-			mReceiver.shutdown();
-			mReceiver = null;
-		}
+		disconnect();
 		synchronized (this) {
 			this.notify();
 		}
@@ -185,7 +177,7 @@ public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Re
 	@Override
 	public void onReceiveProcess(AbsTransmitter obj, int cur, int total) {
 		if (mOnSocketListener != null) {
-			int percent = cur * 100 / total;
+			int percent = cur / total * 100;
 			if (mReceivePercent != percent) {
 				mReceivePercent = percent;
 				mOnSocketListener.onReceiveProcess(obj, percent);
@@ -214,10 +206,10 @@ public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Re
 	@Override
 	public void onSendProcess(AbsTransmitter obj, int cur, int total) {
 		if (mOnSocketListener != null) {
-			long percent = (long)cur * 100 / (long)total;
+			int percent = cur /total * 100;
 			if (mSendPercent != percent) {
-				mSendPercent = (int)percent;
-				mOnSocketListener.onSendProcess(obj, (int)percent);
+				mSendPercent = percent;
+				mOnSocketListener.onSendProcess(obj, percent);
 				if (cur == total) {
 					mOnSocketListener.onSended(obj);
 					mSendPercent = 0;
