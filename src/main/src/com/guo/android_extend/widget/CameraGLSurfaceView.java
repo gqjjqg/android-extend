@@ -1,10 +1,7 @@
 package com.guo.android_extend.widget;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -58,6 +55,9 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	}
 
 	private void onCreate() {
+		if (isInEditMode()) {
+			return;
+		}
 		setEGLContextClientVersion(2);
 		setRenderer(this);
 		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -122,6 +122,14 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	public void setRenderConfig(int degree, boolean mirror) {
 		mDegree = degree;
 		mMirror = mirror;
+	}
+
+	@Override
+	public boolean OnOrientationChanged(int degree, int offset, int flag) {
+		if (mGLES2Render != null) {
+			mGLES2Render.setViewAngle(mMirror, degree);
+		}
+		return super.OnOrientationChanged(degree, offset, flag);
 	}
 
 	public void debug_print_fps(boolean show) {

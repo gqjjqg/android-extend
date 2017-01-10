@@ -1,15 +1,15 @@
 package com.guo.android_extend.widget;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import android.content.Context;
 import android.util.Log;
 import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * for orientation event detector.
@@ -37,6 +37,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	 * divider for orientation.
 	 */
 	private int[] mDivider;
+	private List<Integer> mWorkingDegree;
 	
 	/**
 	 * the first area degree.
@@ -52,13 +53,12 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	/**
 	 * every area offset.
 	 */
-	private final static int ORIENTATION_OFFSET = 360 / ORIENTATION_DIVIDE;
+	private int mOffset;
 	
 	/**
 	 * every area half offset.
 	 */
-	private final static int ORIENTATION_HYSTERESIS = ORIENTATION_OFFSET / 2;
-	
+	private int mHysteresis;
 	/**
 	 * @author Guo
 	 * listener for orientation.
@@ -83,10 +83,18 @@ public class ExtOrientationDetector extends OrientationEventListener {
 		PreCreate(context);
 	}
 
+	public ExtOrientationDetector(Context context, int first_degree, int count) {
+		super(context);
+		// TODO Auto-generated constructor stub
+		PreCreate(context);
+		config(first_degree, count);
+	}
+
 	public ExtOrientationDetector(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		PreCreate(context);
+		config(ORIENTATION_START, ORIENTATION_DIVIDE);
 	}
 
 	private void PreCreate(Context context) {
@@ -95,21 +103,50 @@ public class ExtOrientationDetector extends OrientationEventListener {
 		mOrientation = ORIENTATION_UNKNOWN;
 		WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
 		mDisplay = wm.getDefaultDisplay();
-		mDegree = ORIENTATION_START;
 		mFixedDegree = getFixedRotation();
 		Log.i(TAG, "FixedDegree = " + mFixedDegree);
+	}
+
+	private void def_config() {
 		/**
 		 * create divider by config.
 		 */
+		mDegree = ORIENTATION_START;
+		mOffset = 360 / ORIENTATION_DIVIDE;
+		mHysteresis = mOffset / 2;
 		mDivider = new int[ORIENTATION_DIVIDE];
-		mDivider[0] = ORIENTATION_START + ORIENTATION_HYSTERESIS;
+		mWorkingDegree = new ArrayList<Integer>();
+		mDivider[0] = ORIENTATION_START + mHysteresis;
+		mWorkingDegree.add(ORIENTATION_START);
 		for (int i = 1; i < mDivider.length; i++) {
-			mDivider[i] = mDivider[i - 1] + ORIENTATION_OFFSET;
+			mDivider[i] = mDivider[i - 1] + mOffset;
+			mWorkingDegree.add(mDivider[i] - mHysteresis);
 		}
-		
+
 		mMinDegree = ORIENTATION_START;
-		mMaxDegree = mDivider[mDivider.length - 1] - ORIENTATION_HYSTERESIS;
-		
+		mMaxDegree = mDivider[mDivider.length - 1] - mHysteresis;
+	}
+
+	private void config(int first_degree, int count) {
+
+		mDegree = first_degree;
+		mOffset = 360 / count;
+		mHysteresis = mOffset / 2;
+		mDivider = new int[count];
+		mWorkingDegree = new ArrayList<Integer>();
+		mDivider[0] = first_degree + mHysteresis;
+		mWorkingDegree.add(first_degree);
+		for (int i = 1; i < mDivider.length; i++) {
+			mDivider[i] = mDivider[i - 1] + mOffset;
+			mWorkingDegree.add(mDivider[i] - mHysteresis);
+		}
+
+		mMinDegree = first_degree;
+		mMaxDegree = mDivider[mDivider.length - 1] - mHysteresis;
+	}
+
+	public List<Integer> getDegrees() {
+		return mWorkingDegree;
 	}
 
 	/**
@@ -121,7 +158,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	 */
 	private boolean forceOrientationChanged(OnOrientationListener listener, int degree, int flag) {
 		int param = flag;
-		int offset = ORIENTATION_OFFSET;
+		int offset = mOffset;
 		if (flag == ROTATE_FORCE_REDO) {
 			param = getRotateFlag(listener.getCurrentOrientationDegree(), degree);
 		}
@@ -147,7 +184,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 		synchronized(mObjectes) {
 			Iterator<OnOrientationListener> it = mObjectes.iterator();
 			int param = flag;
-			int offset = ORIENTATION_OFFSET;
+			int offset = mOffset;
 			while (it.hasNext()) {
 				OnOrientationListener listener = it.next();
 				if (flag == ExtOrientationDetector.ROTATE_FORCE_REDO) {
@@ -163,7 +200,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 				} else {
 					continue;
 				}
-				
+
 				if (!listener.OnOrientationChanged(degree, offset, param)) {
 					//need remove from list.
 					it.remove();
@@ -301,17 +338,17 @@ public class ExtOrientationDetector extends OrientationEventListener {
 		if (pre != ORIENTATION_UNKNOWN) {
 			int dist = Math.abs(cur - pre);
             dist = Math.min( dist, 360 - dist );
-            if ( dist < ORIENTATION_HYSTERESIS ) {
+            if ( dist < mHysteresis ) {
             	return pre;
             }
 		}
 		
 		for (int i = 0; i < mDivider.length; i++) {
 			if (cur <= mDivider[i]) {
-				return mDivider[i] - ORIENTATION_HYSTERESIS;
+				return mDivider[i] - mHysteresis;
 			}
 		}
-		return mDivider[0] - ORIENTATION_HYSTERESIS;
+		return mDivider[0] - mHysteresis;
     }
 	
 }

@@ -1,19 +1,19 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
-
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.PointF;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.RotateAnimation;
 import android.widget.RelativeLayout;
+
+import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
+import com.guo.android_extend.widget.controller.TouchController;
 
 /**
  * @author gqj3375
@@ -38,15 +38,17 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	 * for scale.
 	 */
 	private float scaleX, scaleY;
+
+	/**
+	 * for touch point rotate.
+	 */
+	private TouchController mTouchController;
+
 	/**
 	 * for dispatch touch event process.
 	 */
-	private OnDispatchTouchEventListener mOnDispatchTouchEventListener;
-	
-	public interface OnDispatchTouchEventListener {
-		public void onDispatchTouchEvent(View v, MotionEvent ev);
-	}
-	
+	private TouchController.OnDispatchTouchEventListener mOnDispatchTouchEventListener;
+
 	public ExtRelativeLayout(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
@@ -67,6 +69,11 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	}
 
 	private void preCreate(Context context) {
+		if (isInEditMode()) {
+			return;
+		}
+		mOnDispatchTouchEventListener = null;
+		mTouchController = new TouchController();
 		mHandler = new Handler();
 		mCurDegree = 0;
 		scaleX = 1.0f;
@@ -136,14 +143,10 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	 */
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		PointF newPoint = rotatePoint(new PointF(ev.getX(), ev.getY()),
-				new PointF(this.getWidth() / 2F, this.getHeight() / 2F),
-				-mCurDegree);
-		MotionEvent newEvent = MotionEvent.obtain(ev.getDownTime(),
-				ev.getEventTime(), ev.getAction(), newPoint.x, newPoint.y,
-				ev.getPressure(), ev.getSize(), ev.getMetaState(),
-				ev.getXPrecision(), ev.getYPrecision(), ev.getDeviceId(),
-				ev.getEdgeFlags());
+		MotionEvent newEvent = ev;
+		if (mTouchController != null) {
+			newEvent = mTouchController.obtainTouchEvent(ev, this.getWidth(), this.getHeight(), mCurDegree);
+		}
 		// TODO Auto-generated method stub
 		if (mOnDispatchTouchEventListener != null) {
 			mOnDispatchTouchEventListener.onDispatchTouchEvent(this, ev);
@@ -160,27 +163,21 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 		scaleX = sx;
 		scaleY = sy;
 	}
-	
+
+	/**
+	 *
+	 * @param controller
+	 */
+	public void setTouchControllerListener(TouchController controller) {
+		mTouchController = controller;
+	}
+
 	/**
 	 * set listener
 	 * @param listener
 	 */
-	public void setOnDispatchTouchEventListener(OnDispatchTouchEventListener listener) {
+	public void setOnDispatchTouchEventListener(TouchController.OnDispatchTouchEventListener listener) {
 		mOnDispatchTouchEventListener = listener;
 	}
-	
-	/**
-	 * @param A
-	 * @param B center point
-	 * @param degree
-	 * @return
-	 */
-	private PointF rotatePoint(PointF A, PointF B, float degree) {
-		float radian = (float) Math.toRadians(degree);
-		float cos = (float) Math.cos(radian);
-		float sin = (float) Math.sin(radian);
-		float x = (float) ((A.x - B.x)* cos +(A.y - B.y) * sin + B.x);  
-		float y = (float) (-(A.x - B.x)* sin + (A.y - B.y) * cos + B.y);  
-		return new PointF(x, y);
-	}
+
 }

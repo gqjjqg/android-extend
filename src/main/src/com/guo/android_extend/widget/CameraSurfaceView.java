@@ -1,29 +1,19 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.GLES2Render;
-import com.guo.android_extend.image.ImageConverter;
-import com.guo.android_extend.tools.FrameHelper;
-
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
-import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import com.guo.android_extend.tools.FrameHelper;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 /**
  * @Note create by gqjjqg,.

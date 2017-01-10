@@ -36,6 +36,7 @@ typedef struct glesrender_t {
 
 static jint NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint format, jint fps);
 static jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint height);
+static jint NGLR_rotated(JNIEnv* env, jobject object, jint handle, jint mirror, jint ori);
 static jint NGLR_process(JNIEnv* env, jobject object, jint handle, jbyteArray data, jint width, jint height);
 static jint NGLR_drawrect(JNIEnv* env, jobject object, jint handle, jobjectArray rectes, jint count, jint rgb, jint size);
 static jint NGLR_uninitial(JNIEnv *env, jobject object, jint handle);
@@ -45,6 +46,7 @@ static int convert_to_points(JNIEnv *env, jobjectArray faceArray, int* points, i
 static JNINativeMethod gMethods[] = {
 	{"render_init", "(IIII)I",(void*)NGLR_initial},
 	{"render_changed", "(III)I",(void*)NGLR_changed},
+	{"render_rotated", "(III)I",(void*)NGLR_rotated},
 	{"render_process", "(I[BII)I",(void*)NGLR_process},
 	{"render_draw_rect", "(I[Landroid/graphics/Rect;III)I",(void*)NGLR_drawrect},
 	{"render_uninit", "(I)I",(void*)NGLR_uninitial},
@@ -136,6 +138,13 @@ jint NGLR_changed(JNIEnv* env, jobject object, jint handle, jint width, jint hei
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
 	GLChanged(engine->handler, width, height);
+	return 0;
+}
+
+jint NGLR_rotated(JNIEnv* env, jobject object, jint handle, jint mirror, jint ori)
+{
+	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
+	GLChangedAngle(engine->handler, mirror, ori);
 	return 0;
 }
 

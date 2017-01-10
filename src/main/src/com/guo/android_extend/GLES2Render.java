@@ -8,6 +8,7 @@ public class GLES2Render {
 
 	private native int render_init(int mirror, int ori, int format, int fps);
 	private native int render_changed(int handler, int width, int height);
+	private native int render_rotated(int handler, int mirror, int ori);
 	private native int render_process(int handler, byte[] data, int width, int height);
 	private native int render_uninit(int handler);
 	private native int render_draw_rect(int handler, Rect[] rect, int count, int rgb, int stroke);
@@ -36,7 +37,11 @@ public class GLES2Render {
 	public void setViewPort(int width, int height) {
 		render_changed(handle, width, height);
 	}
-	
+
+	public void setViewAngle(boolean mirror, int degree) {
+		render_rotated(handle, mirror ? 1 : 0, degree);
+	}
+
 	public void render(byte[] data, int width, int height) {
 		render_process(handle, data, width, height);
 	}
