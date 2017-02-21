@@ -3,7 +3,6 @@ package com.guo.android_extend.tools;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -37,6 +36,47 @@ public class CameraHelper {
 		return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF.bottom));
 	}
 
+	public static void touchFocus(Camera camera1, Camera camera2, MotionEvent event, View view, Camera.AutoFocusCallback callback) {
+		Camera.Parameters parameters1 = camera1.getParameters();
+		Camera.Parameters parameters2 = camera2.getParameters();
+		int centerX = (int)(event.getX() / (float)view.getWidth() * 2000.0) - 1000;
+		int centerY = (int)(event.getY() / (float)view.getHeight() * 2000.0) - 1000;
+		Rect focusRect = cameraTapArea(centerX, centerY, 1f);
+		Rect meteringRect = cameraTapArea(centerX, centerY, 1.5f);
+		if (parameters1.getMaxNumFocusAreas() > 0) {
+			List<Camera.Area> focusAreas = new ArrayList<Camera.Area>();
+			focusAreas.add(new Camera.Area(focusRect, 600));
+			parameters1.setFocusAreas(focusAreas);
+		}
+		if (parameters1.getMaxNumMeteringAreas() > 0) {
+			List<Camera.Area> meteringAreas = new ArrayList<Camera.Area>();
+			meteringAreas.add(new Camera.Area(meteringRect, 600));
+			parameters1.setMeteringAreas(meteringAreas);
+		}
+		if (parameters2.getMaxNumFocusAreas() > 0) {
+			List<Camera.Area> focusAreas = new ArrayList<Camera.Area>();
+			focusAreas.add(new Camera.Area(focusRect, 600));
+			parameters2.setFocusAreas(focusAreas);
+		}
+		if (parameters2.getMaxNumMeteringAreas() > 0) {
+			List<Camera.Area> meteringAreas = new ArrayList<Camera.Area>();
+			meteringAreas.add(new Camera.Area(meteringRect, 600));
+			parameters2.setMeteringAreas(meteringAreas);
+		}
+		parameters1.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+		camera1.cancelAutoFocus();
+		parameters2.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+		camera2.cancelAutoFocus();
+		try {
+			camera1.setParameters(parameters1);
+			camera2.setParameters(parameters2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		camera1.autoFocus(callback);
+		camera2.autoFocus(callback);
+	}
+
 	public static void touchFocus(Camera camera, MotionEvent event, View view, Camera.AutoFocusCallback callback) {
 		Camera.Parameters parameters = camera.getParameters();
 		Camera.Size size = parameters.getPreviewSize();
@@ -56,23 +96,34 @@ public class CameraHelper {
 		}
 		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 		camera.cancelAutoFocus();
-		camera.setParameters(parameters);
+		try {
+			camera.setParameters(parameters);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		camera.autoFocus(callback);
 	}
 
 	public static void lockfocus(Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
 		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-		camera.setParameters(parameters);
+		try {
+			camera.setParameters(parameters);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void unlockfocus(Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
 		parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-		camera.setParameters(parameters);
+		try {
+			camera.setParameters(parameters);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	public static void lockAeAwb(Camera camera) {
-
 		Camera.Parameters parameters = camera.getParameters();
 		if (parameters.isAutoExposureLockSupported()) {
 			parameters.setAutoExposureLock(true);
@@ -80,7 +131,11 @@ public class CameraHelper {
 		if (parameters.isAutoWhiteBalanceLockSupported()) {
 			parameters.setAutoWhiteBalanceLock(true);
 		}
-		camera.setParameters(parameters);
+		try {
+			camera.setParameters(parameters);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void unlockAeAwb(Camera camera) {
@@ -91,6 +146,10 @@ public class CameraHelper {
 		if (parameters.isAutoWhiteBalanceLockSupported()) {
 			parameters.setAutoWhiteBalanceLock(false);
 		}
-		camera.setParameters(parameters);
+		try {
+			camera.setParameters(parameters);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

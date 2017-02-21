@@ -15,7 +15,7 @@
 
 typedef struct opengl_t {
 	GLuint	m_hProgramObject;
-	GLuint	m_nTextureIds[2];
+	GLuint	m_nTextureIds[3];
 	GLuint	m_nBufs[3];
 	GLfloat m_ViewMatrix[16];
 	GLfloat m_ModelMatrix[16];
@@ -64,6 +64,24 @@ void main() {									    			\n \
 	gl_Position = a_position ;								\n \
 }													   			\n";
 
+const char* pFragmentShaderI420 =
+"precision highp float;										\n \
+uniform sampler2D y_texture;									\n \
+uniform sampler2D uv_texture;								\n \
+uniform sampler2D v_texture;								    \n \
+varying highp vec2 v_texCoord;								\n \
+void main()													\n \
+{																\n \
+    mediump vec3 yuv;											\n \
+    highp vec3 rgb; 											\n \
+    yuv.x = texture2D(y_texture, v_texCoord).r;  			\n \
+    yuv.y = texture2D(uv_texture, v_texCoord).r;		    \n \
+    yuv.z = texture2D(v_texture, v_texCoord).r;		    \n \
+    rgb = mat3(      1,       1,       1,					\n \
+              0, -0.344, 1.770,								\n \
+              1.403, -0.714,       0) * yuv;				\n \
+    gl_FragColor = vec4(rgb, 1);								\n \
+}																\n";
 
 const char* pFragmentShaderYUYV =
 "precision highp float;										\n \
@@ -229,7 +247,9 @@ int GLImageInit(int mirror, int ori, int format)
 		fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderNV12);
 	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
 		fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderYUYV);
-	}
+	} else if (engine->m_nPixelFormat == CP_PAF_I420) {
+        fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderI420);
+    }
 
 	engine->m_hProgramObject = glCreateProgram();
 	if (0 == engine->m_hProgramObject) {
@@ -276,19 +296,42 @@ int GLImageInit(int mirror, int ori, int format)
 
 	LOGD("glGenTextures");
 	// Textures
-	glGenTextures(2, engine->m_nTextureIds);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	if (engine->m_nPixelFormat == CP_PAF_NV21 || engine->m_nPixelFormat == CP_PAF_NV12 ||
+	    engine->m_nPixelFormat == CP_PAF_YUYV) {
+	    glGenTextures(2, engine->m_nTextureIds);
+	    glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	} else if (engine->m_nPixelFormat == CP_PAF_I420) {
+	    glGenTextures(3, engine->m_nTextureIds);
+	    glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[2]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 	LOGD("VBO");
 
 	//VBO
@@ -481,27 +524,38 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 	if (engine->m_nPixelFormat == CP_PAF_NV21 || engine->m_nPixelFormat == CP_PAF_NV12) {
 		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
-
 		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
 	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
 		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
-
 		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w >> 1, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
-	}
+	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[2]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h + w * h / 4);
+     }
 	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 
-	GLuint textureUniformY = glGetUniformLocation(engine->m_hProgramObject, "y_texture");
-	GLuint textureUniformU = glGetUniformLocation(engine->m_hProgramObject, "uv_texture");
+    GLuint textureUniformY = glGetUniformLocation(engine->m_hProgramObject, "y_texture");
+    GLuint textureUniformU = glGetUniformLocation(engine->m_hProgramObject, "uv_texture");
 
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-	glUniform1i(textureUniformY, 0);
+    glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
+    glUniform1i(textureUniformY, 0);
 
-	glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-	glUniform1i(textureUniformU, 1);
+    glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
+    glUniform1i(textureUniformU, 1);
+
+    if (engine->m_nPixelFormat == CP_PAF_I420) {
+        GLuint textureUniformV = glGetUniformLocation(engine->m_hProgramObject, "v_texture");
+        glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[2]);
+        glUniform1i(textureUniformV, 2);
+    }
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
 	glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0 );

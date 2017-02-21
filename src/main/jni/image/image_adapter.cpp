@@ -95,6 +95,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	jclass jclsmain = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
 
 	switch (format) {
+	case CP_PAF_I420:
 	case CP_PAF_NV12:
 	case CP_PAF_NV21:
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3 / 2);

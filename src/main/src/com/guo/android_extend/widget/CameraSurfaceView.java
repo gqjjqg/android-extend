@@ -57,7 +57,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		 * @param height
 		 * @param format
 		 */
-		public void onPreview(byte[] data, int width, int height, int format);
+		public void onPreview(byte[] data, int width, int height, int format, long timestamp);
 
 		/**
 		 * on render thread.before render
@@ -66,7 +66,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		 * @param height
 		 * @param format
 		 */
-		public void onPreviewRender(byte[] data, int width, int height, int format);
+		public void onPreviewRender(byte[] data, int width, int height, int format, long timestamp);
 	}
 
 	public CameraSurfaceView(Context context, AttributeSet attrs, int defStyle) {
@@ -174,19 +174,20 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		// TODO Auto-generated method stub
+		long timestamp = System.nanoTime();
 		mFrameHelper.printFPS();
 		if (mGLSurfaceView != null) {
 			byte[] buffer = mImageDataBuffers.poll();
 			if (buffer != null) {
 				System.arraycopy(data, 0, buffer, 0, buffer.length);
 				if (mOnCameraListener != null) {
-					mOnCameraListener.onPreview(buffer, mWidth, mHeight, mFormat);
+					mOnCameraListener.onPreview(buffer, mWidth, mHeight, mFormat, timestamp);
 				}
 				mGLSurfaceView.requestRender(buffer);
 			}
 		} else {
 			if (mOnCameraListener != null) {
-				mOnCameraListener.onPreview(data.clone(), mWidth, mHeight, mFormat);
+				mOnCameraListener.onPreview(data.clone(), mWidth, mHeight, mFormat, timestamp);
 			}
 		}
 		if (mCamera != null) {
@@ -197,7 +198,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	@Override
 	public void onBeforeRender(byte[] data, int width, int height, int format) {
 		if (mOnCameraListener != null) {
-			mOnCameraListener.onPreviewRender(data, mWidth, mHeight, mFormat);
+			mOnCameraListener.onPreviewRender(data, mWidth, mHeight, mFormat, System.nanoTime());
 		}
 	}
 
