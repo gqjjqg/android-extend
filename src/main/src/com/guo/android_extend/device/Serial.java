@@ -1,7 +1,5 @@
 package com.guo.android_extend.device;
 
-import android.util.Log;
-
 public class Serial {
 	private final String TAG = this.getClass().getSimpleName();
 
@@ -18,7 +16,7 @@ public class Serial {
 	 * @param type		ttyUSB0 / ttyS0
 	 * @return
 	 */
-	private native int initSerial(int port, byte[] dev, int type);
+	private native long initSerial(int port, byte[] dev, int type);
 
 	/**
 	 *
@@ -33,12 +31,12 @@ public class Serial {
 	 * @param vmin				read min buffer size.
 	 * @return
 	 */
-	private native int setSerial(int handle, int baud_rate, int data_bits, byte parity, int stop_bits, int vtime, int vmin);
-	private native int sendData(int handle, byte[] data, int length);
-	private native int receiveData(int handle, byte[] data, int max, int timeout);
-	private native int uninitSerial(int handle);
+	private native int setSerial(long handle, int baud_rate, int data_bits, byte parity, int stop_bits, int vtime, int vmin);
+	private native int sendData(long handle, byte[] data, int length);
+	private native int receiveData(long handle, byte[] data, int max, int timeout);
+	private native int uninitSerial(long handle);
 	
-	private int mHandle;
+	private long mHandle;
 	private byte[] mReceive;
 	
 	static {

@@ -80,6 +80,7 @@ jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
 	fclose(engine->file);
 #endif
 	free(engine);
+	return 0;
 }
 
 jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format)
@@ -109,7 +110,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 		return (jint)-1;
 	}
 
-	return (jint)handle;
+	return (jlong)handle;
 }
 
 jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteArray data)

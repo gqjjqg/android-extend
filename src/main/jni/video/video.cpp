@@ -89,16 +89,16 @@ typedef struct engine_t {
 
 
 //public method.
-static jint NV_Init(JNIEnv *env, jobject object, jint port);
-static jint NV_UnInit(JNIEnv *env, jobject object, jint handler);
-static jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height, jint format);
-static jint NV_ReadData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size);
+static jlong NV_Init(JNIEnv *env, jobject object, jint port);
+static jint NV_UnInit(JNIEnv *env, jobject object, jlong handler);
+static jint NV_Set(JNIEnv *env, jobject object, jlong handler, jint width, jint height, jint format);
+static jint NV_ReadData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size);
 
 static JNINativeMethod gMethods[] = {
-    {"initVideo", "(I)I",(void*)NV_Init},
-    {"uninitVideo", "(I)I",(void*)NV_UnInit},
-    {"setVideo", "(IIII)I", (void*)NV_Set},
-	{"readData", "(I[BI)I", (void*)NV_ReadData},
+    {"initVideo", "(I)J",(void*)NV_Init},
+    {"uninitVideo", "(J)I",(void*)NV_UnInit},
+    {"setVideo", "(JIII)I", (void*)NV_Set},
+	{"readData", "(J[BI)I", (void*)NV_ReadData},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/device/Video";
@@ -137,7 +137,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NV_Init(JNIEnv *env, jobject object, jint port)
+jlong NV_Init(JNIEnv *env, jobject object, jint port)
 {
 	int error;
 	LPVIDEO engine = (LPVIDEO)malloc(sizeof(VIDEO));
@@ -161,10 +161,10 @@ jint NV_Init(JNIEnv *env, jobject object, jint port)
 	engine->frame = 1;
 #endif
 
-	return (jint)engine;
+	return (jlong)engine;
 }
 
-jint NV_UnInit(JNIEnv *env, jobject object, jint handler)
+jint NV_UnInit(JNIEnv *env, jobject object, jlong handler)
 {
 	LPVIDEO engine = (LPVIDEO)handler;
 
@@ -186,7 +186,7 @@ jint NV_UnInit(JNIEnv *env, jobject object, jint handler)
 	return 0;
 }
 
-jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height, jint format)
+jint NV_Set(JNIEnv *env, jobject object, jlong handler, jint width, jint height, jint format)
 {
 	LPVIDEO engine = (LPVIDEO)handler;
 	int f = 0;
@@ -260,7 +260,7 @@ jint NV_Set(JNIEnv *env, jobject object, jint handler, jint width, jint height, 
 	return 0;
 }
 
-jint NV_ReadData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size)
+jint NV_ReadData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size)
 {
 #ifdef DEBUG
 	unsigned long cost = GTimeGet();

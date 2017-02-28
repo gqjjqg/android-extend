@@ -6,17 +6,17 @@ import android.graphics.Rect;
 public class GLES2Render {
 	private final String TAG = this.getClass().getSimpleName();
 
-	private native int render_init(int mirror, int ori, int format, int fps);
-	private native int render_changed(int handler, int width, int height);
-	private native int render_rotated(int handler, int mirror, int ori);
-	private native int render_process(int handler, byte[] data, int width, int height);
-	private native int render_uninit(int handler);
-	private native int render_draw_rect(int handler, Rect[] rect, int count, int rgb, int stroke);
+	private native long render_init(int mirror, int ori, int format, int fps);
+	private native int render_changed(long handler, int width, int height);
+	private native int render_rotated(long handler, int mirror, int ori);
+	private native int render_process(long handler, byte[] data, int width, int height);
+	private native int render_uninit(long handler);
+	private native int render_draw_rect(long handler, Rect[] rect, int count, int rgb, int stroke);
 	static {
 		System.loadLibrary("render");
 	}
 	
-	private int handle;
+	private long handle;
 	
 	/**
 	 * @see ImageConverter

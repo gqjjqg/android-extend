@@ -40,18 +40,18 @@ typedef struct engine_t {
 #define MSG_SwingUp 		3
 
 //public method.
-static jint NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type);
-static jint NS_UnInit(JNIEnv *env, jobject object, jint handler);
-static jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin);
-static jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size);
-static jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time);
+static jlong NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type);
+static jint NS_UnInit(JNIEnv *env, jobject object, jlong handler);
+static jint NS_Set(JNIEnv *env, jobject object, jlong handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin);
+static jint NS_SendData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size);
+static jint NS_ReceiveData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size, jint time);
 
 static JNINativeMethod gMethods[] = {
-    {"initSerial", "(I[BI)I",(void*)NS_Init},
-    {"uninitSerial", "(I)I",(void*)NS_UnInit},
-    {"setSerial", "(IIIBIII)I", (void*)NS_Set},
-	{"sendData", "(I[BI)I", (void*)NS_SendData},
-	{"receiveData", "(I[BII)I", (void*)NS_ReceiveData},
+    {"initSerial", "(I[BI)J",(void*)NS_Init},
+    {"uninitSerial", "(J)I",(void*)NS_UnInit},
+    {"setSerial", "(JIIBIII)I", (void*)NS_Set},
+	{"sendData", "(J[BI)I", (void*)NS_SendData},
+	{"receiveData", "(J[BII)I", (void*)NS_ReceiveData},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/device/Serial";
@@ -90,7 +90,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type)
+jlong NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type)
 {
 	char dev[256];
 	int error;
@@ -141,10 +141,10 @@ jint NS_Init(JNIEnv *env, jobject object, jint port, jbyteArray data, jint type)
 		return 0;
 	}
 
-	return (jint)engine;
+	return (jlong)engine;
 }
 
-jint NS_UnInit(JNIEnv *env, jobject object, jint handler)
+jint NS_UnInit(JNIEnv *env, jobject object, jlong handler)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 
@@ -159,7 +159,7 @@ jint NS_UnInit(JNIEnv *env, jobject object, jint handler)
 	return 0;
 }
 
-jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin)
+jint NS_Set(JNIEnv *env, jobject object, jlong handler, jint baud_rate, jint data_bits, jbyte parity, jint stop_bits, jint vtime, jint vmin)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 
@@ -171,7 +171,7 @@ jint NS_Set(JNIEnv *env, jobject object, jint handler, jint baud_rate, jint data
 	return 0;
 }
 
-jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size)
+jint NS_SendData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size)
 {
 #ifdef DEBUG
 	unsigned long cost = GTimeGet();
@@ -186,7 +186,7 @@ jint NS_SendData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jin
 	return 0;
 }
 
-jint NS_ReceiveData(JNIEnv *env, jobject object, jint handler, jbyteArray data, jint size, jint time)
+jint NS_ReceiveData(JNIEnv *env, jobject object, jlong handler, jbyteArray data, jint size, jint time)
 {
 	LPSERIAL engine = (LPSERIAL)handler;
 	int i;

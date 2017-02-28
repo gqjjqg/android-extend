@@ -221,7 +221,7 @@ int GLDrawInit(int mirror, int ori, int format)
 	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), engine->m_pFloatData);
 
 	LOGD("glesInit() --->");
-	return (int)engine;
+	return (long)engine;
 }
 
 int GLImageInit(int mirror, int ori, int format)
@@ -389,7 +389,7 @@ int GLImageInit(int mirror, int ori, int format)
 
 	LOGD("glesInit() --->");
 
-	return (int)engine;
+	return (long)engine;
 }
 
 void GLChanged(int handle, int w, int h)

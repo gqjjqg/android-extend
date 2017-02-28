@@ -247,7 +247,7 @@ int Close_Port(int fd)
 	return 0;
 }
 
-int Open_Video(int port)
+long Open_Video(int port)
 {
 	struct stat st;
 	struct v4l2_capability cap;
@@ -308,10 +308,10 @@ int Open_Video(int port)
 
 	handle->fcount = formatdesc.index;
 
-	return (int)handle;
+	return (long)handle;
 }
 
-int Set_Video(int engine, int width, int height, int f)
+int Set_Video(long engine, int width, int height, int f)
 {
 	int ret, i, j;
 
@@ -446,7 +446,7 @@ int Set_Video(int engine, int width, int height, int f)
 }
 
 
-int Read_Video(int engine, unsigned char * pFrameBuffer, int size)
+int Read_Video(long engine, unsigned char * pFrameBuffer, int size)
 {
 	struct v4l2_buffer buf;
 	unsigned int i;
@@ -491,7 +491,7 @@ int Read_Video(int engine, unsigned char * pFrameBuffer, int size)
 	return result;
 }
 
-int Close_Video(int engine)
+int Close_Video(long engine)
 {
 	unsigned int i;
 	enum v4l2_buf_type type;
@@ -519,7 +519,7 @@ int Close_Video(int engine)
 	return 0;
 }
 
-int Check_Format(int engine, unsigned int format)
+int Check_Format(long engine, unsigned int format)
 {
 	int i = 0;
 	LPV4L2_VIDEO handle = (LPV4L2_VIDEO) engine;
