@@ -40,8 +40,8 @@ public class TouchController  {
 					ev.getXPrecision(), ev.getYPrecision(), ev.getDeviceId(),
 					ev.getEdgeFlags());
 		} else {
-			MotionEvent.PointerProperties[] preo = new MotionEvent.PointerProperties[2];
-			MotionEvent.PointerCoords[] coor = new MotionEvent.PointerCoords[2];
+			MotionEvent.PointerProperties[] preo = new MotionEvent.PointerProperties[ev.getPointerCount()];
+			MotionEvent.PointerCoords[] coor = new MotionEvent.PointerCoords[ev.getPointerCount()];
 			for (int i = 0; i < ev.getPointerCount(); i++) {
 				preo[i] = new MotionEvent.PointerProperties();
 				coor[i] = new MotionEvent.PointerCoords();
