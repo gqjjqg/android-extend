@@ -168,7 +168,7 @@ public class HListView extends AbsHAdapterView {
 		mMaxDistanceX = mAdapter.getCount() * child.getMeasuredWidth() - getMeasuredWidth();
 		// add divider width.
 		mMaxDistanceX += ( mAdapter.getCount() - 1 ) * mDividerWidth;
-		
+		mMinDistanceX = 0;
 		mRecycledViewQueue.offer(child);
 		
 		mItemWidth = child.getMeasuredWidth();

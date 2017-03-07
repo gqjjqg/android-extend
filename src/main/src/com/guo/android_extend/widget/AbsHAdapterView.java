@@ -186,8 +186,9 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     int mOldCurrentX = 0;
 	int mCurrentX = 0;
 	int mNextPosX = 0;
+	int mMinDistanceX;
 	int mMaxDistanceX;
-	
+
     /**
 	 * use queue for cache the view.
 	 */
@@ -454,10 +455,6 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 	 * 
 	 * @param position
 	 *            The position to display
-	 * @param isScrap
-	 *            Array of at least 1 boolean, the first entry will become true
-	 *            if the returned view was taken from the scrap heap, false if
-	 *            otherwise.
 	 * 
 	 * @return A view displaying the data associated with the specified position
 	 */
@@ -638,7 +635,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
                 } else {
                 	if (checkOverScroll()) {
                 		mOverFlingRunnable = new OverFlingRunnable();
-    	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, 0, mMaxDistanceX, 0, 0);
+    	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, mMinDistanceX, mMaxDistanceX, 0, 0);
                 	} else {
                 		mTouchMode = TOUCH_MODE_REST;
                 		reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
@@ -734,14 +731,17 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
         		mTouchMode = TOUCH_MODE_OVERSCROLL;
         	}
         } else if (mTouchMode == TOUCH_MODE_OVERSCROLL) {
-        	float per;
-        	if (mNextPosX < 0) {
-        		int dst = mOverScrollDistance - Math.abs(mNextPosX);
+        	float per = 0.0f;
+        	if (mNextPosX < mMinDistanceX) {
+        		//int dst = mOverScrollDistance - Math.abs(mNextPosX);
+				int dst = mOverScrollDistance - (mMinDistanceX - mNextPosX);
         		per = (float)dst / (float)mOverScrollDistance;
-        	} else {
+        	} else if (mNextPosX > mMaxDistanceX){
         		int dst = mNextPosX - mMaxDistanceX;
         		per = (float)(mOverScrollDistance - dst) / (float)mOverScrollDistance;
-        	}
+        	} else {
+				throw new RuntimeException("exception from HListView TOUCH_MODE_OVERSCROLL");
+			}
         	
         	deltaX = (int) (deltaX * per);
         	
@@ -771,7 +771,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
      */
     protected boolean checkOverScroll() {
     	if (mEnableOverScroll) {
-	    	if (mNextPosX <= 0){
+	    	if (mNextPosX <= mMinDistanceX){
 				return true;
 			}
 			if (mNextPosX >= mMaxDistanceX) {
@@ -789,7 +789,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     	mEnableOverScroll = enable;
     	super.requestLayout();
     }
-    
+
     /**
      * 
      * @return
@@ -804,8 +804,8 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
      */
     protected boolean scrollSnap() {
     	boolean isEnd = false;
-    	if (mNextPosX <= -mOverScrollDistance){
-        	mNextPosX = -mOverScrollDistance;
+    	if (mNextPosX <= mMinDistanceX - mOverScrollDistance){
+        	mNextPosX = mMinDistanceX - mOverScrollDistance;
         	isEnd = true;
 		}
         
@@ -957,7 +957,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 	        	if (checkOverScroll()) {
 	        		mFlingRunnable.endFling();
 	        		mOverFlingRunnable = new OverFlingRunnable();
-	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, 0, mMaxDistanceX, 0, 0);
+	        		mOverFlingRunnable.startOverFling(mCurrentX, 0, mMinDistanceX, mMaxDistanceX, 0, 0);
 	        		return ;
 	        	}
 
@@ -975,7 +975,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 		
 		public void startFling(float velocityX, float velocityY) {
 			mTouchMode = TOUCH_MODE_FLING;
-			mScroller.fling(mNextPosX, 0, (int)-velocityX, 0, -mOverScrollDistance, mMaxDistanceX + mOverScrollDistance, 0, 0);
+			mScroller.fling(mNextPosX, 0, (int)-velocityX, 0, mMinDistanceX - mOverScrollDistance, mMaxDistanceX + mOverScrollDistance, 0, 0);
 			post(this);
 		}
 		
@@ -1111,7 +1111,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 	/**
      * Smoothly scroll to the specified adapter position. The view will
      * scroll such that the indicated position is displayed.
-     * @param position Scroll to this adapter position.
+     * @param x Scroll to this adapter position.
      * @param duration
      */
     public void scrollSmoothTo(int x, int duration) {
@@ -1126,7 +1126,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     /**
      * Smoothly scroll to the specified adapter position. The view will
      * scroll such that the indicated position is displayed.
-     * @param position Scroll to this adapter position.
+     * @param x Scroll to this adapter position.
      * 
      */
     public void scrollSmoothTo(int x) {
