@@ -155,6 +155,10 @@ jint NS_UnInit(JNIEnv *env, jobject object, jlong handler)
 	fclose(engine->pfile);
 #endif
 
+    if (engine->mHandle >= 0) {
+		Close_Port(engine->mHandle);
+	}
+
 	free(engine);
 	return 0;
 }

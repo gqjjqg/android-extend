@@ -112,14 +112,16 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
 
     jclass cls = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
     if (cls == NULL){
+		LOGI("FindClass");
         return JNI_ERR;
     }
 
     jint nRes = env->RegisterNatives(cls, gMethods, sizeof(gMethods)/sizeof(gMethods[0]));
     if (nRes < 0){
+		LOGI("RegisterNatives");
         return JNI_ERR;
     }
-
+	LOGI("video.so JNI_OnLoad");
     return JNI_VERSION_1_4;
 }
 
