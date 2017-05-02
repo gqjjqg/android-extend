@@ -68,6 +68,8 @@ public class GestureDetector {
 				count_translate = MAX_DETECTED_COUNT;
 				break;
 			case MotionEvent.ACTION_POINTER_DOWN:
+				sx = event.getX(0);
+				sy = event.getY(0);
 				ex = event.getX(1);
 				ey = event.getY(1);
 				mx = (sx + ex) / 2.0f;
@@ -123,6 +125,7 @@ public class GestureDetector {
 					}
 				} else if (touchMode == TOUCHMODE_ROTATE_RESTART) {
 					if (mGestureListener != null) {
+						mGestureListener.single_drag_prepare(event.getX(0), event.getY(0));
 						mGestureListener.single_drag_process(event.getX(0), event.getY(0));
 					}
 					touchMode = TOUCHMODE_ROTATE;
