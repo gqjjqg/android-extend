@@ -4,9 +4,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "image.h"
-
 #include "loger.h"
 
 typedef struct imageformat_t {
