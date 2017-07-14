@@ -28,7 +28,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	private boolean mMirror;
 	private boolean mDebugFPS;
 
-	private BlockingQueue<byte[]> mImageRenderBuffers;
+	private BlockingQueue<CameraFrameData> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
 	private OnRenderListener mOnRenderListener;
 	private OnDrawListener mOnDrawListener;
@@ -38,8 +38,8 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	}
 
 	public interface OnRenderListener {
-		public void onBeforeRender(byte[] data, int width, int height, int format);
-		public void onAfterRender(byte[] buffer);
+		public void onBeforeRender(CameraFrameData data);
+		public void onAfterRender(CameraFrameData data);
 	}
 
 	public CameraGLSurfaceView(Context context, AttributeSet attrs) {
@@ -77,14 +77,15 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		byte[] buffer = mImageRenderBuffers.poll();
-		if (buffer != null) {
+		CameraFrameData data = mImageRenderBuffers.poll();
+		if (data != null) {
+			byte[] buffer = data.mData;
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onBeforeRender(buffer, mWidth, mHeight, mFormat);
+				mOnRenderListener.onBeforeRender(data);
 			}
 			mGLES2Render.render(buffer, mWidth, mHeight);
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onAfterRender(buffer);
+				mOnRenderListener.onAfterRender(data);
 			}
 		}
 		if (mOnDrawListener != null) {
@@ -92,8 +93,8 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		}
 	}
 
-	public void requestRender(byte[] buffer) {
-		if (!mImageRenderBuffers.offer(buffer)) {
+	public void requestRender(CameraFrameData data) {
+		if (!mImageRenderBuffers.offer(data)) {
 			Log.e(TAG, "RENDER QUEUE FULL!");
 		} else {
 			requestRender();
@@ -130,6 +131,10 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 			mGLES2Render.setViewAngle(mMirror, degree);
 		}
 		return super.OnOrientationChanged(degree, offset, flag);
+	}
+
+	public GLES2Render getGLES2Render() {
+		return mGLES2Render;
 	}
 
 	public void debug_print_fps(boolean show) {

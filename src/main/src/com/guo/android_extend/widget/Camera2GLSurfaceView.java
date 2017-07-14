@@ -58,17 +58,6 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements ImageReade
 	private OnRenderListener mOnRenderListener;
 	private OnDrawListener mOnDrawListener;
 
-	// for semco
-	private static CaptureRequest.Key<Byte> BayerMonoLinkEnableKey;
-	private static CaptureRequest.Key<Byte> BayerMonoLinkMainKey;
-	private static CaptureRequest.Key<Integer> BayerMonoLinkSessionIdKey;
-
-	//static {
-	//	BayerMonoLinkEnableKey = new CaptureRequest.Key<Byte>("org.codeaurora.qcamera3.dualcam_link_meta_data.enable");
-	//	BayerMonoLinkMainKey = new CaptureRequest.Key<Byte>("org.codeaurora.qcamera3.dualcam_link_meta_data.is_main");
-	//	BayerMonoLinkSessionIdKey = new CaptureRequest.Key<Integer>("org.codeaurora.qcamera3.dualcam_link_meta_data.related_camera_id");
-	//}
-
 	private CameraDevice.StateCallback mCameraDeviceStateCallback = new CameraDevice.StateCallback() {
 
 		@Override
@@ -297,15 +286,6 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements ImageReade
 			}
 
 			mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
-			//if (mCameraDevice.getId() == "0") {
-			//	mPreviewBuilder.set(BayerMonoLinkEnableKey, Byte.valueOf((byte)1));
-			//	mPreviewBuilder.set(BayerMonoLinkMainKey, Byte.valueOf((byte)1));
-			//	mPreviewBuilder.set(BayerMonoLinkSessionIdKey, Integer.valueOf((byte)1));
-			//} else {
-			//	mPreviewBuilder.set(BayerMonoLinkEnableKey, Byte.valueOf((byte)1));
-			//	mPreviewBuilder.set(BayerMonoLinkMainKey, Byte.valueOf((byte)0));
-			//	mPreviewBuilder.set(BayerMonoLinkSessionIdKey, Integer.valueOf(0));
-			//}
 
 			camera.createCaptureSession(list, mSessionStateCallback, mHandler);
 		} catch (CameraAccessException e) {
