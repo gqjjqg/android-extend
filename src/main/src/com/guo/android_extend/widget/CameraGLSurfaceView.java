@@ -73,6 +73,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		mGLES2Render.setViewPort(width, height);
+		mGLES2Render.setViewAngle(mMirror, mDegree);
 	}
 
 	@Override
