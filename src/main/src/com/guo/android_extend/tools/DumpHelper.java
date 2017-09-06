@@ -25,6 +25,14 @@ public class DumpHelper extends AbsLoop {
 		public byte[] convert();
 	}
 
+	private class FinishData implements DataInterface {
+
+		@Override
+		public byte[] convert() {
+			return null;
+		}
+	}
+
 	/**
 	 *
 	 * @param tag	file name tag.
@@ -70,7 +78,12 @@ public class DumpHelper extends AbsLoop {
 		}
 		if (data != null) {
 			try {
-				out.write(data.convert());
+				byte[] real = data.convert();
+				if (real != null) {
+					out.write(real);
+				} else { // if real data is null, it's last data. should be close this thread.
+					break_loop();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -83,6 +96,29 @@ public class DumpHelper extends AbsLoop {
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void shutdown(boolean force) {
+		if (force) {
+			try {
+				writeQueue.put(new FinishData());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			super.shutdown();
+		} else {
+			try {
+				writeQueue.put(new FinishData());
+				if (this != Thread.currentThread()) {
+					synchronized (this) {
+						this.notifyAll();
+					}
+					this.join();
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

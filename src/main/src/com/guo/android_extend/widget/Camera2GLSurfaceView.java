@@ -50,6 +50,7 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 
 	public interface OnCameraListener {
 		public static final int EVENT_FOCUS_OVER = 0;
+		public static final int EVENT_CAMERA_ERROR = 0x1000;
 
 		public String[] chooseCamera(String[] cameras);
 
