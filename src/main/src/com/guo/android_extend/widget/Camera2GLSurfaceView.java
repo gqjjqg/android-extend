@@ -33,6 +33,8 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 	private boolean mMirror;
 	private boolean mDebugFPS;
 
+	private boolean mTouchFoucs;
+
 	private BlockingQueue<byte[]> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
 	private OnRenderListener mOnRenderListener;
@@ -96,14 +98,21 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 		mImageRenderBuffers = new LinkedBlockingQueue<>();
 		mCamera2Manager = new Camera2Manager(this.getContext());
 		mCamera2Manager.setOnDataListener(this);
+		mTouchFoucs = true;
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent ev) {
-		if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
-			mCamera2Manager.touchFocas(this, ev);
+		if (mTouchFoucs) {
+			if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+				mCamera2Manager.touchFocus(this, ev);
+			}
 		}
 		return super.onTouchEvent(ev);
+	}
+
+	public void setTouchFocus(boolean enable) {
+		mTouchFoucs = enable;
 	}
 
 	@Override
