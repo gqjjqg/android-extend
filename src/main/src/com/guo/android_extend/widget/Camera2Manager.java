@@ -85,6 +85,9 @@ public class Camera2Manager {
 					case CameraDevice.StateCallback.ERROR_MAX_CAMERAS_IN_USE : Log.d(TAG, "onError id:" + camera.getId() + ", ERROR_MAX_CAMERAS_IN_USE=" + error);break;
 					default:Log.d(TAG, "onError id:" + camera.getId() + ", code=" + error);;
 				}
+				if (mOnCameraListener != null) {// add image receiver.
+					mOnCameraListener.onCameraEvent(camera.getId(), error | Camera2GLSurfaceView.OnCameraListener.EVENT_CAMERA_ERROR);
+				}
 			}
 		};
 
@@ -228,12 +231,14 @@ public class Camera2Manager {
 		for (VirtualCamera camera : mVirtualCamera) {
 			camera.close();
 		}
-		mHandlerThread.quitSafely();
-		try {
-			mHandlerThread.join();
-			mHandlerThread = null;
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		if (mHandlerThread != null) {
+			mHandlerThread.quitSafely();
+			try {
+				mHandlerThread.join();
+				mHandlerThread = null;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
