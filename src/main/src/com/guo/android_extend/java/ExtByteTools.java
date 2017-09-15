@@ -17,10 +17,10 @@ public class ExtByteTools {
 	public static int convert_to_int(byte[] val) {
 		int size = 0;
 		if (val.length >= 4) {
-			size |= ((int) val[0] << 24);
-			size |= ((int) val[1] << 16);
-			size |= ((int) val[2] << 8);
-			size |= ((int) val[3] << 0);
+			size |= ((val[0] & 0xFF) << 24);
+			size |= ((val[1] & 0xFF) << 16);
+			size |= ((val[2] & 0xFF) << 8);
+			size |= ((val[3] & 0xFF) << 0);
 		}
 		return size;
 	}
