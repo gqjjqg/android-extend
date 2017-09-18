@@ -242,7 +242,7 @@ public class Camera2Manager {
 		}
 	}
 
-	public void touchFocas(View view, MotionEvent ev) {
+	public void touchFocus(View view, MotionEvent ev) {
 		if (mVirtualCamera != null) {
 			for (VirtualCamera camera : mVirtualCamera ) {
 
