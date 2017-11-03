@@ -8,17 +8,18 @@
 #ifndef JNI_IMAGE_IMAGE_H_
 #define JNI_IMAGE_IMAGE_H_
 
-#define CP_MJPEG		0xA000
-#define CP_PNG			0xB000
-#define CP_RGBA8888		1
-#define CP_RGB565		4
-#define CP_RGBA4444		7
-#define CP_ALPHA8		8
-#define CP_PAF_NV21		0x802
-#define CP_PAF_NV12		0x801
-#define CP_PAF_NV12		0x801
-#define CP_PAF_YUYV		0x501
-#define	CP_PAF_I420	    0x601
+#define CP_MJPEG        0xA000
+#define CP_PNG          0xB000
+#define CP_RGBA8888     1
+#define CP_RGB565       4
+#define CP_RGBA4444     7
+#define CP_ALPHA8       8
+#define CP_PAF_NV21     0x802
+#define CP_PAF_NV12     0x801
+#define CP_PAF_NV12     0x801
+#define CP_PAF_YUYV     0x501
+#define	CP_PAF_I420     0x601
+#define CP_PAF_BGR24    0x201
 
 #ifdef __cplusplus
 extern "C"{
@@ -36,6 +37,10 @@ void convert_565_NV12(unsigned char * p565, unsigned char *pNV21, int width, int
 void convert_565_NV21(unsigned char * p565, unsigned char *pNV21, int width, int height);
 void convert_YUYV_NV21(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
 void convert_YUYV_NV12(unsigned char * YUYV, unsigned char *pNV21, int width, int height);
+void convert_8888_BGR888(unsigned char * p8888, unsigned char *p888, int width, int height);
+void convert_565_BGR888(unsigned char * p565, unsigned char *p888, int width, int height);
+
+
 
 int calcImageSize(int width, int height, int format);
 

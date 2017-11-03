@@ -12,6 +12,8 @@
 int calcImageSize(int width, int height, int format)
 {
 	switch (format) {
+	case CP_PAF_BGR24 :
+		return width * height * 3;
 	case CP_PAF_NV21 :
 	case CP_PAF_NV12:
 		return width * height * 3 / 2;
@@ -27,6 +29,36 @@ int calcImageSize(int width, int height, int format)
 	return 0;
 }
 
+void convert_8888_BGR888(unsigned char * p8888, unsigned char *p888, int width, int height)
+{
+	unsigned char * pagb = p8888;
+	unsigned char *pbgr = (unsigned char *)p888;
+	int i, j, k;
+	for (i = 0, k = 0, j = 0; i < width * height; i++) {
+		unsigned short r = pagb[k]; k++;
+		unsigned short g = pagb[k]; k++;
+		unsigned short b = pagb[k]; k++;
+		k++;
+		pbgr[j] = b; j++;
+		pbgr[j] = g; j++;
+		pbgr[j] = r; j++;
+	}
+}
+
+void convert_565_BGR888(unsigned char * p565, unsigned char *p888, int width, int height)
+{
+	unsigned char * pagb = p888;
+	unsigned short *arg565_p = (unsigned short *)p565;
+	int i, k;
+	for (i = 0, k = 0; i < width * height; i++) {
+		unsigned char r = (unsigned char)(((arg565_p[i] >> 11) & 0x7) | (arg565_p[i] >> 8));
+		unsigned char g = (unsigned char)(((arg565_p[i] >> 5) & 0x3) | (arg565_p[i] >> 3));
+		unsigned char b = (unsigned char)((arg565_p[i] & 0x7) |( arg565_p[i] << 3));
+		pagb[k] = b; k++;
+		pagb[k] = g; k++;
+		pagb[k] = r; k++;
+	}
+}
 
 void convert_565_8888(unsigned char *p565, unsigned char * p8888, int width, int height)
 {

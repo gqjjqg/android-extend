@@ -14,6 +14,8 @@ public class ImageConverter {
 	public final static int CP_PAF_NV12 = 0x801;
 	public final static int CP_PAF_YUYV = 0x501;
 	public final static int CP_PAF_I420 = 0x601;
+	public final static int CP_PAF_BGR24 = 0x201;
+
 
 	private native int image_init(int width, int height, int format);
 	private native int image_convert(int handler, Bitmap bitmap, byte[] data);

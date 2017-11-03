@@ -96,6 +96,9 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	jclass jclsmain = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
 
 	switch (format) {
+	case CP_PAF_BGR24:
+		handle->pBuffer = (unsigned char *) malloc(width * height * 3);
+		break;
 	case CP_PAF_I420:
 	case CP_PAF_NV12:
 	case CP_PAF_NV21:
@@ -141,10 +144,14 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 		convert_8888_NV12(RGBAbase, engine->pBuffer, info.width, info.height);
 	} else if (info.format == CP_RGBA8888 && engine->format == CP_PAF_NV21) {
 		convert_8888_NV21(RGBAbase, engine->pBuffer, info.width, info.height);
+	} else if (info.format == CP_RGBA8888 && engine->format == CP_PAF_BGR24) {
+		convert_8888_BGR888(RGBAbase, engine->pBuffer, info.width, info.height);
 	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_NV12) {
 		convert_565_NV12(RGBAbase, engine->pBuffer, info.width, info.height);
 	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_NV21) {
 		convert_565_NV21(RGBAbase, engine->pBuffer, info.width, info.height);
+	} else if (info.format == CP_RGB565 && engine->format == CP_PAF_BGR24) {
+		convert_565_BGR888(RGBAbase, engine->pBuffer, info.width, info.height);
 	} else {
 		LOGI("format = %d\n", info.format);
 		ret = -1;
