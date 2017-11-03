@@ -158,7 +158,7 @@ public class HCSListView extends AdapterView<ListAdapter> {
 		public void OnScrollEnd(AdapterView<ListAdapter> adp, int pos);
 		public boolean OnDraging(AdapterView<ListAdapter> adp, float dx, float dy);
 		/**
-		 * @param adp
+		 * @param adp this view group
 		 * @return true if drag is not used.
 		 */
 		public boolean OnDragingOver(AdapterView<ListAdapter> adp);
@@ -898,7 +898,7 @@ public class HCSListView extends AdapterView<ListAdapter> {
 
 	/**
 	 * scroll to the position.
-	 * @param x
+	 * @param x position
 	 */
 	public void scrollTo(int x) {
 		synchronized(HCSListView.this) {
@@ -966,11 +966,11 @@ public class HCSListView extends AdapterView<ListAdapter> {
 	}
 
 	/**
-	 * @param e1
-	 * @param e2
-	 * @param velocityX
-	 * @param velocityY
-	 * @return
+	 * @param e1 motion 1
+	 * @param e2 motion 2
+	 * @param velocityX velocity x
+	 * @param velocityY velocity y
+	 * @return true
 	 */
 	protected boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 							  float velocityY) {

@@ -47,8 +47,8 @@ public class Sender extends AbsLoop {
 
     /**
      * post object for transmit
-     * @param object
-     * @return
+     * @param object sender object.
+     * @return success is true.
      */
     public boolean post(AbsTransmitter object) {
         boolean success = mTaskQueue.offer(object);
@@ -58,10 +58,6 @@ public class Sender extends AbsLoop {
         return success;
     }
 
-    /**
-     * set listener
-     * @param tl
-     */
     public void setOnSenderListener(OnSenderListener tl) {
         this.mOnSenderListener = tl;
     }

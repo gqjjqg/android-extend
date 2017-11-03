@@ -16,10 +16,9 @@ public abstract class BitmapMonitor<K, V> implements Runnable {
 	
 	protected OnMonitoring<K, V> mOnMonitoring;
 	/**
-	 * @author Guo
+	 * @author gqjjqg
 	 * check the queue, if it is contains the K.
-	 * 
-	 * @param <K>
+	 *
 	 */
 	public interface OnMonitoring<K, V> {
 		public boolean isUpdated(BitmapMonitor<K, V> monitor);
@@ -33,7 +32,6 @@ public abstract class BitmapMonitor<K, V> implements Runnable {
 	}
 	
 	/**
-	 * @note
 	 * in decodeImage, you need implements the decode bitmap.
 	 * and set the bitmap to member.
 	 * 
@@ -50,10 +48,9 @@ public abstract class BitmapMonitor<K, V> implements Runnable {
 	protected abstract Bitmap decodeImage();
 	
 	/**
-	 * @note 
 	 * this method is used to search in bitmap cache.
 	 * 
-	 * @return
+	 * @return the id.
 	 */
 	protected V getBitmapID() {
 		//TODO return the id.
@@ -72,17 +69,11 @@ public abstract class BitmapMonitor<K, V> implements Runnable {
 			freshBitmap(false);
 		}
 	}
-	
-	/**
-	 * @return
-	 */
+
 	public OnMonitoring<K, V> getOnMonitoring() {
 		return mOnMonitoring;
 	}
 
-	/**
-	 * @param mOnMonitoring
-	 */
 	public void setOnMonitoring(OnMonitoring<K, V> mOnMonitoring) {
 		this.mOnMonitoring = mOnMonitoring;
 	}

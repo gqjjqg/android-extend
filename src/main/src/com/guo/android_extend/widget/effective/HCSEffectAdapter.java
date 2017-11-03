@@ -269,8 +269,8 @@ public abstract class HCSEffectAdapter extends BaseAdapter implements HCSListVie
 
 	/**
 	 * delete memo animation.
-	 * @param adp
-	 * @param isOpen
+	 * @param adp this viewgroup
+	 * @param isOpen remove or not
 	 */
 	public void startDelAnimation(AdapterView<ListAdapter> adp, boolean isOpen) {
 		int ani_time = ANIMATION_DELETE_TIME * mCurY / mMaxY;
@@ -344,7 +344,7 @@ public abstract class HCSEffectAdapter extends BaseAdapter implements HCSListVie
 	}
 	
 	/**
-	 * @param adp
+	 * @param adp this viewgroup
 	 */
 	public void endDelXAnimation(AdapterView<ListAdapter> adp) {
 		int ani_time = ANIMATION_DELETE_TIME * mCurX / mMaxX;

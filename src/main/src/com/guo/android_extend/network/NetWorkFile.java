@@ -25,7 +25,7 @@ public class NetWorkFile {
 
     /**
      * get file name from url.
-     * @return
+     * @return remote file name
      */
     public synchronized String getRemoteFileName() {
         String fileName = null;
@@ -42,7 +42,7 @@ public class NetWorkFile {
 
     /**
      * get local file abstract path.
-     * @return
+     * @return local file path
      */
     public synchronized String getLocalFile() {
         String localFile = null;

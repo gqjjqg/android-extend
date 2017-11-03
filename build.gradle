@@ -1,9 +1,8 @@
 apply plugin: 'com.android.library'
 
 android {
-    publishNonDefault  true //this line
-    compileSdkVersion 24
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 10
@@ -55,4 +54,17 @@ dependencies {
 //tasks.withType(JavaCompile) {
 //    compileTask -> compileTask.dependsOn ndkBuild
 //}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:+"
+    }
+}
+
+apply from: 'bintray.gradle'
+
 

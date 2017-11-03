@@ -67,7 +67,7 @@ public class Serial {
 	 * @param stop_bits		1 2
 	 * @param vtime			1 (100ms), 0 (0ms)
 	 * @param vmin				255  (read buffer size.)
-	 * @return
+	 * @return if success is true.
 	 */
 	public boolean setConfig(int rate, int data_bits, byte parity, int stop_bits, int vtime, int vmin ) {
 		return 0 == setSerial(mHandle, rate, data_bits, parity, stop_bits, vtime, vmin);

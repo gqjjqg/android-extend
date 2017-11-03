@@ -38,7 +38,7 @@ public abstract class AbstractController implements OnTouchListener {
 	public abstract void afterDraw(Canvas canvas);
 	
 	/**
-	 * @param event
+	 * @param event the motion event.
 	 * @return distance between point 0 and point 1 
 	 */
 	protected float getDistance(MotionEvent event) {
@@ -48,7 +48,7 @@ public abstract class AbstractController implements OnTouchListener {
 	}
 
 	/**
-	 * @param event
+	 * @param event motion event.
 	 * @return get rotation between point 0 and point 1 
 	 */
 	protected float getRotation(MotionEvent event) {
@@ -57,19 +57,21 @@ public abstract class AbstractController implements OnTouchListener {
 	}
 	
 	/**
-	 * @param A
-	 * @param B
+	 * @param A point a
+	 * @param B point b
 	 * @return get rotation between point 0 and point 1 
 	 */
 	protected float getRotation(PointF A, PointF B) {
 		double radians = Math.atan2((A.y - B.y), (A.x - B.x));
 		return (float) Math.toDegrees(radians);
 	}
-	
+
 	/**
-	 * @param VA
-	 * @param VB
-	 * @return
+	 *
+	 * @param A point a
+	 * @param B point b
+	 * @param Center point center.
+	 * @return the degree of a center b.
 	 */
 	protected float getRotation(PointF A, PointF B, PointF Center) {
 		PointF VCA = new PointF(A.x - Center.x, A.y - Center.y);

@@ -122,13 +122,13 @@ public abstract class AbsTransmitter {
 
 	/**
 	 * use for send
-	 * @return
+	 * @return input stream
 	 */
 	public abstract DataInputStream getDataInputStream();
 
 	/**
 	 * use for recv
-	 * @return
+	 * @return output stream
 	 */
 	public abstract DataOutputStream getDataOutputStream();
 }

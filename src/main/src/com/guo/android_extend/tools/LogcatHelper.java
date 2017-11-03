@@ -1,5 +1,8 @@
 package com.guo.android_extend.tools;
 
+import android.content.Context;
+import android.os.Environment;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import android.content.Context;
-import android.os.Environment;
 
 
 public class LogcatHelper {
@@ -23,10 +23,10 @@ public class LogcatHelper {
 	private boolean isInitial;
 
 	/**
-	 * 
-	 * 初始化目录
-	 * 
-	 * */
+	 * initial log dir.
+	 * @param context the application/or activity context.
+	 * @param subPath dir in sdcard.
+	 */
 	public void setupLogPath(Context context, String subPath) {
 		if (!isInitial) {
 			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {

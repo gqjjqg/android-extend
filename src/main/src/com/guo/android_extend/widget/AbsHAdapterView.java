@@ -518,10 +518,10 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 
     /**
      * Analyzes the given motion event and if applicable triggers the
-     * appropriate callbacks on the {@link OnGestureListener} supplied.
+     * appropriate callbacks on the supplied.
      *
      * @param ev The current motion event.
-     * @return true if the {@link OnGestureListener} consumed the event,
+     * @return true if the consumed the event,
      *              else false.
      */
     @Override
@@ -767,7 +767,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     
     /**
      * check if next movement is out of range. return true.
-     * @return
+     * @return true or not
      */
     protected boolean checkOverScroll() {
     	if (mEnableOverScroll) {
@@ -783,7 +783,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     
     /**
      * 
-     * @param enable
+     * @param enable enable over scroll.
      */
     public void enableOverScroll(boolean enable) {
     	mEnableOverScroll = enable;
@@ -792,7 +792,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
 
     /**
      * 
-     * @return
+     * @return set is true or not.
      */
     public boolean isOverScrollEnable() {
     	return mEnableOverScroll;
@@ -801,6 +801,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     /**
      * mNextPosX : the next movement.
      * mCurrentX : the current position.
+	 * @return do success or not.
      */
     protected boolean scrollSnap() {
     	boolean isEnd = false;
@@ -828,7 +829,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     }
     
 	/**
-	 * @param offset
+	 * @param offset offset of the view.
 	 */
 	public void offsetChildrenLeftAndRight(int offset) {
 		final int count = getChildCount();
@@ -1112,7 +1113,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
      * Smoothly scroll to the specified adapter position. The view will
      * scroll such that the indicated position is displayed.
      * @param x Scroll to this adapter position.
-     * @param duration
+     * @param duration time flight
      */
     public void scrollSmoothTo(int x, int duration) {
     	if (mFlingRunnable != null) {
@@ -1137,7 +1138,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     /**
      *  When set to a non-zero value, the cache color hint indicates that this list is always drawn on top of a solid, single-color, opaque background
      *  Parameters:
-     * @param color
+     * @param color the hint color
      */
 	public void setCacheColorHint(int color) {
 		// TODO Auto-generated method stub

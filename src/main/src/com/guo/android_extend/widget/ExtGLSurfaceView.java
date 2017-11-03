@@ -12,8 +12,8 @@ import android.view.animation.RotateAnimation;
 import com.guo.android_extend.widget.controller.TouchController;
 
 /**
- * @Note create by gqjjqg,.
- *    easy to use opengl surface..
+ * create by gqjjqg,.
+ * easy to use opengl surface..
  */
 
 public class ExtGLSurfaceView extends GLSurfaceView implements ExtOrientationDetector.OnOrientationListener {
@@ -159,10 +159,6 @@ public class ExtGLSurfaceView extends GLSurfaceView implements ExtOrientationDet
 		return super.dispatchTouchEvent(newEvent);
 	}
 
-	/**
-	 * set listener
-	 * @param listener
-	 */
 	public void setOnDispatchTouchEventListener(TouchController.OnDispatchTouchEventListener listener) {
 		mOnDispatchTouchEventListener = listener;
 	}

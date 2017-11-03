@@ -21,8 +21,8 @@ import com.guo.android_extend.widget.controller.AbstractController.ControllerLis
  * @author gqj3375
  * @see ExtImageButton
  * 
- * @support rotatable and scalable.
- * @note background will not rotate and scale .
+ * rotatable and scalable.
+ * background will not rotate and scale .
  */
 
 public class ExtImageView extends ImageView implements ControllerListener, OnOrientationListener, AnimationListener {
@@ -176,7 +176,7 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	}
 
 	/**
-	 * @param isEnable
+	 * @param isEnable enable scale.
 	 */
 	public void enableScale(boolean isEnable) {
 		isEnableScale = isEnable;
@@ -184,8 +184,9 @@ public class ExtImageView extends ImageView implements ControllerListener, OnOri
 	
 	/**
 	 * set scale percent.
-	 * @param sx
-	 * @param sy
+	 * @param sx scale x
+	 * @param sy scale y
+	 * @return  set ok is true.
 	 */
 	public boolean setScale(float sx, float sy) {
 		if (isEnableScale) {

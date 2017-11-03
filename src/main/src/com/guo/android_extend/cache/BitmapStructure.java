@@ -15,50 +15,26 @@ public class BitmapStructure {
 		mFormat = -1;
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
 	public Config getConfig() {
 		return NativeFormat2Config(mFormat);
 	}
-	
-	/**
-	 * 
-	 * @param config
-	 */
+
 	public void setConfig(Config config) {
 		mFormat = Config2NativeFormat(config);
 	}
-	
-	/**
-	 * 
-	 * @param width
-	 * @param height
-	 * @param format
-	 */
+
 	public void setInfo(int width, int height, int format) {
 		this.mWidth = width;
 		this.mHeight = height;
 		this.mFormat = format;
 	}
-	
-	/**
-	 * 
-	 * @param width
-	 * @param height
-	 * @param config
-	 */
+
 	public void setInfo(int width, int height, Config config) {
 		this.mWidth = width;
 		this.mHeight = height;
 		this.mFormat = Config2NativeFormat(config);
 	}
-	
-	/**
-	 * 
-	 * @return Bitmap
-	 */
+
 	public Bitmap createBitmap() {
 		return Bitmap.createBitmap(mWidth, mHeight, getConfig());
 	}
@@ -75,8 +51,8 @@ public class BitmapStructure {
 
 	/**
 	 * convert bitmap config to native bitmap format.  
-	 * @param config
-	 * @return
+	 * @param config the iamge format config.
+	 * @return format value.
 	 */
 	public static int Config2NativeFormat(Config config) {
 		switch (config) {
@@ -91,8 +67,8 @@ public class BitmapStructure {
 	
 	/**
 	 * convert native bitmap format to bitmap config
-	 * @param format
-	 * @return
+	 * @param format format value.
+	 * @return config format.
 	 */
 	public static Config NativeFormat2Config(int format) {
 		switch (format) {
