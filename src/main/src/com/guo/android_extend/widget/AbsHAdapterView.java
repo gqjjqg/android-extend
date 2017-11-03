@@ -693,8 +693,7 @@ public abstract class AbsHAdapterView extends AdapterView<ListAdapter> {
     		final View child = getChildAt(i);
 			if (child.getVisibility() == View.VISIBLE) {
 				if (child.getLeft() < x && x < child.getRight()) {
-					if (this.getTop() + this.mListPadding.top < y
-							&& y < this.getBottom() - this.mListPadding.bottom) {
+					if (this.mListPadding.top < y && y < this.getHeight() - this.mListPadding.bottom) {
 						return mFirstPosition + i;
 					}
 				}
