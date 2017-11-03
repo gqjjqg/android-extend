@@ -1,13 +1,13 @@
 package com.guo.android_extend.device;
 
-import java.util.LinkedList;
-
-import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.tools.FrameHelper;
-import com.guo.android_extend.image.ImageConverter;
-
 import android.os.Handler;
 import android.os.Message;
+
+import com.guo.android_extend.image.ImageConverter;
+import com.guo.android_extend.java.AbsLoop;
+import com.guo.android_extend.tools.FrameHelper;
+
+import java.util.LinkedList;
 
 public class VideoClient extends AbsLoop {
 	private final String TAG = this.getClass().getSimpleName();
@@ -30,9 +30,9 @@ public class VideoClient extends AbsLoop {
 	public interface OnCameraListener {
 		/**
 		 *
-		 * @param data
-		 * @param size
-		 * @param camera
+		 * @param data image data.
+		 * @param size data size.
+		 * @param camera camera id.
 		 */
 		public void onPreview(byte[] data, int size, int camera);
 	}
@@ -69,7 +69,7 @@ public class VideoClient extends AbsLoop {
 	
 	/**
 	 * @see ImageConverter
-	 * @param format
+	 * @param format image format.
 	 */
 	public void setPreviewFormat(int format) {
 		mFormat = format;

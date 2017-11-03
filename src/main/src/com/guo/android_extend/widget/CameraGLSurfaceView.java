@@ -16,8 +16,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * @Note create by gqjjqg,.
- *    easy to use opengl surface..
+ * create by gqjjqg,.
+ * easy to use opengl surface..
  */
 
 public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceView.Renderer {

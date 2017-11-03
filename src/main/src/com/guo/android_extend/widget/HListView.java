@@ -392,7 +392,7 @@ public class HListView extends AbsHAdapterView {
 
     /**
      * Sets the drawable that will be drawn between each item in the list. If the drawable does
-     * not have an intrinsic height, you should also call {@link #setDividerHeight(int)}
+     * not have an intrinsic height, you should also call }
      *
      * @param divider The drawable to use.
      */
@@ -434,7 +434,7 @@ public class HListView extends AbsHAdapterView {
      * Sets the height of the divider that will be drawn between each item in the list. Calling
      * this will override the intrinsic height as set by {@link #setDivider(Drawable)}
      *
-     * @param height The new height of the divider in pixels.
+     * @param width The new height of the divider in pixels.
      */
     public void setDividerWidth(int width) {
     	mDividerWidth = width;
@@ -643,7 +643,6 @@ public class HListView extends AbsHAdapterView {
      * {@link #onScrollChanged(int, int, int, int)} and the view will be
      * invalidated.
      * @param x the x position to scroll to
-     * @param y the y position to scroll to
      */
     public void scrollTo(int x) {
     	resetList();
@@ -666,8 +665,7 @@ public class HListView extends AbsHAdapterView {
      * Move the scrolled position of your view. This will cause a call to
      * {@link #onScrollChanged(int, int, int, int)} and the view will be
      * invalidated.
-     * @param x the amount of pixels to scroll by horizontally
-     * @param y the amount of pixels to scroll by vertically
+     * @param deltaX the amount of pixels to scroll by horizontally
      */
     public void scrollBy(int deltaX) {
     	scrollTo(mNextPosX + deltaX);
@@ -684,11 +682,7 @@ public class HListView extends AbsHAdapterView {
     public int getScroll() {
     	return mCurrentX;
     }
-	
-	/**
-	 * 
-	 * @param position
-	 */
+
 	public void scrollToItem(int position) {
 		if (super.mAdapter == null) {
 			return ;
@@ -706,11 +700,7 @@ public class HListView extends AbsHAdapterView {
 			}
 		}
     }
-	
-	/**
-	 * @param position
-	 * @param duration
-	 */
+
 	public void scrollSmoothToItem(int position, int duration) {
 		if (this.isShown()) {
 			final int x = position * (mItemWidth + mDividerWidth);
@@ -720,11 +710,7 @@ public class HListView extends AbsHAdapterView {
 					+ "While it's not shown!");
 		}
 	}
-	
-	/**
-	 * @param position
-	 * @param duration
-	 */
+
 	public void scrollSmoothToItem(int position) {
 		if (this.isShown()) {
 			final int x = position * (mItemWidth + mDividerWidth);

@@ -16,8 +16,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * @Note create by gqjjqg,.
- *    easy to use camera.
+ * create by gqjjqg,.
+ * easy to use camera.
  */
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback, CameraGLSurfaceView.OnRenderListener {
 	private final String TAG = this.getClass().getSimpleName();
@@ -32,30 +32,32 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	public interface OnCameraListener {
 		/**
 		 * setup camera.
-		 * @return
+		 * @return the camera
 		 */
 		public Camera setupCamera();
 
 		/**
 		 * reset on surfaceChanged.
-		 * @param format
-		 * @param width
-		 * @param height
+		 * @param format image format.
+		 * @param width width
+		 * @param height height.
 		 */
 		public void setupChanged(int format, int width, int height);
 
 		/**
 		 * start preview immediately, after surfaceCreated
-		 * @return
+		 * @return true or false.
 		 */
 		public boolean startPreviewLater();
 
 		/**
 		 * on ui thread.
-		 * @param data
-		 * @param width
-		 * @param height
-		 * @param format
+		 * @param data image data
+		 * @param width  width
+		 * @param height height
+		 * @param format format
+		 * @param timestamp time stamp
+		 * @return image params.
 		 */
 		public Object onPreview(byte[] data, int width, int height, int format, long timestamp);
 

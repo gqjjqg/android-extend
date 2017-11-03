@@ -31,6 +31,7 @@ public abstract class Downloader<T> extends NetWorkFile implements Runnable {
         /**
          *  current view is need fresh with this bitmap.
          * @param isSuccess the view is update to set another bitmap.
+         * @param content  downloader object.
          */
         public void onFinish(Downloader<?> content, boolean isSuccess);
     }
@@ -42,9 +43,6 @@ public abstract class Downloader<T> extends NetWorkFile implements Runnable {
 
     public T getID() {return mID;}
 
-    /**
-     * @param mOnMonitoring
-     */
     final public void setOnMonitoring(OnMonitoring mOnMonitoring) {
         this.mOnMonitoring = mOnMonitoring;
     }

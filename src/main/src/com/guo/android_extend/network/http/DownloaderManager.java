@@ -28,10 +28,6 @@ public class DownloaderManager<T> implements Downloader.OnMonitoring {
         mThreadPool = Executors.newFixedThreadPool(mMaxTask);
     }
 
-    /**
-     * @param downloader
-     * @return
-     */
     public boolean postDownload(Downloader<T> downloader) {
         if (mThreadPool.isShutdown()) {
             Log.e(TAG, "already shutdown");

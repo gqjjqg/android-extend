@@ -21,8 +21,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * @Note create by gqjjqg,.
- *    easy to use opengl surface..
+ * create by gqjjqg,.
+ * easy to use opengl surface..
  */
 public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceView.Renderer, Camera2Manager.OnDataListener {
 	private final String TAG = this.getClass().getSimpleName();
@@ -60,16 +60,19 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 
 		/**
 		 * on ui thread.
-		 * @param data
-		 * @param width
-		 * @param height
-		 * @param format
+		 * @param id camera id.
+		 * @param data image data.
+		 * @param width width
+		 * @param height height
+		 * @param format  format
+		 * @param timestamp  time stamp.
+		 * @return shown or not.
 		 */
 		public boolean onPreview(String id, byte[] data, int width, int height, int format, long timestamp);
 
 		/**
-		 * @param id
-		 * @param event
+		 * @param id camera id.
+		 * @param event camera event.
 		 */
 		public void onCameraEvent(String id, int event);
 

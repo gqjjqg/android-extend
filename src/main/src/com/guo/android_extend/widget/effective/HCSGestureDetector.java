@@ -24,31 +24,35 @@ public class HCSGestureDetector extends GestureDetector {
 	public interface OnCustomGestureListener extends OnGestureListener, OnDoubleTapListener{
 		/**
 		 * detected page turn. double finger move with the same direction.
-		 * @param direction
-		 * @param ev
+		 * @param direction direction
+		 * @param ev motion event
 		 */
 		void OnDoubleFingerStartScroll(MotionEvent ev, int direction);
 		/**
 		 * detected page turn. double finger move with the different direction.
-		 * @param ev
+		 * @param ev motion event
 		 */
 		void OnDoubleFingerStartZoom(MotionEvent ev);
 		
 		/**
 		 * detected second finger down.
-		 * @param ev
+		 * @param ev motion event
 		 */
 		void OnDoubleFingerDown(MotionEvent ev);
 		
 		/**
 		 * detected finger from edge in screen.
-		 * @param ev
+		 * @param ev motion event
+		 * @param direction direction
 		 */
 		void OnSingleFingerEdgeIn(MotionEvent ev, int direction);
 		
 		/**
-		 * @param ev
-		 * @param direction
+		 * @param ev motion event
+		 * @param direction  direction
+		 * @param dx point x
+		 * @param dy point y
+		 * @return do next action or not.
 		 */
 		boolean OnSingleFingerDrag(MotionEvent ev, int direction, float dx, float dy);
 	}
@@ -217,7 +221,7 @@ public class HCSGestureDetector extends GestureDetector {
 	}
 	
 	/**
-	 * @param point
+	 * @param event motion event
 	 * @return 取手势中心点
 	 */
 	public PointF getMiddlePoint(MotionEvent event) {
@@ -229,7 +233,7 @@ public class HCSGestureDetector extends GestureDetector {
 	
 	/**
 	 * 判断point 位置。
-	 * @param p1
+	 * @param p1 point in
 	 * @return LEFT, TOP, RIGHT, BOTTOM, UNKNOWN.
 	 */
 	public int getEdgeIn(PointF p1) {

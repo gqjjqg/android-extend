@@ -65,9 +65,9 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	 */
 	public interface OnOrientationListener {
 		/**
-		 * @param degree
-		 * @param offset
-		 * @param flag
+		 * @param degree degree
+		 * @param offset offset
+		 * @param flag flag
 		 * @return true is visible and done.
 		 */
 		boolean OnOrientationChanged(int degree, int offset, int flag);
@@ -243,7 +243,7 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	
 	/**
 	 * add receiver.
-	 * @param obj
+	 * @param obj the orientation obj
 	 * @return true if success.
 	 */
 	public boolean addReceiver(OnOrientationListener obj) {
@@ -258,8 +258,8 @@ public class ExtOrientationDetector extends OrientationEventListener {
 	
 	/**
 	 * remove receiver.
-	 * @param obj
-	 * @return
+	 * @param obj orientation obj
+	 * @return success is true.
 	 */
 	public boolean removeReceiver(OnOrientationListener obj) {
 		synchronized (mObjectes) {

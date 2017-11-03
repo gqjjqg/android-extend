@@ -1,9 +1,6 @@
 package com.guo.android_extend.network.socket;
 
-import android.util.Log;
-
 import java.io.File;
-import java.util.concurrent.Executors;
 
 /**
  * Created by gqj3375 on 2015/12/22.
@@ -42,8 +39,8 @@ public class SocketModule {
 
 	/**
 	 * connect to other client
-	 * @param ip
-	 * @param port
+	 * @param ip target ip
+	 * @param port target port
 	 */
 	public void connect(String ip, int port) {
 		mIP = ip;
@@ -68,9 +65,9 @@ public class SocketModule {
 
 	/**
 	 * 发送byte数据
-	 * @param data
-	 * @param length
-	 * @return
+	 * @param data data
+	 * @param length length
+	 * @return ok or not
 	 */
 	public boolean send(byte[] data, int length) {
 		if (mSocketClient != null) {
@@ -81,8 +78,8 @@ public class SocketModule {
 
 	/**
 	 * 发送文件
-	 * @param file
-	 * @return
+	 * @param file local file path.
+	 * @return ok or not
 	 */
 	public boolean send(String file) {
 		if (mSocketClient != null) {

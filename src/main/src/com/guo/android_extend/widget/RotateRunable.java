@@ -26,9 +26,9 @@ public class RotateRunable implements Runnable {
 	/**
 	 * @deprecated param relayout not working.
 	 * 
-	 * @param animation
-	 * @param v
-	 * @param degree
+	 * @param animation animation
+	 * @param v the animation view.
+	 * @param degree rotate degree.
 	 * @param relayout not working.
 	 */
 	public RotateRunable(Animation animation, View v, int degree, boolean relayout) {
@@ -37,12 +37,7 @@ public class RotateRunable implements Runnable {
 		mAnimation = animation;
 		mContextView = v;
 	}
-	
-	/**
-	 * @param animation
-	 * @param v
-	 * @param degree
-	 */
+
 	public RotateRunable(Animation animation, View v, int degree) {
 		super();
 		// TODO Auto-generated constructor stub

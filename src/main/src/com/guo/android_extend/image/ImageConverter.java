@@ -34,10 +34,10 @@ public class ImageConverter {
 	
 	/**
 	 * 
-	 * @param width
-	 * @param height
+	 * @param width convert image width
+	 * @param height convert image height
 	 * @param format  target to convert.
-	 * @return
+	 * @return success is true.
 	 */
 	public boolean initial(int width, int height, int format) {
 		handle = image_init(width, height, format);

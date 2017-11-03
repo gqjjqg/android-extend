@@ -1,6 +1,5 @@
 package com.guo.android_extend.widget;
 
-import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Handler;
@@ -8,16 +7,18 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageButton;
+
+import com.guo.android_extend.widget.ExtOrientationDetector.OnOrientationListener;
 
 /**
  * @author gqj3375
  * @see ExtImageButton
  * 
- * @support rotatable and scalable.
- * @note background will not rotate and scale .
+ * rotatable and scalable.
+ * background will not rotate and scale .
  */
 
 public class ExtImageButton extends ImageButton implements OnOrientationListener, AnimationListener {
@@ -128,8 +129,8 @@ public class ExtImageButton extends ImageButton implements OnOrientationListener
 
 	/**
 	 * set scale percent.
-	 * @param sx
-	 * @param sy
+	 * @param sx scale x
+	 * @param sy scale y
 	 */
 	public void setScale(float sx, float sy) {
 		scaleX = sx;

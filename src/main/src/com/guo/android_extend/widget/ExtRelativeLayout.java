@@ -156,26 +156,18 @@ public class ExtRelativeLayout extends RelativeLayout implements OnOrientationLi
 	
 	/**
 	 * set scale percent.
-	 * @param sx
-	 * @param sy
+	 * @param sx scale x
+	 * @param sy scale y
 	 */
 	public void setScale(float sx, float sy) {
 		scaleX = sx;
 		scaleY = sy;
 	}
 
-	/**
-	 *
-	 * @param controller
-	 */
 	public void setTouchControllerListener(TouchController controller) {
 		mTouchController = controller;
 	}
 
-	/**
-	 * set listener
-	 * @param listener
-	 */
 	public void setOnDispatchTouchEventListener(TouchController.OnDispatchTouchEventListener listener) {
 		mOnDispatchTouchEventListener = listener;
 	}

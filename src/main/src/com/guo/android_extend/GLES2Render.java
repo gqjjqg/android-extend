@@ -1,6 +1,5 @@
 package com.guo.android_extend;
 
-import android.graphics.Color;
 import android.graphics.Rect;
 
 public class GLES2Render {
@@ -17,14 +16,7 @@ public class GLES2Render {
 	}
 	
 	private long handle;
-	
-	/**
-	 * @see ImageConverter
-	 * @param mirror
-	 * @param degree
-	 * @param format
-	 * @param showFPS
-	 */
+
 	public GLES2Render(boolean mirror, int degree, int format, boolean showFPS) {
 		// TODO Auto-generated constructor stub
 		handle = render_init(mirror ? 1 : 0, degree, format, showFPS ? 1 : 0);

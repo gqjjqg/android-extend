@@ -472,11 +472,7 @@ public class ImageController extends AbstractController {
 		}
 		scaleTo(mScales[mCurLevel]);
 	}
-	
-	/**
-	 * 
-	 * @param event
-	 */
+
 	protected void doTouchDown(MotionEvent event) {
 		mCurrentDownEvent = MotionEvent.obtain(event);  
 		
@@ -487,11 +483,7 @@ public class ImageController extends AbstractController {
 		mCurOffsetY = mMotionOffsetY;
 		mMode = MODE.PRE_DRAG;
 	}
-	
-	/**
-	 * 
-	 * @param event
-	 */
+
 	protected void doScalePre(MotionEvent event) {
 		mPreDistance = getDistance(event);
 		mCurPointMidd.set(super.mListener.getCenterPoint());
@@ -499,11 +491,7 @@ public class ImageController extends AbstractController {
 		mScales[0] = mCurScale;
 		mMode = MODE.SCALE;
 	}
-	
-	/**
-	 * 
-	 * @param event
-	 */
+
 	protected void doScale(MotionEvent event) {
 		mCurScale = mScales[0] * getDistance(event) / mPreDistance;
 
@@ -534,11 +522,7 @@ public class ImageController extends AbstractController {
 			mMode = MODE.IDEL;
 		}
 	}
-	
-	/**
-	 * 
-	 * @param event
-	 */
+
 	protected void doDrag(MotionEvent event) {
 		mMotionOffsetX = mCurOffsetX + event.getX(0) - mCurPointDown.x;
 		mMotionOffsetY = mCurOffsetY + event.getY(0) - mCurPointDown.y;
@@ -566,7 +550,7 @@ public class ImageController extends AbstractController {
 	}
 	/**
 	 * scale to with animation.
-	 * @param scale
+	 * @param scale target scale vale.
 	 */
 	public void scaleTo(float scale) {
 		//TODO check if current scale is scale down or up.

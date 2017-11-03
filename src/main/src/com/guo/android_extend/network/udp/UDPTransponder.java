@@ -93,6 +93,7 @@ public class UDPTransponder {
 
 	/**
 	 * 局域网广播
+	 * @return true or not.
 	 */
 	public boolean broadcastLAN() {
 		try {

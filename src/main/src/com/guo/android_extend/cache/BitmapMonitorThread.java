@@ -1,13 +1,13 @@
 package com.guo.android_extend.cache;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import android.os.Handler;
+import android.util.Log;
 
 import com.guo.android_extend.cache.BitmapMonitor.OnMonitoring;
 
-import android.os.Handler;
-import android.util.Log;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K, V> {
 	private final String TAG = this.getClass().toString();
@@ -28,10 +28,6 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 		mPause = false;
 	}
 
-    /**
-     *
-     * @param monitor
-     */
 	public void postLoadBitmap(BitmapMonitor<K, V> monitor) {
         monitor.setOnMonitoring(this);
 		synchronized(mWidgetMap) {
@@ -43,9 +39,9 @@ public class BitmapMonitorThread<K, V> extends Thread implements OnMonitoring<K,
 	}
 	
 	/**
-	 * @note pause the thread.
-	 * 
-	 * @param sync
+	 * pause the thread.
+	 * @param sync is sync or not
+	 * @return  success or not.
 	 */
 	public boolean pause(boolean sync) {
 		this.mPause = true;
