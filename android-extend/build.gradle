@@ -1,0 +1,70 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0.5"
+
+        sourceSets.main {
+            jniLibs.srcDirs = ['src/main/libs']
+            //jni.srcDirs = ['src/main/jni']
+            //jni.srcDirs = []
+            java.srcDirs = ['src/main/src']
+        }
+        ndk {
+            abiFilters "armeabi-v7a", "armeabi"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            jniDebuggable true
+        }
+    }
+    productFlavors {
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+}
+
+//task ndkBuild(type: Exec) {
+//    def ndkBuildPath = 'ndk-build.cmd'
+//    println 'NDK-BUILD:'
+//    commandLine ndkBuildPath,                           // <-- Use this one instead
+//            'NDK_PROJECT_PATH=src/main',
+//            'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+//            'NDK_APPLICATION_MK=src/main/jni/Application.mk'
+//}
+//
+//tasks.withType(JavaCompile) {
+//    compileTask -> compileTask.dependsOn ndkBuild
+//}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:+"
+    }
+}
+
+apply from: 'bintray.gradle'
+
+
