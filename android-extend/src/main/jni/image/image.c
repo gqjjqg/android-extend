@@ -162,7 +162,7 @@ void convert_8888_NV21(unsigned char * p8888, unsigned char *pNV12, int width, i
 
 	for (j = 0; j < height; j++) {
 		pY = pNV12 + j * width;
-		pCrCb = pNV12 + (width * height) + ((j >> 1)) * width;
+		pCrCb = pNV12 + (width * height) + (j >> 1) * width;
 		for (i = 0; i < width; i++) {
 			unsigned char R = *p8888;
 			unsigned char G = *(p8888 + 1);

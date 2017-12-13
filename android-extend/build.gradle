@@ -17,7 +17,7 @@ android {
             java.srcDirs = ['src/main/src']
         }
         ndk {
-            abiFilters "armeabi-v7a", "armeabi"
+            abiFilters "armeabi-v7a"
         }
     }
     buildTypes {

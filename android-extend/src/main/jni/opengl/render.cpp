@@ -161,7 +161,7 @@ int GLDrawInit(int mirror, int ori, int format)
 	GLuint	fragmentShader;
 	GLint	linked;
 
-	LOGD("glesInit() <--- format = %d", format);
+	LOGD("GLDrawInit glesInit() <--- format = %d", format);
 
 	engine = (LPOPENGLES)malloc(sizeof(OPENGLES));
 	engine->m_hProgramObject		= 0;
@@ -172,8 +172,12 @@ int GLDrawInit(int mirror, int ori, int format)
 
 	vertexShader = LoadShader(GL_VERTEX_SHADER, pVertexShaderStrMatrix); //
 	fragmentShader = LoadShader(GL_FRAGMENT_SHADER, pFragmentShaderColor);
-
+	LOGD("GLDrawInit glCreateProgram");
 	engine->m_hProgramObject = glCreateProgram();
+    if (0 == engine->m_hProgramObject) {
+        LOGE("create programObject failed");
+        return 0;
+    }
 
 	glAttachShader(engine->m_hProgramObject, vertexShader);
 	glAttachShader(engine->m_hProgramObject, fragmentShader);
@@ -182,12 +186,13 @@ int GLDrawInit(int mirror, int ori, int format)
 
 	glLinkProgram(engine->m_hProgramObject);
 
-	LOGD("glLinkProgram");
+	LOGD("GLDrawInit glLinkProgram");
 
 	glGetProgramiv( engine->m_hProgramObject, GL_LINK_STATUS, &linked);
+	LOGD("GLDrawInit glGetProgramiv");
 	if (0 == linked) {
-		GLint	infoLen = 0;
-		LOGE("link failed");
+		GLint infoLen = 0;
+		LOGE("GLDrawInit link failed");
 		glGetProgramiv( engine->m_hProgramObject, GL_INFO_LOG_LENGTH, &infoLen);
 
 		if (infoLen > 1) {
@@ -201,6 +206,7 @@ int GLDrawInit(int mirror, int ori, int format)
 		}
 
 		glDeleteProgram( engine->m_hProgramObject);
+        LOGE("GLDrawInit link failed -> out");
 		return 0;
 	}
 
@@ -231,7 +237,7 @@ int GLImageInit(int mirror, int ori, int format)
 	GLuint	fragmentShader;
 	GLint	linked;
 
-	LOGD("glesInit() <--- format = %d", format);
+	LOGD("GLImageInit glesInit() <--- format = %d", format);
 
 	engine = (LPOPENGLES)malloc(sizeof(OPENGLES));
 	engine->m_hProgramObject		= 0;
@@ -287,6 +293,7 @@ int GLImageInit(int mirror, int ori, int format)
 		}
 
 		glDeleteProgram( engine->m_hProgramObject);
+        LOGE("link failed -> out");
 		return 0;
 	}
 
@@ -395,64 +402,80 @@ int GLImageInit(int mirror, int ori, int format)
 void GLChanged(int handle, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
-	LOGD("glesChanged(%d, %d) <---", w, h);
-	engine->m_bTexInit = -1;
-	glViewport(0, 0, w, h);
-	LOGD("glesChanged() --->");
+    LOGD("glesChanged(%d, %d) %x<---", w, h, handle);
+    if (engine != NULL) {
+        engine->m_bTexInit = -1;
+        glViewport(0, 0, w, h);
+    }
+    LOGD("glesChanged() --->");
 }
 
 void GLChangedAngle(int handle, int mirror, int ori)
 {
     LPOPENGLES engine = (LPOPENGLES)handle;
     LOGD("GLChangedAngle(%d, %d) <---", mirror, ori);
-    engine->m_bMirror				= mirror;
-    engine->m_nDisplayOrientation	= ori;
+	if (engine != NULL) {
 
-    GLfloat vScale = 1.0;
-	GLfloat vVertices[] = { -vScale,  vScale, 0.0f, //1.0f,  // Position 0
-                            -vScale, -vScale, 0.0f, //1.0f, // Position 1
-                             vScale, -vScale, 0.0f, //1.0f, // Position 2
-                             vScale,  vScale, 0.0f, //1.0f,  // Position 3
-                         };
+		engine->m_bMirror = mirror;
+		engine->m_nDisplayOrientation = ori;
 
-	GLfloat tCoords[] = {0.0f,  0.0f,
-						 0.0f,  1.0f,
-						 1.0f,  1.0f,
-						 1.0f,  0.0f};
+		GLfloat vScale = 1.0;
+		GLfloat vVertices[] = {-vScale, vScale, 0.0f, //1.0f,  // Position 0
+							   -vScale, -vScale, 0.0f, //1.0f, // Position 1
+							   vScale, -vScale, 0.0f, //1.0f, // Position 2
+							   vScale, vScale, 0.0f, //1.0f,  // Position 3
+		};
 
-	int degree = 0;
-	while (engine->m_nDisplayOrientation > degree) {
-		GLfloat temp[2];
-		degree += 90;
-		temp[0] = tCoords[0]; temp[1] = tCoords[1];
-		tCoords[0] = tCoords[2]; tCoords[1] = tCoords[3];
-		tCoords[2] = tCoords[4]; tCoords[3] = tCoords[5];
-		tCoords[4] = tCoords[6]; tCoords[5] = tCoords[7];
-		tCoords[6] = temp[0]; tCoords[7] = temp[1];
-	}
+		GLfloat tCoords[] = {0.0f, 0.0f,
+							 0.0f, 1.0f,
+							 1.0f, 1.0f,
+							 1.0f, 0.0f};
 
-	if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
-		if (engine->m_bMirror == 1){
+		int degree = 0;
+		while (engine->m_nDisplayOrientation > degree) {
 			GLfloat temp[2];
-			LOGD("set mirror is true");
-			temp[0] = tCoords[0]; temp[1] = tCoords[2];
-			tCoords[0] = tCoords[4]; tCoords[2] = tCoords[6];
-			tCoords[4] = temp[0]; tCoords[6] = temp[1];
+			degree += 90;
+			temp[0] = tCoords[0];
+			temp[1] = tCoords[1];
+			tCoords[0] = tCoords[2];
+			tCoords[1] = tCoords[3];
+			tCoords[2] = tCoords[4];
+			tCoords[3] = tCoords[5];
+			tCoords[4] = tCoords[6];
+			tCoords[5] = tCoords[7];
+			tCoords[6] = temp[0];
+			tCoords[7] = temp[1];
 		}
-	} else {
-		if (engine->m_bMirror == 1){
-			GLfloat temp[2];
-			LOGD("set mirror is true");
-			temp[0] = tCoords[1]; temp[1] = tCoords[3];
-			tCoords[1] = tCoords[5]; tCoords[3] = tCoords[7];
-			tCoords[5] = temp[0]; tCoords[7] = temp[1];
-		}
-	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vVertices), vVertices);
-	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(tCoords), tCoords);
+		if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
+			if (engine->m_bMirror == 1) {
+				GLfloat temp[2];
+				LOGD("set mirror is true");
+				temp[0] = tCoords[0];
+				temp[1] = tCoords[2];
+				tCoords[0] = tCoords[4];
+				tCoords[2] = tCoords[6];
+				tCoords[4] = temp[0];
+				tCoords[6] = temp[1];
+			}
+		} else {
+			if (engine->m_bMirror == 1) {
+				GLfloat temp[2];
+				LOGD("set mirror is true");
+				temp[0] = tCoords[1];
+				temp[1] = tCoords[3];
+				tCoords[1] = tCoords[5];
+				tCoords[3] = tCoords[7];
+				tCoords[5] = temp[0];
+				tCoords[7] = temp[1];
+			}
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vVertices), vVertices);
+		glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(tCoords), tCoords);
+	}
     LOGD("GLChangedAngle() --->");
 }
 
@@ -512,11 +535,11 @@ void GLDrawRect( int handle, int w, int h, int *point, int rgb, int size)
 void GLImageRender(int handle, unsigned char* pData, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
-	if (pData == NULL) {
-		LOGE("pOffScreen == MNull");
+	if (pData == NULL || engine == NULL) {
+		LOGE("GLImageRender FAIL!: 0x%X 0x%X", engine, pData);
 		return;
 	}
-
+	LOGE("clean start");
 	//clean
 	glClear ( GL_COLOR_BUFFER_BIT );
 
@@ -573,7 +596,9 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 void GLUnInit(int handle)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
-	free(engine);
+    if (engine != NULL) {
+        free(engine);
+    }
 }
 
 
