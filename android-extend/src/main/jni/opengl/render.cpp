@@ -539,7 +539,7 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 		LOGE("GLImageRender FAIL!: 0x%X 0x%X", engine, pData);
 		return;
 	}
-	LOGE("clean start");
+	
 	//clean
 	glClear ( GL_COLOR_BUFFER_BIT );
 
