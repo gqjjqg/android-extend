@@ -48,7 +48,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		 * start preview immediately, after surfaceCreated
 		 * @return true or false.
 		 */
-		public boolean startPreviewLater();
+		public boolean startPreviewImmediately();
 
 		/**
 		 * on ui thread.
@@ -94,6 +94,22 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		mGLSurfaceView = null;
 	}
 
+	private boolean closeCamera() {
+		try {
+			if (mCamera != null) {
+				mCamera.setPreviewCallbackWithBuffer(null);
+				mCamera.stopPreview();
+				mCamera.release();
+				mCamera = null;
+			}
+			mImageDataBuffers.clear();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
 	private boolean openCamera() {
 		try {
 			if (mCamera != null) {
@@ -125,6 +141,13 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 				}
 
 				mCamera.setPreviewCallbackWithBuffer(this);
+				if (mOnCameraListener != null) {
+					if (!mOnCameraListener.startPreviewImmediately()) {
+						mCamera.startPreview();
+					} else {
+						Log.w(TAG, "Camera not start preview!");
+					}
+				}
 				return true;
 			}
 		} catch (Exception e) {
@@ -144,28 +167,17 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
-		if (openCamera()) {
-			Log.d(TAG, "preview size = "
-					+ mCamera.getParameters().getPreviewSize().width + ","
-					+ mCamera.getParameters().getPreviewSize().height);
-			if (mOnCameraListener != null) {
-				if (!mOnCameraListener.startPreviewLater()) {
-					mCamera.startPreview();
-				}
-			}
+		if (!openCamera()) {
+			Log.e(TAG, "camera start fail!");
 		}
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
-		if (mCamera != null) {
-			mCamera.setPreviewCallbackWithBuffer(null);
-			mCamera.stopPreview();
-	        mCamera.release();
-	        mCamera = null;
+		if (!closeCamera()) {
+			Log.e(TAG, "camera close fail!");
 		}
-		mImageDataBuffers.clear();
 	}
 
 	@Override
