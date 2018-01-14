@@ -1,9 +1,8 @@
-package com.guo.android_extend.network.socket.Data;
+package com.guo.android_extend.java.network.socket.Data;
 
-import android.util.Log;
-
-import com.guo.android_extend.network.NetWorkFile;
-import com.guo.android_extend.network.socket.OnSocketListener;
+import com.guo.android_extend.java.network.NetWorkFile;
+import com.guo.android_extend.java.network.socket.OnSocketListener;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -58,7 +57,7 @@ public class TransmitFile extends AbsTransmitter {
 
         DataInputStream input = getDataInputStream();
         if (input == null) {
-            Log.e("TransmitInterface", "loop: Bad object!");
+            LogcatHelper.e("TransmitInterface", "loop: Bad object!");
             return OnSocketListener.ERROR_OBJECT_UNKNOWN;
         }
 
@@ -76,14 +75,14 @@ public class TransmitFile extends AbsTransmitter {
             stream.write(int_to_bytes_big(TYPE_END_CODE));
             stream.flush();
         } catch (Exception e) {
-            Log.e("TransmitInterface", "loop:" + e.getMessage());
+            LogcatHelper.e("TransmitInterface", "loop:" + e.getMessage());
             ret = OnSocketListener.ERROR_SOCKET_TRANSFER;
         }
 
         try {
             input.close();
         } catch (IOException e) {
-            Log.e("TransmitInterface", "loop:" + e.getMessage());
+            LogcatHelper.e("TransmitInterface", "loop:" + e.getMessage());
             ret = OnSocketListener.ERROR_STREAM_CLOSE;
         }
 
@@ -116,7 +115,7 @@ public class TransmitFile extends AbsTransmitter {
                 mOnReceiverListener.onReceiveProcess(this, (int) length, (int) length);
             }
         } catch (Exception e) {
-            Log.e("", "loop:" + e.getMessage());
+            LogcatHelper.e("", "loop:" + e.getMessage());
             if (mOnReceiverListener != null) {
                 mOnReceiverListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);
             }

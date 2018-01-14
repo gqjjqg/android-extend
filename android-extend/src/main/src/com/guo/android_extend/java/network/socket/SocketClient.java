@@ -1,13 +1,12 @@
-package com.guo.android_extend.network.socket;
-
-import android.util.Log;
+package com.guo.android_extend.java.network.socket;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitter;
-import com.guo.android_extend.network.socket.Data.TransmitByte;
-import com.guo.android_extend.network.socket.Data.TransmitFile;
-import com.guo.android_extend.network.socket.Transfer.Receiver;
-import com.guo.android_extend.network.socket.Transfer.Sender;
+import com.guo.android_extend.java.network.socket.Data.AbsTransmitter;
+import com.guo.android_extend.java.network.socket.Data.TransmitByte;
+import com.guo.android_extend.java.network.socket.Data.TransmitFile;
+import com.guo.android_extend.java.network.socket.Transfer.Receiver;
+import com.guo.android_extend.java.network.socket.Transfer.Sender;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -118,13 +117,13 @@ public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Re
 	@Override
 	public void loop() {
 		try {
-			Log.d(TAG, "wait for connect...");
+			LogcatHelper.d(TAG, "wait for connect...");
 			if (mSocket == null) {
 				synchronized (this) {
 					wait(1000);
 				}
 				mSocket = new Socket(mIP, mPort);
-				Log.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
+				LogcatHelper.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
 				mSender = new Sender(mSocket);
 				mSender.setOnSenderListener(this);
 				mSender.start();
@@ -138,7 +137,7 @@ public class SocketClient extends AbsLoop implements Sender.OnSenderListener, Re
 				}
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "run:" + e.getCause().getMessage());
+			LogcatHelper.e(TAG, "run:" + e.getCause().getMessage());
 			onException(OnSocketListener.ERROR_CONNECT_EXCEPTION);
 		}
 	}

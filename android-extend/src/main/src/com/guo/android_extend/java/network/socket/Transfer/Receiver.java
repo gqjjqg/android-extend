@@ -1,10 +1,9 @@
-package com.guo.android_extend.network.socket.Transfer;
-
-import android.util.Log;
+package com.guo.android_extend.java.network.socket.Transfer;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitter;
-import com.guo.android_extend.network.socket.OnSocketListener;
+import com.guo.android_extend.java.network.socket.OnSocketListener;
+import com.guo.android_extend.java.network.socket.Data.AbsTransmitter;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -51,7 +50,7 @@ public class Receiver extends AbsLoop {
 		try {
 			mDataRead = new DataInputStream(mSocket.getInputStream());
 		} catch (Exception e) {
-			Log.e(TAG, "setup:" + e.getMessage());
+			LogcatHelper.e(TAG, "setup:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_STREAM);
 			}
@@ -77,10 +76,10 @@ public class Receiver extends AbsLoop {
 					mOnReceiverListener.onException(ex);
 				}
 			} else {
-				Log.e(TAG, "please set listener!");
+				LogcatHelper.e(TAG, "please set listener!");
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "loop:" + e.getMessage());
+			LogcatHelper.e(TAG, "loop:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_TRANSFER);
 			}
@@ -98,7 +97,7 @@ public class Receiver extends AbsLoop {
 				mDataRead.close();
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "over:" + e.getMessage());
+			LogcatHelper.e(TAG, "over:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_SOCKET_CLOSE);
 			}

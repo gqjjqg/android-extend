@@ -1,10 +1,8 @@
-package com.guo.android_extend.network.udp;
+package com.guo.android_extend.java.network.udp;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.util.Log;
+import com.guo.android_extend.tools.LogcatHelper;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +15,6 @@ public class UDPModule implements UDPDataProtocol {
 	private List<Device> mDevices;
 	private UDPTransponder mUDPTransponder;
 	private OnUDPListener mOnClientListener;
-	private Context mContext;
 
 	private String mName;
 	private String mLocalMac;
@@ -38,28 +35,18 @@ public class UDPModule implements UDPDataProtocol {
 		public void onReceiveDevice(List<Device> list, String name, String ip);
 	}
 
-	/**
-	 *
-	 * @param context the context.
-	 * @param time		delay time 5000
-	 */
-	public UDPModule(Context context, int time) {
-		this(context, Build.MODEL, time);
+	public UDPModule(InetAddress inetAddress, boolean isBroadcast, String mac, String name) {
+		this(inetAddress, isBroadcast, mac, name, 1000);
 	}
 
-	public UDPModule(Context context) {
-		this(context, Build.MODEL, 1000);
-	}
-
-	public UDPModule(Context context, String name, int time) {
+	public UDPModule(InetAddress inetAddress, boolean isBroadcast, String mac, String name, int time) {
 		mName = name;
-		mUDPTransponder = new UDPTransponder(context);
+		mUDPTransponder = new UDPTransponder(inetAddress, isBroadcast);
 		mUDPTransponder.setUDPDataProtocol(this);
 		mUDPTransponder.startReceiver();
 		mUDPTransponder.startDeliver(time);
 		mDevices = new ArrayList<Device>();
-		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		mLocalMac = wifiManager.getConnectionInfo().getMacAddress();
+		mLocalMac = mac;
 	}
 
 	public  List<Device> getResult() {
@@ -94,7 +81,7 @@ public class UDPModule implements UDPDataProtocol {
 			name = list[0];
 			mac = list[1];
 		} else {
-			Log.e(TAG, "parser error!" + info + ",ip=" + ip);
+			LogcatHelper.e(TAG, "parser error!" + info + ",ip=" + ip);
 			return ;
 		}
 		boolean update = true;
@@ -105,7 +92,7 @@ public class UDPModule implements UDPDataProtocol {
 			}
 		}
 		if (update && !mac.equals(mLocalMac)) {
-			Log.d(TAG, "Device:" + name + "[" + mac + "]" + "<" + ip + ">");
+			LogcatHelper.d(TAG, "Device:" + name + "[" + mac + "]" + "<" + ip + ">");
 			mDevices.add(new Device(name, ip, mac));
 			if (mOnClientListener != null) {
 				mOnClientListener.onReceiveDevice(mDevices, name, ip);

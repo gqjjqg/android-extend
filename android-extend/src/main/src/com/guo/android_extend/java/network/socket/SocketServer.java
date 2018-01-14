@@ -1,13 +1,12 @@
-package com.guo.android_extend.network.socket;
-
-import android.util.Log;
+package com.guo.android_extend.java.network.socket;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitter;
-import com.guo.android_extend.network.socket.Data.TransmitByte;
-import com.guo.android_extend.network.socket.Data.TransmitFile;
-import com.guo.android_extend.network.socket.Transfer.Receiver;
-import com.guo.android_extend.network.socket.Transfer.Sender;
+import com.guo.android_extend.java.network.socket.Data.TransmitFile;
+import com.guo.android_extend.java.network.socket.Transfer.Sender;
+import com.guo.android_extend.java.network.socket.Data.AbsTransmitter;
+import com.guo.android_extend.java.network.socket.Data.TransmitByte;
+import com.guo.android_extend.java.network.socket.Transfer.Receiver;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -92,14 +91,14 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 	@Override
 	public void loop() {
 		try {
-			Log.d(TAG, "wait for connect...");
+			LogcatHelper.d(TAG, "wait for connect...");
 			mSocket = mServerSocket.accept();
 			if (mSocket == null) {
 				throw new RuntimeException("server closed!");
 			}
-			Log.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
+			LogcatHelper.d(TAG, "socket connected: " + mSocket.getRemoteSocketAddress());
 		} catch (Exception e) {
-			Log.e(TAG, "run:" + e.getMessage());
+			LogcatHelper.e(TAG, "run:" + e.getMessage());
 			if (mOnSocketListener != null) {
 				mOnSocketListener.onSocketEvent(mSocket, OnSocketListener.EVENT_STOP_ACCEPT);
 			}
@@ -111,7 +110,7 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 			mReceiver.setOnReceiverListener(this);
 			mReceiver.start();
 		} catch (Exception e) {
-			Log.e(TAG, "run:" + e.getMessage());
+			LogcatHelper.e(TAG, "run:" + e.getMessage());
 			onException(OnSocketListener.ERROR_CONNECT_EXCEPTION);
 		}
 
@@ -120,7 +119,7 @@ public class SocketServer extends AbsLoop implements Receiver.OnReceiverListener
 			mSender.setOnSenderListener(this);
 			mSender.start();
 		} catch (Exception e) {
-			Log.e(TAG, "run:" + e.getMessage());
+			LogcatHelper.e(TAG, "run:" + e.getMessage());
 			onException(OnSocketListener.ERROR_CONNECT_EXCEPTION);
 		}
 	}

@@ -1,9 +1,8 @@
-package com.guo.android_extend.network.socket.Data;
-
-import android.util.Log;
+package com.guo.android_extend.java.network.socket.Data;
 
 import com.guo.android_extend.java.ExtByteArrayOutputStream;
-import com.guo.android_extend.network.socket.OnSocketListener;
+import com.guo.android_extend.java.network.socket.OnSocketListener;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,7 +34,7 @@ public class TransmitByte extends AbsTransmitter {
 			throw new RuntimeException("byte data length is bigger than 16M");
 		}
 		mLength = length;
-		mData = new byte[mLength + 8];
+		mData = new byte[mLength + 12];
 		System.arraycopy(int_to_bytes_big(getType()), 0, mData, 0, 4);					//type
 		System.arraycopy(int_to_bytes_big(mLength), 0, mData, 4, 4);					//length
 		System.arraycopy(data, 0, mData, 8, mLength);	 								//data
@@ -56,7 +55,7 @@ public class TransmitByte extends AbsTransmitter {
 
 		DataInputStream input = getDataInputStream();
 		if (input == null) {
-			Log.e(TAG, "loop: Bad object!");
+			LogcatHelper.e(TAG, "loop: Bad object!");
 			return OnSocketListener.ERROR_OBJECT_UNKNOWN;
 		}
 
@@ -70,14 +69,14 @@ public class TransmitByte extends AbsTransmitter {
 			}
 			stream.flush();
 		} catch (Exception e) {
-			Log.e(TAG, "loop:" + e.getMessage());
+			LogcatHelper.e(TAG, "loop:" + e.getMessage());
 			ret = OnSocketListener.ERROR_SOCKET_TRANSFER;
 		}
 
 		try {
 			input.close();
 		} catch (IOException e) {
-			Log.e(TAG, "loop:" + e.getMessage());
+			LogcatHelper.e(TAG, "loop:" + e.getMessage());
 			ret = OnSocketListener.ERROR_STREAM_CLOSE;
 		}
 
@@ -105,7 +104,7 @@ public class TransmitByte extends AbsTransmitter {
 				mOnReceiverListener.onReceiveProcess(this, (int) mLength, (int) mLength);
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "loop:" + e.getMessage());
+			LogcatHelper.e(TAG, "loop:" + e.getMessage());
 			if (mOnReceiverListener != null) {
 				mOnReceiverListener.onException(OnSocketListener.ERROR_STREAM_CLOSE);
 			}
