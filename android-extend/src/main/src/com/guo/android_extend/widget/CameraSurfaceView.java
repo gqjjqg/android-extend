@@ -142,7 +142,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
 				mCamera.setPreviewCallbackWithBuffer(this);
 				if (mOnCameraListener != null) {
-					if (!mOnCameraListener.startPreviewImmediately()) {
+					if (mOnCameraListener.startPreviewImmediately()) {
 						mCamera.startPreview();
 					} else {
 						Log.w(TAG, "Camera not start preview!");
