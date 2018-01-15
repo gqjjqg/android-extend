@@ -1,10 +1,9 @@
-package com.guo.android_extend.network.socket.Transfer;
-
-import android.util.Log;
+package com.guo.android_extend.java.network.socket.Transfer;
 
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.network.socket.Data.AbsTransmitter;
-import com.guo.android_extend.network.socket.OnSocketListener;
+import com.guo.android_extend.java.network.socket.Data.AbsTransmitter;
+import com.guo.android_extend.java.network.socket.OnSocketListener;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -67,7 +66,7 @@ public class Sender extends AbsLoop {
         try {
             mDataWrite =  new DataOutputStream(mSocket.getOutputStream());
         } catch (Exception e) {
-            Log.e(TAG, "setup:" + e.getCause().getMessage());
+            LogcatHelper.e(TAG, "setup:" + e.getCause().getMessage());
             if (mOnSenderListener != null) {
                 mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_STREAM);
             }
@@ -108,7 +107,7 @@ public class Sender extends AbsLoop {
         try {
             mDataWrite.close();
         } catch (IOException e) {
-            Log.e(TAG, "over:" + e.getMessage());
+            LogcatHelper.e(TAG, "over:" + e.getMessage());
             if (mOnSenderListener != null) {
                 mOnSenderListener.onException(OnSocketListener.ERROR_SOCKET_CLOSE);
             }

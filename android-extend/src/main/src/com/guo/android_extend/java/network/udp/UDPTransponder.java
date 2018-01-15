@@ -1,12 +1,7 @@
-package com.guo.android_extend.network.udp;
-
-import android.content.Context;
-import android.net.DhcpInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.util.Log;
+package com.guo.android_extend.java.network.udp;
 
 import com.guo.android_extend.java.AbsLoop;
+import com.guo.android_extend.tools.LogcatHelper;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -25,14 +20,15 @@ public class UDPTransponder {
 	public static final int BUFFER_LENGTH = 8192;
 
 	private InetAddress mInetAddress;
-	private Context mContext;
+	private boolean isBroadcast;
 	private Receiver mReceiver;
 	private Deliver mDeliver;
 	private UDPDataProtocol mUDPDataProtocol;
 	private int mDelay;
 
-	public UDPTransponder(Context mContext) {
-		this.mContext = mContext;
+	public UDPTransponder(InetAddress inetAddress, boolean isBroadcast) {
+		this.mInetAddress = inetAddress;
+		this.isBroadcast = isBroadcast;
 		this.mUDPDataProtocol = null;
 		this.mDelay = 1000;
 	}
@@ -41,83 +37,11 @@ public class UDPTransponder {
 		mUDPDataProtocol = protocol;
 	}
 
-	private void debug_print(WifiManager wifiManager) {
-		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-		DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
-		Log.d(TAG, "AP=" + dhcpInfo.ipAddress + ",MS=" + dhcpInfo.netmask);
-		String wifiProperty = "当前连接Wifi信息如下：" + wifiInfo.getSSID() + '\n' +
-				"ip:" + FormatString(dhcpInfo.ipAddress) + '\n' +
-				"mask:" + FormatString(dhcpInfo.netmask) + '\n' +
-				"netgate:" + FormatString(dhcpInfo.gateway) + '\n' +
-				"dns:" + FormatString(dhcpInfo.dns1);
-		Log.d(TAG, wifiProperty);
-		try {
-			Log.d(TAG, "test:" + getBroadcastAddress(dhcpInfo.ipAddress, dhcpInfo.netmask));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private String FormatString(int value){
-		return String.format("%d.%d.%d.%d",
-				(value & 0xff), (value >> 8 & 0xff),
-				(value >> 16 & 0xff), (value >> 24 & 0xff));
-	}
-
-	/**
-	 *
-	 * @param ip
-	 * @param mask
-	 * @return
-	 * @throws Exception
-	 */
-	private InetAddress getBroadcastAddress(int ip, int mask) throws Exception {
-		int broadcast = (ip & mask) | ~mask;
-		byte[] quads = new byte[4];
-		for (int k = 0; k < 4; k++) {
-			quads[k] = (byte) ((broadcast >> k * 8) & 0xFF);
-		}
-		return InetAddress.getByAddress(quads);
-	}
-
-	public boolean multicastLAN() {
-		try {
-			mInetAddress = InetAddress.getByName("224.0.0.5");
-			Log.d(TAG, "multicast=" + mInetAddress);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return true;
-	}
-
-	/**
-	 * 局域网广播
-	 * @return true or not.
-	 */
-	public boolean broadcastLAN() {
-		try {
-			WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-			DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
-			debug_print(wifiManager);
-			if (dhcpInfo.ipAddress == 0) { // ANDROID AP
-				mInetAddress = InetAddress.getByName("192.168.43.255");
-			} else {
-				mInetAddress = getBroadcastAddress(dhcpInfo.ipAddress, dhcpInfo.netmask);
-			}
-			Log.d(TAG, "broadcast=" + mInetAddress);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return true;
-	}
-
 	public boolean startReceiver() {
 		if (mReceiver != null) {
 			mReceiver.shutdown();
 		}
-		if (multicastLAN()) {
+		if (!isBroadcast) {
 			mReceiver = new Receiver(mInetAddress, true);
 			mReceiver.start();
 		} else {
@@ -143,17 +67,14 @@ public class UDPTransponder {
 		if (mDeliver != null) {
 			mDeliver.shutdown();
 		}
-		if (multicastLAN()) {
+		if (!isBroadcast) {
 			mDeliver = new Deliver(mInetAddress, true);
 			mDeliver.start();
-			return true;
-		}
-		if (broadcastLAN()) {
+		} else {
 			mDeliver = new Deliver(mInetAddress);
 			mDeliver.start();
-			return true;
 		}
-		return false;
+		return true;
 	}
 
 	public void stopDeliver() {
@@ -212,7 +133,7 @@ public class UDPTransponder {
 				if (mUDPDataProtocol != null) {
 					mUDPDataProtocol.parsed(ip, receive.getData(), receive.getLength());
 				} else {
-					Log.e(TAG, "UDPDataProtocol NULL! IP:" + ip);
+					LogcatHelper.e(TAG, "UDPDataProtocol NULL! IP:" + ip);
 				}
 
 			} catch (Exception e) {
@@ -283,10 +204,10 @@ public class UDPTransponder {
 					// 发送数据报
 					mDatagramSocket.send(send);
 				} else {
-					Log.e(TAG, "UDPDataProtocol NULL! broadcast fail!");
+					LogcatHelper.e(TAG, "UDPDataProtocol NULL! broadcast fail!");
 				}
 			} catch (Exception e) {
-				Log.e(TAG, e.getCause().getMessage());
+				LogcatHelper.e(TAG, e.getCause().getMessage());
 			}
 		}
 

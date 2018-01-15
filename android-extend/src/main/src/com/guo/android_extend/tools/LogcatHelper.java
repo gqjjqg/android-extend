@@ -2,6 +2,7 @@ package com.guo.android_extend.tools;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +22,18 @@ public class LogcatHelper {
 	private int mPId;
 	private Context mContext;
 	private boolean isInitial;
+
+	public static void d(String tag, String content) {
+		Log.d(tag, content);
+	}
+
+	public static void e(String tag, String content) {
+		Log.e(tag, content);
+	}
+
+	public static void v(String tag, String content) {
+		Log.v(tag, content);
+	}
 
 	/**
 	 * initial log dir.

@@ -1,7 +1,7 @@
-package com.guo.android_extend.network.socket.Data;
+package com.guo.android_extend.java.network.socket.Data;
 
-import com.guo.android_extend.network.socket.Transfer.Receiver;
-import com.guo.android_extend.network.socket.Transfer.Sender;
+import com.guo.android_extend.java.network.socket.Transfer.Receiver;
+import com.guo.android_extend.java.network.socket.Transfer.Sender;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
