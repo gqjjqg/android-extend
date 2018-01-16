@@ -54,7 +54,7 @@ int Set_Port(int fd, int baud_rate, int data_bits, char parity, int stop_bits, i
 		return -1;
 	}
 
-	bzero(&newtio, sizeof(newtio));
+	memset(&newtio, 0, sizeof(newtio));
 
 	newtio.c_cflag |= CLOCAL | CREAD;
 	newtio.c_cflag &= ~CSIZE;
