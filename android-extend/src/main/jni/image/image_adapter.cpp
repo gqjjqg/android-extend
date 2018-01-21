@@ -102,6 +102,10 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	case CP_PAF_I420:
 	case CP_PAF_NV12:
 	case CP_PAF_NV21:
+		if ((width & 1) && (height & 1)) {
+			env->ThrowNew(jclsmain, "FORMAT NOT SUPPORT THIS SIZE");
+			return (jint)-1;
+		}
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3 / 2);
 		break;
 	case CP_RGBA8888:
