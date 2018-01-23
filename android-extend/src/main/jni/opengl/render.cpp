@@ -554,14 +554,14 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
 		glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w >> 1, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
-	} else if (engine->m_nPixelFormat == CP_PAF_YUYV) {
+	} else if (engine->m_nPixelFormat == CP_PAF_I420) {
         glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[0]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData);
         glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[1]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w >> 1, h >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData + w * h);
         glBindTexture(GL_TEXTURE_2D, engine->m_nTextureIds[2]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, w >> 1, h >> 1, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, pData + w * h + w * h / 4);
-     }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w >> 1, h >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pData + w * h + w * h / 4);
+	}
 	// use shader
 	glUseProgram ( engine->m_hProgramObject );
 
