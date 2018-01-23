@@ -16,7 +16,6 @@
 #define CP_ALPHA8       8
 #define CP_PAF_NV21     0x802
 #define CP_PAF_NV12     0x801
-#define CP_PAF_NV12     0x801
 #define CP_PAF_YUYV     0x501
 #define	CP_PAF_I420     0x601
 #define CP_PAF_BGR24    0x201
