@@ -94,20 +94,36 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		mGLSurfaceView = null;
 	}
 
-	private boolean closeCamera() {
-		try {
-			if (mCamera != null) {
-				mCamera.setPreviewCallbackWithBuffer(null);
-				mCamera.stopPreview();
-				mCamera.release();
-				mCamera = null;
-			}
-			mImageDataBuffers.clear();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+	public boolean startPreview() {
+		Size imageSize = mCamera.getParameters().getPreviewSize();
+		int lineBytes = imageSize.width * ImageFormat.getBitsPerPixel(mCamera.getParameters().getPreviewFormat()) / 8;
+		mCamera.setPreviewCallbackWithBuffer(this);
+		mCamera.addCallbackBuffer(new byte[lineBytes * imageSize.height]);
+		mCamera.addCallbackBuffer(new byte[lineBytes * imageSize.height]);
+		mCamera.addCallbackBuffer(new byte[lineBytes * imageSize.height]);
+		mCamera.startPreview();
 		return true;
+	}
+
+	public boolean stopPreview() {
+		mCamera.setPreviewCallbackWithBuffer(null);
+		mCamera.stopPreview();
+		return true;
+	}
+
+	/**
+	 * used for front and rear exchange.
+	 *
+	 * @return
+	 */
+	public boolean resetCamera() {
+		if (closeCamera()) {
+			if (openCamera()) {
+				return true;
+			}
+		}
+		Log.e(TAG, "resetCamera fail!");
+		return false;
 	}
 
 	private boolean openCamera() {
@@ -127,23 +143,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 				mWidth = imageSize.width;
 				mHeight = imageSize.height;
 				mFormat = mCamera.getParameters().getPreviewFormat();
-				int lineBytes = imageSize.width * ImageFormat.getBitsPerPixel(mFormat) / 8;
-				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
-				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
-				mCamera.addCallbackBuffer(new byte[lineBytes * mHeight]);
 
 				if (mGLSurfaceView != null) {
 					mGLSurfaceView.setImageConfig(mWidth, mHeight, mFormat);
 					mGLSurfaceView.setAspectRatio(mWidth, mHeight);
+					int lineBytes = imageSize.width * ImageFormat.getBitsPerPixel(mFormat) / 8;
 					mImageDataBuffers.offer(new CameraFrameData(mWidth, mHeight, mFormat, lineBytes * mHeight));
 					mImageDataBuffers.offer(new CameraFrameData(mWidth, mHeight, mFormat, lineBytes * mHeight));
 					mImageDataBuffers.offer(new CameraFrameData(mWidth, mHeight, mFormat, lineBytes * mHeight));
 				}
 
-				mCamera.setPreviewCallbackWithBuffer(this);
 				if (mOnCameraListener != null) {
 					if (mOnCameraListener.startPreviewImmediately()) {
-						mCamera.startPreview();
+						startPreview();
 					} else {
 						Log.w(TAG, "Camera not start preview!");
 					}
@@ -154,6 +166,22 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	private boolean closeCamera() {
+		try {
+			if (mCamera != null) {
+				mCamera.setPreviewCallbackWithBuffer(null);
+				mCamera.stopPreview();
+				mCamera.release();
+				mCamera = null;
+			}
+			mImageDataBuffers.clear();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 
 	@Override

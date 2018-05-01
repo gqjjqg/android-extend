@@ -21,6 +21,11 @@ typedef struct opengl_t {
 	GLfloat m_ModelMatrix[16];
 	GLfloat m_Colors[4];
 	GLfloat m_pFloatData[8];
+    GLfloat m_Vertices[12];
+    GLfloat m_Coords[32];
+    GLfloat m_CurCoords[8];
+    GLfloat m_Scale;
+    GLushort m_Indexs[6];
 	int m_FloatDataSize;
 	int	m_bTexInit;
 	int	m_bMirror;
@@ -153,6 +158,7 @@ void main()													\n \
 }																\n";
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
+static void RotateAndMirror(LPOPENGLES engine);
 
 int GLDrawInit(int mirror, int ori, int format)
 {
@@ -339,60 +345,51 @@ int GLImageInit(int mirror, int ori, int format)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
-	LOGD("VBO");
 
+	LOGD("VBO");
 	//VBO
 	glGenBuffers(3, engine->m_nBufs);
-	GLfloat vScale = 1.0;
-	GLfloat vVertices[] = { -vScale,  vScale, 0.0f, //1.0f,  // Position 0
-                            -vScale, -vScale, 0.0f, //1.0f, // Position 1
-                             vScale, -vScale, 0.0f, //1.0f, // Position 2
-                             vScale,  vScale, 0.0f, //1.0f,  // Position 3
-                         };
 
-	GLfloat tCoords[] = {0.0f,  0.0f,
-						 0.0f,  1.0f,
-						 1.0f,  1.0f,
-						 1.0f,  0.0f};
+    memset(engine->m_Vertices, 0, sizeof(engine->m_Vertices));
+    memset(engine->m_Coords, 0, sizeof(engine->m_Coords));
 
-	int degree = 0;
+    engine->m_Scale = 1.0;
+    engine->m_Vertices[0] = -1.0; engine->m_Vertices[1] = 1.0;  //1.0f, // Position 0
+    engine->m_Vertices[3] = -1.0; engine->m_Vertices[4] = -1.0; //1.0f, // Position 1
+    engine->m_Vertices[6] = 1.0; engine->m_Vertices[7] = -1.0;  //1.0f, // Position 2
+    engine->m_Vertices[9] = 1.0; engine->m_Vertices[10] = 1.0;  //1.0f, // Position 3
+    //degree 0
+    engine->m_Coords[0] = 0.0; engine->m_Coords[1] = 0.0;
+    engine->m_Coords[2] = 0.0; engine->m_Coords[3] = 1.0;
+    engine->m_Coords[4] = 1.0; engine->m_Coords[5] = 1.0;
+    engine->m_Coords[6] = 1.0; engine->m_Coords[7] = 0.0;
+    // degree 90
+    engine->m_Coords[8] = engine->m_Coords[2]; engine->m_Coords[9] = engine->m_Coords[3];
+    engine->m_Coords[10] = engine->m_Coords[4]; engine->m_Coords[11] = engine->m_Coords[5];
+    engine->m_Coords[12] = engine->m_Coords[6]; engine->m_Coords[13] = engine->m_Coords[7];
+    engine->m_Coords[14] = engine->m_Coords[0]; engine->m_Coords[15] = engine->m_Coords[1];
+    // degree 180
+    engine->m_Coords[16] = engine->m_Coords[4]; engine->m_Coords[17] = engine->m_Coords[5];
+    engine->m_Coords[18] = engine->m_Coords[6]; engine->m_Coords[19] = engine->m_Coords[7];
+    engine->m_Coords[20] = engine->m_Coords[0]; engine->m_Coords[21] = engine->m_Coords[1];
+    engine->m_Coords[22] = engine->m_Coords[2]; engine->m_Coords[23] = engine->m_Coords[3];
+    // degree 270
+    engine->m_Coords[24] = engine->m_Coords[6]; engine->m_Coords[25] = engine->m_Coords[7];
+    engine->m_Coords[26] = engine->m_Coords[0]; engine->m_Coords[27] = engine->m_Coords[1];
+    engine->m_Coords[28] = engine->m_Coords[2]; engine->m_Coords[29] = engine->m_Coords[3];
+    engine->m_Coords[30] = engine->m_Coords[4]; engine->m_Coords[31] = engine->m_Coords[5];
 
-	while (engine->m_nDisplayOrientation > degree) {
-		GLfloat temp[2];
-		degree += 90;
-		temp[0] = tCoords[0]; temp[1] = tCoords[1];
-		tCoords[0] = tCoords[2]; tCoords[1] = tCoords[3];
-		tCoords[2] = tCoords[4]; tCoords[3] = tCoords[5];
-		tCoords[4] = tCoords[6]; tCoords[5] = tCoords[7];
-		tCoords[6] = temp[0]; tCoords[7] = temp[1];
-	}
+    engine->m_Indexs[0] = 0; engine->m_Indexs[1] = 1; engine->m_Indexs[2] = 2;
+    engine->m_Indexs[3] = 0; engine->m_Indexs[4] = 2; engine->m_Indexs[5] = 3;
 
-	if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
-		if (engine->m_bMirror == 1){
-			GLfloat temp[2];
-			LOGD("set mirror is true");
-			temp[0] = tCoords[0]; temp[1] = tCoords[2];
-			tCoords[0] = tCoords[4]; tCoords[2] = tCoords[6];
-			tCoords[4] = temp[0]; tCoords[6] = temp[1];
-		}
-	} else {
-		if (engine->m_bMirror == 1){
-			GLfloat temp[2];
-			LOGD("set mirror is true");
-			temp[0] = tCoords[1]; temp[1] = tCoords[3];
-			tCoords[1] = tCoords[5]; tCoords[3] = tCoords[7];
-			tCoords[5] = temp[0]; tCoords[7] = temp[1];
-		}
-	}
-
-	GLushort indexs[] = { 0, 1, 2, 0, 2, 3 };
+    RotateAndMirror(engine);
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->m_Vertices), engine->m_Vertices, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tCoords), tCoords, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->m_CurCoords), engine->m_CurCoords, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->m_nBufs[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexs), indexs, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(engine->m_Indexs), engine->m_Indexs, GL_STATIC_DRAW);
 
 	LOGD("glesInit() --->");
 
@@ -419,62 +416,12 @@ void GLChangedAngle(int handle, int mirror, int ori)
 		engine->m_bMirror = mirror;
 		engine->m_nDisplayOrientation = ori;
 
-		GLfloat vScale = 1.0;
-		GLfloat vVertices[] = {-vScale, vScale, 0.0f, //1.0f,  // Position 0
-							   -vScale, -vScale, 0.0f, //1.0f, // Position 1
-							   vScale, -vScale, 0.0f, //1.0f, // Position 2
-							   vScale, vScale, 0.0f, //1.0f,  // Position 3
-		};
+        RotateAndMirror(engine);
 
-		GLfloat tCoords[] = {0.0f, 0.0f,
-							 0.0f, 1.0f,
-							 1.0f, 1.0f,
-							 1.0f, 0.0f};
-
-		int degree = 0;
-		while (engine->m_nDisplayOrientation > degree) {
-			GLfloat temp[2];
-			degree += 90;
-			temp[0] = tCoords[0];
-			temp[1] = tCoords[1];
-			tCoords[0] = tCoords[2];
-			tCoords[1] = tCoords[3];
-			tCoords[2] = tCoords[4];
-			tCoords[3] = tCoords[5];
-			tCoords[4] = tCoords[6];
-			tCoords[5] = tCoords[7];
-			tCoords[6] = temp[0];
-			tCoords[7] = temp[1];
-		}
-
-		if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
-			if (engine->m_bMirror == 1) {
-				GLfloat temp[2];
-				LOGD("set mirror is true");
-				temp[0] = tCoords[0];
-				temp[1] = tCoords[2];
-				tCoords[0] = tCoords[4];
-				tCoords[2] = tCoords[6];
-				tCoords[4] = temp[0];
-				tCoords[6] = temp[1];
-			}
-		} else {
-			if (engine->m_bMirror == 1) {
-				GLfloat temp[2];
-				LOGD("set mirror is true");
-				temp[0] = tCoords[1];
-				temp[1] = tCoords[3];
-				tCoords[1] = tCoords[5];
-				tCoords[3] = tCoords[7];
-				tCoords[5] = temp[0];
-				tCoords[7] = temp[1];
-			}
-		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vVertices), vVertices);
-		glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(tCoords), tCoords);
+       //glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+       //glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
+       //glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
+       //glBufferData(GL_ARRAY_BUFFER, sizeof(tCoords), tCoords, GL_STATIC_DRAW);
 	}
     LOGD("GLChangedAngle() --->");
 }
@@ -581,10 +528,12 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
     }
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(engine->m_Vertices), engine->m_Vertices);
 	glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, engine->m_nBufs[1]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(engine->m_CurCoords), engine->m_CurCoords);
 	glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0 );
 	glEnableVertexAttribArray(1);
 
@@ -601,6 +550,34 @@ void GLUnInit(int handle)
     }
 }
 
+void RotateAndMirror(LPOPENGLES engine)
+{
+    switch(engine->m_nDisplayOrientation) {
+        case 0 : memcpy(engine->m_CurCoords, &(engine->m_Coords[0]), sizeof(engine->m_CurCoords)); break;
+        case 90 : memcpy(engine->m_CurCoords, &(engine->m_Coords[8]), sizeof(engine->m_CurCoords)); break;
+        case 180 : memcpy(engine->m_CurCoords, &(engine->m_Coords[16]), sizeof(engine->m_CurCoords)); break;
+        case 270 : memcpy(engine->m_CurCoords, &(engine->m_Coords[24]), sizeof(engine->m_CurCoords)); break;
+        default :LOGE("ORIENTATION ERROR! %d\n", engine->m_nDisplayOrientation);
+    }
+
+    if (engine->m_nDisplayOrientation == 0 || engine->m_nDisplayOrientation == 180) {
+        if (engine->m_bMirror == 1){
+            GLfloat temp[2];
+            LOGD("set mirror is true");
+            temp[0] = engine->m_CurCoords[0]; temp[1] = engine->m_CurCoords[2];
+            engine->m_CurCoords[0] = engine->m_CurCoords[4]; engine->m_CurCoords[2] = engine->m_CurCoords[6];
+            engine->m_CurCoords[4] = temp[0]; engine->m_CurCoords[6] = temp[1];
+        }
+    } else {
+        if (engine->m_bMirror == 1){
+            GLfloat temp[2];
+            LOGD("set mirror is true");
+            temp[0] = engine->m_CurCoords[1]; temp[1] = engine->m_CurCoords[3];
+            engine->m_CurCoords[1] = engine->m_CurCoords[5]; engine->m_CurCoords[3] = engine->m_CurCoords[7];
+            engine->m_CurCoords[5] = temp[0]; engine->m_CurCoords[7] = temp[1];
+        }
+    }
+}
 
 GLuint LoadShader(GLenum shaderType, const char* pSource)
 {
