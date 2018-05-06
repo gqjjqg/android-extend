@@ -93,7 +93,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
-	jclass jclsmain = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
+	jclass jclsmain = env->FindClass("java/lang/Exception");
 
 	switch (format) {
 	case CP_PAF_BGR24:
