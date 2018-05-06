@@ -217,7 +217,11 @@ public class Camera2Manager {
 			for (int i = 0; i < camera_ids.length; i++) {
 				VirtualCamera vc = new VirtualCamera();
 				vc.mCameraCharacteristics = mCameraManager.getCameraCharacteristics(camera_ids[i]);
-				mCameraManager.openCamera(camera_ids[i], vc.mCDStateCallback, mHandler);
+				try {
+					mCameraManager.openCamera(camera_ids[i], vc.mCDStateCallback, mHandler);
+				} catch (SecurityException e) {
+					e.printStackTrace();
+				}
 				mVirtualCamera.add(vc);
 			}
 		} catch (Exception e) {

@@ -93,7 +93,6 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
-	jclass jclsmain = env->FindClass(JNI_NATIVE_INTERFACE_CLASS);
 
 	switch (format) {
 	case CP_PAF_BGR24:
@@ -103,7 +102,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	case CP_PAF_NV12:
 	case CP_PAF_NV21:
 		if ((width & 1) && (height & 1)) {
-			env->ThrowNew(jclsmain, "FORMAT NOT SUPPORT THIS SIZE");
+			env->ThrowNew(env->FindClass("java/lang/Exception"), "FORMAT NOT SUPPORT THIS SIZE");
 			return (jint)-1;
 		}
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3 / 2);
@@ -113,7 +112,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	case CP_RGBA4444:
 	case CP_ALPHA8:
 	default :
-		env->ThrowNew(jclsmain, "FORMAT ERROR!");
+		env->ThrowNew(env->FindClass("java/lang/Exception"), "FORMAT ERROR!");
 		return (jint)-1;
 	}
 
