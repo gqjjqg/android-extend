@@ -255,7 +255,6 @@ jobject createBitmap(JNIEnv *env, int width, int height, int format)
 	jfieldID jfidconfig;
 	jclass jclsmain = env->FindClass("com/guo/android_extend/cache/BitmapCache");
 	jclass jclsconfig = env->FindClass("android/graphics/Bitmap$Config");
-	jclass jclsexc = env->FindClass("java/lang/Exception");
 
 	switch (format) {
 	case CP_RGBA8888:
@@ -271,7 +270,7 @@ jobject createBitmap(JNIEnv *env, int width, int height, int format)
 		jfidconfig = env->GetStaticFieldID(jclsconfig, "ALPHA_8", "Landroid/graphics/Bitmap$Config;");
 		break;
 	default :
-		env->ThrowNew(jclsexc, "FORMAT ERROR!");
+		env->ThrowNew(env->FindClass("java/lang/Exception"), "FORMAT ERROR!");
 		return NULL;
 	}
 
@@ -282,7 +281,7 @@ jobject createBitmap(JNIEnv *env, int width, int height, int format)
 	jobject bitmap = env->CallStaticObjectMethod(jclsbitmap, cb, width, height, config);
 
 	if (bitmap == NULL) {
-		env->ThrowNew(jclsexc, "OUT OF JVM MEMORY!");
+		env->ThrowNew(env->FindClass("java/lang/Exception"), "OUT OF JVM MEMORY!");
 	}
 
 	return bitmap;
