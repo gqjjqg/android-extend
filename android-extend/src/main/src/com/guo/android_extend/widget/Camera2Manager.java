@@ -41,7 +41,7 @@ public class Camera2Manager {
 	OnDataListener mOnDataListener;
 
 	public interface OnDataListener {
-		public void onPreviewData(byte[] data);
+		public void onPreviewData(CameraFrameData data);
 	}
 
 	class VirtualCamera implements ImageReader.OnImageAvailableListener {
@@ -50,6 +50,11 @@ public class Camera2Manager {
 		CameraCaptureSession mCameraCaptureSession;
 		ImageReader mImageReader;
 		CaptureRequest.Builder mPreviewBuilder;
+		boolean isDisplay = false;
+
+		public VirtualCamera(boolean isDisplay) {
+			this.isDisplay = isDisplay;
+		}
 
 		CameraDevice.StateCallback mCDStateCallback = new CameraDevice.StateCallback() {
 
@@ -67,7 +72,7 @@ public class Camera2Manager {
 					mImageReader.setOnImageAvailableListener(VirtualCamera.this, mHandler);
 				}
 
-				startPreview(VirtualCamera.this);
+				startPreview();
 			}
 
 			@Override
@@ -110,14 +115,51 @@ public class Camera2Manager {
 			}
 		};
 
+		public void stopPreview() {
+			try {
+				if (null != mCameraCaptureSession) {
+					mCameraCaptureSession.close();
+					mCameraCaptureSession = null;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void startPreview() {
+			List<Surface> list = new ArrayList<Surface>();
+			CameraDevice camera = mCameraDevice;
+			ImageReader reader = mImageReader;
+			CaptureRequest.Builder builder = mPreviewBuilder;
+			if (reader != null) {
+				list.add(reader.getSurface());
+			}
+
+			if (builder != null) {
+				for (Surface surface : list) {
+					builder.addTarget(surface);
+				}
+				//builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+				builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+				//builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
+				////builder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_ON);
+				//builder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_OFF);
+				//builder.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_AUTO);
+				//builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, CameraMetadata.CONTROL_AE_MODE_ON);
+				////builder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, DualCamera.this.lowerFpsRange);
+			}
+
+			try {
+				camera.createCaptureSession(list, mCCSStateCallback, mHandler);
+			} catch (CameraAccessException e) {
+				e.printStackTrace();
+			}
+		}
+
 		public void close() {
 			if (null != mCameraDevice) {
 				mCameraDevice.close();
 				mCameraDevice = null;
-			}
-			if (null != mCameraCaptureSession) {
-				mCameraCaptureSession.close();
-				mCameraCaptureSession = null;
 			}
 			if (null != mImageReader) {
 				mImageReader.close();
@@ -127,47 +169,38 @@ public class Camera2Manager {
 
 		@Override
 		public void onImageAvailable(ImageReader imageReader) {
+			Log.d(TAG, "onImageAvailable in");
 			Image image = imageReader.acquireNextImage();
 			Image.Plane[] colors = image.getPlanes();
 			int size = 0, cur = 0;
-			byte[] bytes;
-			//for test code
-			if (true) {
-				bytes = new byte[image.getWidth() * image.getHeight() * 3 / 2];
-				if (image.getFormat() == ImageFormat.YUV_420_888) {
-					int length = colors[0].getBuffer().remaining();
-					colors[0].getBuffer().get(bytes, cur, length);
-					cur += image.getWidth() * image.getHeight();
-					length = colors[1].getBuffer().remaining();
-					colors[1].getBuffer().get(bytes, cur, length);
-				}
-			} else {
-				for (Image.Plane color : colors) {
-					ByteBuffer buffer = color.getBuffer();
-					size += buffer.remaining();
-				}
-				bytes = new byte[size];
-				for (Image.Plane color : colors) {
-					ByteBuffer buffer = color.getBuffer();
-					int length = buffer.remaining();
-					buffer.get(bytes, cur, length);
-					cur += length;
-				}
+			for (Image.Plane color : colors) {
+				ByteBuffer buffer = color.getBuffer();
+				size += buffer.remaining();
+			}
+			CameraFrameData data = new CameraFrameData(image.getWidth(), image.getHeight(), image.getFormat(), size);
+
+			byte[] bytes = data.getData();
+			for (Image.Plane color : colors) {
+				ByteBuffer buffer = color.getBuffer();
+				int length = buffer.remaining();
+				buffer.get(bytes, cur, length);
+				cur += length;
 			}
 			//Log.d(TAG, "onImageAvailable:" + mCameraDevice.getId());
 
-			boolean display = false;
 			if (mOnCameraListener != null) {
-				display = mOnCameraListener.onPreview(mCameraDevice.getId(),
+				Object param = mOnCameraListener.onPreview(mCameraDevice.getId(),
 						bytes, image.getWidth(), image.getHeight(), image.getFormat(), image.getTimestamp());
+				data.setParams(param);
 			}
 			image.close();
 
-			if (display) {
+			if (isDisplay) {
 				if (mOnDataListener != null) {
-					mOnDataListener.onPreviewData(bytes);
+					mOnDataListener.onPreviewData(data);
 				}
 			}
+			Log.d(TAG, "onImageAvailable out");
 		}
 	}
 
@@ -200,6 +233,17 @@ public class Camera2Manager {
 		mOnCameraListener = lis;
 	}
 
+	public void stopPreview() {
+		for (VirtualCamera camera : mVirtualCamera) {
+			camera.stopPreview();
+		}
+	}
+	public void startPreview() {
+		for (VirtualCamera camera : mVirtualCamera) {
+			camera.startPreview();
+		}
+	}
+
 	public boolean openCamera() {
 		try {
 			mHandlerThread = new HandlerThread("Camera2");
@@ -215,7 +259,7 @@ public class Camera2Manager {
 
 			mVirtualCamera = new ArrayList<VirtualCamera>();
 			for (int i = 0; i < camera_ids.length; i++) {
-				VirtualCamera vc = new VirtualCamera();
+				VirtualCamera vc = new VirtualCamera(i == 0);
 				vc.mCameraCharacteristics = mCameraManager.getCameraCharacteristics(camera_ids[i]);
 				try {
 					mCameraManager.openCamera(camera_ids[i], vc.mCDStateCallback, mHandler);
@@ -233,6 +277,7 @@ public class Camera2Manager {
 
 	public void closeCamera() {
 		for (VirtualCamera camera : mVirtualCamera) {
+			camera.stopPreview();
 			camera.close();
 		}
 		if (mHandlerThread != null) {
@@ -281,37 +326,5 @@ public class Camera2Manager {
 			}
 		}
 	}
-
-	public void startPreview(VirtualCamera vc) {
-		List<Surface> list = new ArrayList<Surface>();
-		CameraDevice camera = vc.mCameraDevice;
-		ImageReader reader = vc.mImageReader;
-		CaptureRequest.Builder builder = vc.mPreviewBuilder;
-		if (reader != null) {
-			list.add(reader.getSurface());
-		}
-
-		if (builder != null) {
-			for (Surface surface : list) {
-				builder.addTarget(surface);
-			}
-			//builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-			builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
-			//builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-			////builder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_ON);
-			//builder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_OFF);
-			//builder.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_AUTO);
-			//builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, CameraMetadata.CONTROL_AE_MODE_ON);
-			////builder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, DualCamera.this.lowerFpsRange);
-		}
-
-		try {
-			camera.createCaptureSession(list, vc.mCCSStateCallback, mHandler);
-		} catch (CameraAccessException e) {
-			e.printStackTrace();
-		}
-	}
-
-
 
 }

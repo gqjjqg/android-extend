@@ -35,7 +35,7 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 
 	private boolean mTouchFoucs;
 
-	private BlockingQueue<byte[]> mImageRenderBuffers;
+	private BlockingQueue<CameraFrameData> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
 	private OnRenderListener mOnRenderListener;
 	private OnDrawListener mOnDrawListener;
@@ -45,9 +45,8 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 	}
 
 	public interface OnRenderListener {
-		public void onBeforeRender(byte[] data, int width, int height, int format);
-
-		public void onAfterRender(byte[] buffer);
+		public void onBeforeRender(CameraFrameData data);
+		public void onAfterRender(CameraFrameData data);
 	}
 
 	public interface OnCameraListener {
@@ -60,15 +59,14 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 
 		/**
 		 * on ui thread.
-		 * @param id camera id.
-		 * @param data image data.
-		 * @param width width
+		 * @param data image data
+		 * @param width  width
 		 * @param height height
-		 * @param format  format
-		 * @param timestamp  time stamp.
-		 * @return shown or not.
+		 * @param format format
+		 * @param timestamp time stamp
+		 * @return image params.
 		 */
-		public boolean onPreview(String id, byte[] data, int width, int height, int format, long timestamp);
+		public Object onPreview(String id, byte[] data, int width, int height, int format, long timestamp);
 
 		/**
 		 * @param id camera id.
@@ -147,21 +145,23 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
+		mCamera2Manager.closeCamera();
+
 		super.surfaceDestroyed(holder);
 		Log.d(TAG, "surfaceDestroyed");
-		mCamera2Manager.closeCamera();
 	}
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		byte[] buffer = mImageRenderBuffers.poll();
-		if (buffer != null) {
+		CameraFrameData data = mImageRenderBuffers.poll();
+		if (data != null) {
+			byte[] buffer = data.mData;
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onBeforeRender(buffer, mWidth, mHeight, mFormat);
+				mOnRenderListener.onBeforeRender(data);
 			}
 			mGLES2Render.render(buffer, mWidth, mHeight);
 			if (mOnRenderListener != null) {
-				mOnRenderListener.onAfterRender(buffer);
+				mOnRenderListener.onAfterRender(data);
 			}
 		}
 		if (mOnDrawListener != null) {
@@ -170,7 +170,7 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 	}
 
 	@Override
-	public void onPreviewData(byte[] data) {
+	public void onPreviewData(CameraFrameData data) {
 		if (!mImageRenderBuffers.offer(data)) {
 			Log.e(TAG, "RENDER QUEUE FULL!");
 		} else {
@@ -190,12 +190,19 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 		mCamera2Manager.setOnCameraListener(lis);
 	}
 
+	public GLES2Render getGLES2Render() {
+		return mGLES2Render;
+	}
+
+	public Camera2Manager getCamera2Manager() {
+		return mCamera2Manager;
+	}
+
 	public void setImageConfig(int width, int height, int format) {
 		mWidth = width;
 		mHeight = height;
 		mFormat = format;
 		switch(format) {
-			//for test code.
 			case ImageFormat.YUV_420_888 : mRenderFormat = ImageConverter.CP_PAF_NV12; break;
 			//case ImageFormat.YUV_420_888 : mRenderFormat = ImageConverter.CP_PAF_I420; break;
 			case ImageFormat.NV21 : mRenderFormat = ImageConverter.CP_PAF_NV21; break;
