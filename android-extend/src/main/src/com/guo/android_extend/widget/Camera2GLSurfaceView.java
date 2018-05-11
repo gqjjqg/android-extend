@@ -214,6 +214,9 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 	public void setRenderConfig(int degree, boolean mirror) {
 		mDegree = degree;
 		mMirror = mirror;
+		if (mGLES2Render != null) {
+			mGLES2Render.setViewAngle(mMirror, degree);
+		}
 	}
 
 	@Override
