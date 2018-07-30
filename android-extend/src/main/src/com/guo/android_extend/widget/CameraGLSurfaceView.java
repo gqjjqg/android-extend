@@ -27,6 +27,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 	private int mDegree;
 	private boolean mMirror;
 	private boolean mDebugFPS;
+	private boolean mConfigSuccess = false;
 
 	private BlockingQueue<CameraFrameData> mImageRenderBuffers;
 	private GLES2Render mGLES2Render;
@@ -67,13 +68,19 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		mGLES2Render = new GLES2Render(mMirror, mDegree, mRenderFormat, mDebugFPS);
+		Log.d(TAG,"onSurfaceCreated");
 	}
 
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		mGLES2Render.setViewPort(width, height);
-		mGLES2Render.setViewAngle(mMirror, mDegree);
+		Log.d(TAG,"onSurfaceChanged");
+		if (mGLES2Render == null && mConfigSuccess) {
+			mGLES2Render = new GLES2Render(mMirror, mDegree, mRenderFormat, mDebugFPS);
+		}
+		if (mGLES2Render != null) {
+			mGLES2Render.setViewPort(width, height);
+			mGLES2Render.setViewAngle(mMirror, mDegree);
+		}
 	}
 
 	@Override
@@ -84,7 +91,9 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 			if (mOnRenderListener != null) {
 				mOnRenderListener.onBeforeRender(data);
 			}
-			mGLES2Render.render(buffer, mWidth, mHeight);
+			if (mGLES2Render != null) {
+				mGLES2Render.render(buffer, mWidth, mHeight);
+			}
 			if (mOnRenderListener != null) {
 				mOnRenderListener.onAfterRender(data);
 			}
@@ -110,15 +119,18 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		mOnRenderListener = lis;
 	}
 
-	public void setImageConfig(int width, int height, int format) {
+	public boolean setImageConfig(int width, int height, int format) {
 		mWidth = width;
 		mHeight = height;
 		mFormat = format;
 		switch(format) {
-			case ImageFormat.NV21 : mRenderFormat = ImageConverter.CP_PAF_NV21; break;
-			case ImageFormat.RGB_565 : mRenderFormat = ImageConverter.CP_RGB565; break;
-			default: Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
+			case ImageFormat.NV21 : mRenderFormat = ImageConverter.CP_PAF_NV21; mConfigSuccess = true; break;
+			case ImageFormat.RGB_565 : mRenderFormat = ImageConverter.CP_RGB565; mConfigSuccess = true; break;
+			default:
+				Log.e(TAG, "Current camera preview format = " + format + ", render is not support!");
+				mConfigSuccess = false;
 		}
+		return mConfigSuccess;
 	}
 
 	public void setRenderConfig(int degree, boolean mirror) {
