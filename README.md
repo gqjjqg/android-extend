@@ -1,6 +1,7 @@
 # android-extend
 create useful widget for android.
 
+![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)
 [ ![Download](https://api.bintray.com/packages/gqjjqg/maven/android-extend/images/download.svg) ](https://bintray.com/gqjjqg/maven/android-extend/_latestVersion)
 
 1. 横向listview、旋转按钮、扩展imageview 等自定义控件
