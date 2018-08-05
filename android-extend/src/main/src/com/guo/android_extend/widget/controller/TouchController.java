@@ -1,6 +1,8 @@
 package com.guo.android_extend.widget.controller;
 
+import android.annotation.TargetApi;
 import android.graphics.PointF;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -29,6 +31,7 @@ public class TouchController  {
 		return new PointF(x, y);
 	}
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public MotionEvent obtainTouchEvent(MotionEvent ev, int view_w, int view_h, int cur_degree) {
 		MotionEvent newEvent;
 		if (false) {	// suport one touch
