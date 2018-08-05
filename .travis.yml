@@ -24,5 +24,14 @@ android:
     #- sys-img-armeabi-v7a-android-26
     #- sys-img-armeabi-v7a-android-17
     
+cache:
+    # cache directories to use
+  directories:
+    - "$HOME/.gradle/caches/"
+    - "$HOME/.gradle/wrapper/"
+  
 before_install:
     - yes | sdkmanager "platforms;android-26"
+    - yes | sdkmanager "ndk-bundle"
+    - yes | sdkmanager "cmake;3.6.4111459"
+    
