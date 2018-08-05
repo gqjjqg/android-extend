@@ -1,8 +1,10 @@
 package com.guo.android_extend.tools;
 
+import android.annotation.TargetApi;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -36,6 +38,7 @@ public class CameraHelper {
 		return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF.bottom));
 	}
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public static void touchFocus(Camera camera1, Camera camera2, MotionEvent event, View view, Camera.AutoFocusCallback callback) {
 		Camera.Parameters parameters1 = camera1.getParameters();
 		Camera.Parameters parameters2 = camera2.getParameters();
@@ -77,6 +80,7 @@ public class CameraHelper {
 		camera2.autoFocus(callback);
 	}
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public static void touchFocus(Camera camera, MotionEvent event, View view, Camera.AutoFocusCallback callback) {
 		Camera.Parameters parameters = camera.getParameters();
 		Camera.Size size = parameters.getPreviewSize();
@@ -123,6 +127,7 @@ public class CameraHelper {
 			e.printStackTrace();
 		}
 	}
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public static void lockAeAwb(Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
 		if (parameters.isAutoExposureLockSupported()) {
@@ -138,6 +143,7 @@ public class CameraHelper {
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public static void unlockAeAwb(Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
 		if (parameters.isAutoExposureLockSupported()) {
