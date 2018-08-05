@@ -3,6 +3,7 @@
 #############
 .gradle
 .idea
+bintray.gradle
 
 #################
 ## Eclipse
