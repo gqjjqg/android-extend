@@ -1,5 +1,6 @@
 package com.guo.android_extend.widget;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
@@ -13,6 +14,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -44,6 +46,7 @@ public class Camera2Manager {
 		public void onPreviewData(CameraFrameData data);
 	}
 
+	@TargetApi(Build.VERSION_CODES.KITKAT)
 	class VirtualCamera implements ImageReader.OnImageAvailableListener {
 		CameraCharacteristics mCameraCharacteristics;
 		CameraDevice mCameraDevice;
@@ -58,6 +61,7 @@ public class Camera2Manager {
 
 		CameraDevice.StateCallback mCDStateCallback = new CameraDevice.StateCallback() {
 
+			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onOpened( CameraDevice camera) {
 				Log.d(TAG, "onOpened:" + camera.getId());
@@ -75,11 +79,13 @@ public class Camera2Manager {
 				startPreview();
 			}
 
+			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onDisconnected( CameraDevice camera) {
 				Log.d(TAG, "onDisconnected:" + camera.getId());
 			}
 
+			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onError( CameraDevice camera, int error) {
 				switch(error) {
@@ -98,6 +104,7 @@ public class Camera2Manager {
 
 		CameraCaptureSession.StateCallback mCCSStateCallback = new CameraCaptureSession.StateCallback() {
 
+			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onConfigured( CameraCaptureSession session) {
 				Log.d(TAG, "onConfigured:" + session.toString());
@@ -115,6 +122,7 @@ public class Camera2Manager {
 			}
 		};
 
+		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 		public void stopPreview() {
 			try {
 				if (null != mCameraCaptureSession) {
@@ -126,6 +134,7 @@ public class Camera2Manager {
 			}
 		}
 
+		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 		public void startPreview() {
 			List<Surface> list = new ArrayList<Surface>();
 			CameraDevice camera = mCameraDevice;
@@ -156,6 +165,7 @@ public class Camera2Manager {
 			}
 		}
 
+		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 		public void close() {
 			if (null != mCameraDevice) {
 				mCameraDevice.close();
@@ -167,6 +177,7 @@ public class Camera2Manager {
 			}
 		}
 
+		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 		@Override
 		public void onImageAvailable(ImageReader imageReader) {
 			Log.d(TAG, "onImageAvailable in");
@@ -205,6 +216,7 @@ public class Camera2Manager {
 	}
 
 	private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 		@Override
 		public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
 			super.onCaptureStarted(session, request, timestamp, frameNumber);
@@ -219,6 +231,7 @@ public class Camera2Manager {
 
 	};
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public Camera2Manager(Context context) {
 		this.mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 		this.mHandler = null;
@@ -244,6 +257,7 @@ public class Camera2Manager {
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public boolean openCamera() {
 		try {
 			mHandlerThread = new HandlerThread("Camera2");
@@ -275,6 +289,7 @@ public class Camera2Manager {
 		return true;
 	}
 
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public void closeCamera() {
 		for (VirtualCamera camera : mVirtualCamera) {
 			camera.stopPreview();
@@ -291,6 +306,7 @@ public class Camera2Manager {
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public void touchFocus(View view, MotionEvent ev) {
 		if (mVirtualCamera != null) {
 			for (VirtualCamera camera : mVirtualCamera ) {
