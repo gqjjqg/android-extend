@@ -30,7 +30,7 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 	private Camera2Manager mCamera2Manager;
 	private int mWidth, mHeight, mFormat, mRenderFormat;
 	private int mDegree;
-	private boolean mMirror;
+	private int mMirror;
 	private boolean mDebugFPS;
 
 	private boolean mTouchFoucs;
@@ -211,18 +211,18 @@ public class Camera2GLSurfaceView extends ExtGLSurfaceView implements GLSurfaceV
 		}
 	}
 
-	public void setRenderConfig(int degree, boolean mirror) {
+	public void setRenderConfig(int degree, int mirror) {
 		mDegree = degree;
 		mMirror = mirror;
 		if (mGLES2Render != null) {
-			mGLES2Render.setViewAngle(mMirror, degree);
+			mGLES2Render.setViewDisplay(mMirror, degree);
 		}
 	}
 
 	@Override
 	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		if (mGLES2Render != null) {
-			mGLES2Render.setViewAngle(mMirror, degree);
+			mGLES2Render.setViewDisplay(mMirror, degree);
 		}
 		return super.OnOrientationChanged(degree, offset, flag);
 	}

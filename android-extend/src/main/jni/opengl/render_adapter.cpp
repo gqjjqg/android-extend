@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "render.h"
+#include "image_render.h"
+#include "comm_render.h"
 #include "loger.h"
 
 //#define DEBUG_DUMP
@@ -96,9 +97,9 @@ jint NGLR_uninitial(JNIEnv *env, jobject object, jlong handle)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
 
-	GLUnInit(engine->handler);
+	GLImageRenderUnInit(engine->handler);
 
-	GLUnInit(engine->drawer);
+    GLCommRenderUnInit(engine->drawer);
 
 	if (engine->points != NULL) {
 		free(engine->points);
@@ -123,8 +124,8 @@ jlong NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint form
 		LOGE("ERROR fopen");
 	}
 #endif
-	handle->handler = GLImageInit(mirror, ori, format);
-	handle->drawer = GLDrawInit(mirror, ori, format);
+	handle->handler = GLImageRenderInit(mirror, ori, format);
+	handle->drawer = GLCommRenderInit(mirror, ori, format);
 
 	handle->points_count = 0;
 	handle->points = NULL;
@@ -138,14 +139,16 @@ jlong NGLR_initial(JNIEnv *env, jobject object, jint mirror, jint ori, jint form
 jint NGLR_changed(JNIEnv* env, jobject object, jlong handle, jint width, jint height)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
-	GLChanged(engine->handler, width, height);
+	GLImageRenderChanged(engine->handler, width, height);
+    GLCommRenderChanged(engine->drawer, width, height);
 	return 0;
 }
 
 jint NGLR_rotated(JNIEnv* env, jobject object, jlong handle, jint mirror, jint ori)
 {
 	LPRENDER_HANDLE engine = (LPRENDER_HANDLE)handle;
-	GLChangedAngle(engine->handler, mirror, ori);
+    GLImageRenderChangedConfig(engine->handler, mirror, ori);
+    GLCommRenderChangedConfig(engine->drawer, mirror, ori);
 	return 0;
 }
 
@@ -199,7 +202,7 @@ jint NGLR_drawrect(JNIEnv* env, jobject object, jlong handle, jobjectArray recte
 	convert_to_points(env, rectes, engine->points, engine->points_count);
 
 	for (i = 0; i < engine->points_count; i++) {
-		GLDrawRect(engine->drawer, engine->width, engine->height, (engine->points + i * 8), rgb, size);
+		GLCommRenderDrawRect(engine->drawer, engine->width, engine->height, (engine->points + i * 8), rgb, size);
 	}
 
 	return 0;

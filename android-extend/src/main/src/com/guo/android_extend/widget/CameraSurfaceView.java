@@ -256,7 +256,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 		mOnCameraListener = l;
 	}
 
-	public void setupGLSurafceView(CameraGLSurfaceView glv, boolean autofit, boolean mirror, int render_egree) {
+	public void setupGLSurafceView(CameraGLSurfaceView glv, boolean autofit, int mirror, int render_egree) {
 		mGLSurfaceView = glv;
 		mGLSurfaceView.setOnRenderListener(this);
 		mGLSurfaceView.setRenderConfig(render_egree, mirror);

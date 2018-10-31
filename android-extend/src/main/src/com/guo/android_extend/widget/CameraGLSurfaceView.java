@@ -25,7 +25,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 
 	private int mWidth, mHeight, mFormat, mRenderFormat;
 	private int mDegree;
-	private boolean mMirror;
+	private int mMirror;
 	private boolean mDebugFPS;
 	private boolean mConfigSuccess = false;
 
@@ -79,7 +79,7 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		}
 		if (mGLES2Render != null) {
 			mGLES2Render.setViewPort(width, height);
-			mGLES2Render.setViewAngle(mMirror, mDegree);
+			mGLES2Render.setViewDisplay(mMirror, mDegree);
 		}
 	}
 
@@ -133,18 +133,18 @@ public class CameraGLSurfaceView extends ExtGLSurfaceView implements GLSurfaceVi
 		return mConfigSuccess;
 	}
 
-	public void setRenderConfig(int degree, boolean mirror) {
+	public void setRenderConfig(int degree, int mirror) {
 		mDegree = degree;
 		mMirror = mirror;
 		if (mGLES2Render != null) {
-			mGLES2Render.setViewAngle(mMirror, degree);
+			mGLES2Render.setViewDisplay(mMirror, degree);
 		}
 	}
 
 	@Override
 	public boolean OnOrientationChanged(int degree, int offset, int flag) {
 		if (mGLES2Render != null) {
-			mGLES2Render.setViewAngle(mMirror, degree);
+			mGLES2Render.setViewDisplay(mMirror, degree);
 		}
 		return super.OnOrientationChanged(degree, offset, flag);
 	}

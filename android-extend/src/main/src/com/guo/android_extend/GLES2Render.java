@@ -5,6 +5,10 @@ import android.graphics.Rect;
 public class GLES2Render {
 	private final String TAG = this.getClass().getSimpleName();
 
+	public final static int MIRROR_NONE = 0;
+	public final static int MIRROR_X = 1;
+	public final static int MIRROR_Y = 2;
+
 	private native long render_init(int mirror, int ori, int format, int fps);
 	private native int render_changed(long handler, int width, int height);
 	private native int render_rotated(long handler, int mirror, int ori);
@@ -17,9 +21,9 @@ public class GLES2Render {
 	
 	private long handle;
 
-	public GLES2Render(boolean mirror, int degree, int format, boolean showFPS) {
+	public GLES2Render(int mirror, int degree, int format, boolean showFPS) {
 		// TODO Auto-generated constructor stub
-		handle = render_init(mirror ? 1 : 0, degree, format, showFPS ? 1 : 0);
+		handle = render_init(mirror, degree, format, showFPS ? 1 : 0);
 	}
 	
 	public void destory() {
@@ -30,8 +34,14 @@ public class GLES2Render {
 		render_changed(handle, width, height);
 	}
 
-	public void setViewAngle(boolean mirror, int degree) {
-		render_rotated(handle, mirror ? 1 : 0, degree);
+
+	/**
+	 * SET DISPLAY
+	 * @param mirror MIRROR_X, MIRROR_Y, MIRROR_X|MIRROR_Y
+	 * @param degree 0, 90, 180, 270
+	 */
+	public void setViewDisplay(int mirror, int degree) {
+		render_rotated(handle, mirror, degree);
 	}
 
 	public void render(byte[] data, int width, int height) {
