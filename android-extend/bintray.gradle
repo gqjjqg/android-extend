@@ -55,7 +55,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId PROJ_ARTIFACTID
-            artifact javadocJar
+            //artifact javadocJar
             artifact sourcesJar
 
             pom.withXml {
