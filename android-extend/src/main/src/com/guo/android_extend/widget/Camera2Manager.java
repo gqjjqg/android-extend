@@ -2,7 +2,6 @@ package com.guo.android_extend.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -42,11 +41,13 @@ public class Camera2Manager {
 	Camera2GLSurfaceView.OnCameraListener mOnCameraListener;
 	OnDataListener mOnDataListener;
 
+	private CameraCaptureSession.CaptureCallback mCaptureCallback;
+
 	public interface OnDataListener {
 		public void onPreviewData(CameraFrameData data);
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	class VirtualCamera implements ImageReader.OnImageAvailableListener {
 		CameraCharacteristics mCameraCharacteristics;
 		CameraDevice mCameraDevice;
@@ -61,7 +62,6 @@ public class Camera2Manager {
 
 		CameraDevice.StateCallback mCDStateCallback = new CameraDevice.StateCallback() {
 
-			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onOpened( CameraDevice camera) {
 				Log.d(TAG, "onOpened:" + camera.getId());
@@ -79,13 +79,11 @@ public class Camera2Manager {
 				startPreview();
 			}
 
-			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onDisconnected( CameraDevice camera) {
 				Log.d(TAG, "onDisconnected:" + camera.getId());
 			}
 
-			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onError( CameraDevice camera, int error) {
 				switch(error) {
@@ -104,7 +102,6 @@ public class Camera2Manager {
 
 		CameraCaptureSession.StateCallback mCCSStateCallback = new CameraCaptureSession.StateCallback() {
 
-			@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 			@Override
 			public void onConfigured( CameraCaptureSession session) {
 				Log.d(TAG, "onConfigured:" + session.toString());
@@ -215,27 +212,25 @@ public class Camera2Manager {
 		}
 	}
 
-	private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
-		@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-		@Override
-		public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
-			super.onCaptureStarted(session, request, timestamp, frameNumber);
-			//Log.d(TAG, "onCaptureStarted:" + timestamp + ",request=" + request.toString());
-			if (request.getTag() == "FOCUS_TAG") {
-				Log.d(TAG, "onCaptureStarted:" + timestamp + ",request=" + request.toString());
-				if (mOnCameraListener != null) {
-					mOnCameraListener.onCameraEvent(session.getDevice().getId(), Camera2GLSurfaceView.OnCameraListener.EVENT_FOCUS_OVER);
-				}
-			}
-		}
-
-	};
-
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public Camera2Manager(Context context) {
 		this.mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 		this.mHandler = null;
 		this.mHandlerThread = null;
+		this.mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+			@Override
+			public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
+				super.onCaptureStarted(session, request, timestamp, frameNumber);
+				//Log.d(TAG, "onCaptureStarted:" + timestamp + ",request=" + request.toString());
+				if (request.getTag() == "FOCUS_TAG") {
+					Log.d(TAG, "onCaptureStarted:" + timestamp + ",request=" + request.toString());
+					if (mOnCameraListener != null) {
+						mOnCameraListener.onCameraEvent(session.getDevice().getId(), Camera2GLSurfaceView.OnCameraListener.EVENT_FOCUS_OVER);
+					}
+				}
+			}
+
+		};
 	}
 
 	public void setOnDataListener(OnDataListener mOnDataListener) {
