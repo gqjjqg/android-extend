@@ -11,7 +11,7 @@ create useful widget for android.
 [Sample Code](https://github.com/gqjjqg/samples) 
 
 Gradle Usage:  
-	compile 'com.guo.android_extend:android-extend:1.0.5'  
+	compile 'com.guo.android_extend:android-extend:+'  
 	
 1. 横向listview、旋转按钮、扩展imageview 等自定义控件
 2. camera view,支持修改图像数据和手动渲染数据
