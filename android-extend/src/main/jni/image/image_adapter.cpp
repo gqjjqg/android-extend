@@ -9,6 +9,8 @@
 #include "image.h"
 #include "loger.h"
 
+#define _DEBUG
+
 typedef struct imageformat_t {
 	unsigned char *pBuffer;
 	int width;
@@ -17,6 +19,7 @@ typedef struct imageformat_t {
 #ifdef _DEBUG
 	FILE *file;
 	int count;
+	unsigned char *buffer;
 #endif
 }IMAGE_HANDLE, *LPIMAGE_HANDLE;
 
@@ -92,6 +95,10 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 #ifdef _DEBUG
 	handle->count = 100;
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
+	handle->buffer = (unsigned char *)malloc(1024*1024*1024*2);
+	if (handle->buffer != NULL) {
+	    free(handle->buffer);
+	}
 #endif
 
 	switch (format) {
