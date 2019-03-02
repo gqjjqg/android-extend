@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "image_render.h"
 #include "comm_render.h"
-#include "loger.h"
+#include "logger.h"
 
 //#define DEBUG_DUMP
 

@@ -16,7 +16,7 @@
 #include <sys/select.h>
 
 #include "device.h"
-#include "loger.h"
+#include "logger.h"
 
 #define BUFFER_SIZE		1024
 

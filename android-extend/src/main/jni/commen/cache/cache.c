@@ -13,7 +13,7 @@
 #include "rbtree.h"
 #include "dllist.h"
 
-#include "loger.h"
+#include "logger.h"
 
 typedef struct CACHE_t {
 	// RB-tree

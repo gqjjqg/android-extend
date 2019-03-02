@@ -17,7 +17,7 @@
 #include <linux/videodev2.h>
 
 #include "device.h"
-#include "loger.h"
+#include "logger.h"
 #include "image.h"
 
 const static unsigned char dht_data[] = {

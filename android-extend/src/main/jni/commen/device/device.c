@@ -25,7 +25,7 @@
 #include <linux/usbdevice_fs.h>
 
 
-#include "loger.h"
+#include "logger.h"
 
 struct buffer {
 	void * start;

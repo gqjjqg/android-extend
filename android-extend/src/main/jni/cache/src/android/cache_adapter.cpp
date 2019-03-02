@@ -8,7 +8,7 @@
 #include "cache.h"
 #include "image.h"
 
-#include "loger.h"
+#include "logger.h"
 
 static jobject createBitmap(JNIEnv *env, int width, int height, int format);
 
@@ -33,7 +33,7 @@ static JNINativeMethod gMethods[] = {
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/cache/BitmapCache";
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved){
+JNIEXPORT int JNI_OnLoad(JavaVM* vm, void* reserved){
 
     JNIEnv *env = NULL;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_4)){

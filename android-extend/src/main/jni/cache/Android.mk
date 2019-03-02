@@ -27,7 +27,7 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 
 LOCAL_LDLIBS   := -llog -ljnigraphics 
 
-LOCAL_STATIC_LIBRARIES := imagebase loger
+LOCAL_STATIC_LIBRARIES := imagebase logger
 
 LOCAL_EXPORT_LDLIBS := $(LOCAL_LDLIBS) 
 

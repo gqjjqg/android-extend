@@ -1,5 +1,5 @@
-#if !defined(_G_LOGER_H_)
-#define _G_LOGER_H_
+#if !defined(_G_LOGGER_H_)
+#define _G_LOGGER_H_
 
 #ifdef __cplusplus
 extern "C" {

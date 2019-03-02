@@ -10,7 +10,7 @@
 #include <time.h>
 #include <string.h>
 
-#include "loger.h"
+#include "logger.h"
 
 #define  LOG_TAG    "ATC."
 

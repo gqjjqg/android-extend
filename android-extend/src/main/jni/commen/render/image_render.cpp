@@ -10,7 +10,7 @@
 #include "Matrix.h"
 
 #include "image.h"
-#include "loger.h"
+#include "logger.h"
 #include "image_render.h"
 #include "shader.h"
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include "image.h"
-#include "loger.h"
+#include "logger.h"
 
 typedef struct imageformat_t {
 	unsigned char *pBuffer;
@@ -94,6 +94,16 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
 
+	int x = 2048;
+    unsigned char * test = (unsigned char *)malloc(1024*1024*x);
+    while(test == NULL && x > 0) {
+        test = (unsigned char *)malloc(x*1024*1024);
+        x -= 100;
+    }
+    LOGE("TEST:0x%x %d\n", test, x);
+    free(test);
+	
+    LOGE("NIF_initial\n");
 	switch (format) {
 	case CP_PAF_BGR24:
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3);
