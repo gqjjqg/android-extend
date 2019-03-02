@@ -11,13 +11,21 @@ android {
         versionName "1.0.6"
 
         sourceSets.main {
-            jniLibs.srcDirs = ['src/main/libs']
-            //jni.srcDirs = ['src/main/jni']
+            //jniLibs.srcDirs = ['src/main/libs']
+            jni.srcDirs = ['src/main/jni']
             //jni.srcDirs = []
             java.srcDirs = ['src/main/src']
         }
-        ndk {
-            abiFilters "armeabi-v7a"
+        externalNativeBuild {
+            //cmake {
+            //    //targets "stereoscan","mocap"
+            //    arguments "-DANDROID_STL=system","-DBUILD_NUMBER=0" //system  stlport_static stlport_shared gnustl_static gnustl_shared
+            //    //cppFlags "-std=c++11"
+            //    abiFilters "armeabi-v7a"
+            //}
+            ndkBuild {
+                abiFilters "armeabi-v7a"
+            }
         }
     }
     buildTypes {
@@ -29,14 +37,14 @@ android {
             jniDebuggable true
         }
     }
-    productFlavors {
-    }
     externalNativeBuild {
         ndkBuild {
-            path 'src/main/jni/Android.mk'
+            path file('src/main/jni/Android.mk')
         }
+        //cmake {
+        //    path file('src/main/jni/CMakeLists.txt')
+        //}
     }
-
 }
 
 dependencies {
