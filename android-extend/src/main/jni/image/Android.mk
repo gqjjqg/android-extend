@@ -14,23 +14,24 @@
 #
 LOCAL_PATH := $(call my-dir)
 
+$(warning $(LOCAL_PATH))
+
 include $(CLEAR_VARS)
 LOCAL_MODULE    := imagebase
-LOCAL_SRC_FILES := image.c
-LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
+LOCAL_SRC_FILES := ..\commen\image\image.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)\..\commen\image	   
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)	
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE    := image
-LOCAL_SRC_FILES := image_adapter.cpp
-   
-LOCAL_C_INCLUDES := $(LOCAL_PATH)	   
+LOCAL_SRC_FILES := src\android\image_adapter.cpp 
+LOCAL_C_INCLUDES := $(LOCAL_PATH)\..\commen\image	   
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 
 LOCAL_LDLIBS   := -llog -ljnigraphics 
 
-LOCAL_STATIC_LIBRARIES := imagebase loger
+LOCAL_STATIC_LIBRARIES := imagebase logger
 
 LOCAL_EXPORT_LDLIBS := $(LOCAL_LDLIBS) 
 

@@ -12,19 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-LOCAL_PATH := $(call my-dir)
-
-include $(CLEAR_VARS)
-
-LOCAL_MODULE    := cache
-LOCAL_SRC_FILES := src\android\cache_adapter.cpp \
-				   ..\commen\cache\rbtree.c \
-				   ..\commen\cache\dllist.c \
-				   ..\commen\cache\cache_data.c \
-				   ..\commen\cache\cache.c	   
-LOCAL_C_INCLUDES := $(LOCAL_PATH)\..\commen\cache	   
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
-LOCAL_LDLIBS := -llog -ljnigraphics 
-LOCAL_STATIC_LIBRARIES := imagebase logger
-LOCAL_EXPORT_LDLIBS := $(LOCAL_LDLIBS) 
-include $(BUILD_SHARED_LIBRARY)
+include $(call all-subdir-makefiles)
