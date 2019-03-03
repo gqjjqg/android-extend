@@ -12,8 +12,8 @@
 //#define DEBUG_DUMP
 
 typedef struct glesrender_t {
-	int handler;
-	int drawer;
+	INT handler;
+	INT drawer;
 
 	int width;
 	int height;

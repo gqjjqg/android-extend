@@ -29,7 +29,7 @@ typedef struct opengl_t {
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
-int GLImageRenderInit(int mirror, int ori, int format)
+INT GLImageRenderInit(int mirror, int ori, int format)
 {
 	LPOPENGLES engine;
 	GLuint	vertexShader;
@@ -171,10 +171,10 @@ int GLImageRenderInit(int mirror, int ori, int format)
 
 	LOGD("glesInit() --->");
 
-	return (long)engine;
+	return (INT)engine;
 }
 
-void GLImageRenderChanged(int handle, int w, int h)
+void GLImageRenderChanged(INT handle, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
     LOGD("glesChanged(%d, %d) %x<---", w, h, handle);
@@ -185,7 +185,7 @@ void GLImageRenderChanged(int handle, int w, int h)
     LOGD("glesChanged() --->");
 }
 
-void GLImageRenderChangedConfig(int handle, int mirror, int ori)
+void GLImageRenderChangedConfig(INT handle, int mirror, int ori)
 {
     LPOPENGLES engine = (LPOPENGLES)handle;
     LOGD("GLChangedAngle(%d, %d) <---", mirror, ori);
@@ -196,7 +196,7 @@ void GLImageRenderChangedConfig(int handle, int mirror, int ori)
     LOGD("GLChangedAngle() --->");
 }
 
-void GLImageRender(int handle, unsigned char* pData, int w, int h)
+void GLImageRender(INT handle, unsigned char* pData, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
 	if (pData == NULL || engine == NULL) {
@@ -276,7 +276,7 @@ void GLImageRender(int handle, unsigned char* pData, int w, int h)
 
 }
 
-void GLImageRenderUnInit(int handle)
+void GLImageRenderUnInit(INT handle)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
     if (engine != NULL) {

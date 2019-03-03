@@ -27,7 +27,7 @@ typedef struct opengl_t {
 
 static GLuint LoadShader(GLenum shaderType, const char* pSource);
 
-int GLCommRenderInit(int mirror, int ori, int format)
+INT GLCommRenderInit(int mirror, int ori, int format)
 {
 	LPOPENGLES engine;
 	GLuint	vertexShader;
@@ -99,10 +99,10 @@ int GLCommRenderInit(int mirror, int ori, int format)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(engine->mFloatData), engine->mFloatData, GL_STREAM_DRAW);
 
 	LOGD("glesInit() --->");
-	return (long)engine;
+	return (INT)engine;
 }
 
-void GLCommRenderChanged(int handle, int w, int h)
+void GLCommRenderChanged(INT handle, int w, int h)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
     LOGD("glesChanged(%d, %d) %x<---", w, h, handle);
@@ -113,7 +113,7 @@ void GLCommRenderChanged(int handle, int w, int h)
     LOGD("glesChanged() --->");
 }
 
-void GLCommRenderChangedConfig(int handle, int mirror, int ori)
+void GLCommRenderChangedConfig(INT handle, int mirror, int ori)
 {
     LPOPENGLES engine = (LPOPENGLES)handle;
     LOGD("GLChangedAngle(%d, %d) <---", mirror, ori);
@@ -124,7 +124,7 @@ void GLCommRenderChangedConfig(int handle, int mirror, int ori)
     LOGD("GLChangedAngle() --->");
 }
 
-void GLCommRenderDrawRect( int handle, int w, int h, int *point, int rgb, int size)
+void GLCommRenderDrawRect( INT handle, int w, int h, int *point, int rgb, int size)
 {
 	int i, j;
 	LPOPENGLES engine = (LPOPENGLES)handle;
@@ -183,7 +183,7 @@ void GLCommRenderDrawRect( int handle, int w, int h, int *point, int rgb, int si
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
-void GLCommRenderUnInit(int handle)
+void GLCommRenderUnInit(INT handle)
 {
 	LPOPENGLES engine = (LPOPENGLES)handle;
     if (engine != NULL) {
