@@ -58,7 +58,7 @@ typedef struct cache_handle_t {
 static LPCACHE_NODE rbt_search(LPRB_ROOT root, int hash);
 static int rbt_insert(LPRB_ROOT root, LPCACHE_NODE data);
 
-unsigned long CreateCache(int size)
+INT CreateCache(int size)
 {
 	LPCACHE_HANDLE handle;
 	handle = (LPCACHE_HANDLE)GMemMalloc(sizeof(CACHE_HANDLE));
@@ -72,10 +72,10 @@ unsigned long CreateCache(int size)
 	handle->mDLRoot.dl_last = GNull;
 	handle->mRBRoot.rb_node = GNull;
 
-	return (unsigned long)handle;
+	return (INT)handle;
 }
 
-int PushCache(unsigned long h, int hash, int width, int height, int format, unsigned char * data)
+int PushCache(INT h, int hash, int width, int height, int format, unsigned char * data)
 {
 	LPCACHE_NODE pNode;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
@@ -122,7 +122,7 @@ int PushCache(unsigned long h, int hash, int width, int height, int format, unsi
 	return ret;
 }
 
-int QueryCache(unsigned long h, int hash, int *width, int *height, int *format)
+int QueryCache(INT h, int hash, int *width, int *height, int *format)
 {
 	LPCACHE_NODE pNode;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
@@ -142,7 +142,7 @@ int QueryCache(unsigned long h, int hash, int *width, int *height, int *format)
 	return NOT_FIND;
 }
 
-int PullCache(unsigned long h, int hash, int *width, int *height, int *format, unsigned char ** data)
+int PullCache(INT h, int hash, int *width, int *height, int *format, unsigned char ** data)
 {
 	LPCACHE_NODE pNode;
 	LPCACHE_HANDLE handle = (LPCACHE_HANDLE)h;
@@ -187,7 +187,7 @@ int PullCache(unsigned long h, int hash, int *width, int *height, int *format, u
 	return ret;
 }
 
-int ReleaseCache(unsigned long h)
+int ReleaseCache(INT h)
 {
 	LPCACHE_NODE pNode = GNull;
 	LPCACHE_NODE pFree = GNull;

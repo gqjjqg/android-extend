@@ -13,15 +13,21 @@
 #define NOT_SUPPORT		-2
 #define PARAM_INVALID	-3
 
+#ifndef INT64
+#define INT unsigned long
+#else
+#define INT unsigned long long
+#endif
+
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-unsigned long CreateCache(int size);
-int PushCache(unsigned long handle, int hash, int width, int height, int format, unsigned char * data);
-int QueryCache(unsigned long handle, int hash, int *width, int *height, int *format);
-int PullCache(unsigned long handle, int hash, int *width, int *height, int *format, unsigned char ** data);
-int ReleaseCache(unsigned long handle);
+INT CreateCache(int size);
+int PushCache(INT handle, int hash, int width, int height, int format, unsigned char * data);
+int QueryCache(INT handle, int hash, int *width, int *height, int *format);
+int PullCache(INT handle, int hash, int *width, int *height, int *format, unsigned char ** data);
+int ReleaseCache(INT handle);
 
 #ifdef __cplusplus
 }

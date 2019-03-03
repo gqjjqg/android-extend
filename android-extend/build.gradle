@@ -21,7 +21,7 @@ android {
                 //targets "stereoscan","mocap"
                 arguments "-DANDROID_STL=system","-D_DEBUG=1" //system  stlport_static stlport_shared gnustl_static gnustl_shared
                 //cppFlags "-std=c++11"
-                abiFilters "armeabi-v7a"
+                abiFilters "arm64-v8a" //,"armeabi-v7a"
             }
         }
     }

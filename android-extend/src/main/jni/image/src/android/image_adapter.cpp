@@ -20,14 +20,14 @@ typedef struct imageformat_t {
 #endif
 }IMAGE_HANDLE, *LPIMAGE_HANDLE;
 
-static jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format);
-static jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteArray data);
-static jint NIF_uninitial(JNIEnv *env, jobject object, jint handle);
+static jlong NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format);
+static jint NIF_convert(JNIEnv* env, jobject obj, jlong handle, jobject jbitmap, jbyteArray data);
+static jint NIF_uninitial(JNIEnv *env, jobject object, jlong handle);
 
 static JNINativeMethod gMethods[] = {
-	{"image_init", "(III)I",(void*)NIF_initial},
-	{"image_convert", "(ILandroid/graphics/Bitmap;[B)I",(void*)NIF_convert},
-	{"image_uninit", "(I)I",(void*)NIF_uninitial},
+	{"image_init", "(III)J",(void*)NIF_initial},
+	{"image_convert", "(JLandroid/graphics/Bitmap;[B)I",(void*)NIF_convert},
+	{"image_uninit", "(J)I",(void*)NIF_uninitial},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/image/ImageConverter";
@@ -70,7 +70,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
+jint NIF_uninitial(JNIEnv *env, jobject object, jlong handle)
 {
 	LPIMAGE_HANDLE engine = (LPIMAGE_HANDLE)handle;
 	if (engine->pBuffer != NULL) {
@@ -83,7 +83,7 @@ jint NIF_uninitial(JNIEnv *env, jobject object, jint handle)
 	return 0;
 }
 
-jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format)
+jlong NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint format)
 {
 	LPIMAGE_HANDLE handle = (LPIMAGE_HANDLE)malloc(sizeof(IMAGE_HANDLE));
 	handle->width = width;
@@ -94,16 +94,15 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	handle->file = fopen("/sdcard/dump.nv21", "wb");
 #endif
 
-	int x = 2048;
-    unsigned char * test = (unsigned char *)malloc(1024*1024*x);
-    while(test == NULL && x > 0) {
-        test = (unsigned char *)malloc(x*1024*1024);
-        x -= 100;
-    }
-    LOGE("TEST:0x%x %d\n", test, x);
-    free(test);
+	//int x = 2048;
+    //unsigned char * test = (unsigned char *)malloc(1024*1024*x);
+    //while(test == NULL && x > 0) {
+    //    test = (unsigned char *)malloc(x*1024*1024);
+    //    x -= 100;
+    //}
+    LOGE("TEST:%d %d\n", handle->width, handle->height);
+    //free(test);
 	
-    LOGE("NIF_initial\n");
 	switch (format) {
 	case CP_PAF_BGR24:
 		handle->pBuffer = (unsigned char *) malloc(width * height * 3);
@@ -129,7 +128,7 @@ jint NIF_initial(JNIEnv *env, jobject object, jint width, jint height, jint form
 	return (jlong)handle;
 }
 
-jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteArray data)
+jint NIF_convert(JNIEnv* env, jobject obj, jlong handle, jobject jbitmap, jbyteArray data)
 {
 	int ret = 0;
 	LPIMAGE_HANDLE engine = (LPIMAGE_HANDLE)handle;
@@ -139,7 +138,7 @@ jint NIF_convert(JNIEnv* env, jobject obj, jint handle, jobject jbitmap, jbyteAr
 	}
 
 	if (info.width != engine->width || info.height != engine->height || data == NULL) {
-		LOGE("PARAM FAIL!");
+		LOGE("PARAM FAIL! %d %d", engine->width, engine->height);
 		return -1;
 	}
 

@@ -12,18 +12,18 @@ import android.graphics.Canvas;
 public class BitmapCache<T> {
 
 	private HashMap<T, SoftReference<Bitmap>> mCacheMap;
-	private int mCacheHandle;
+	private long mCacheHandle;
 	
 	private int CACHE_SIZE;
 	private boolean USE_JVM_MEMORY;
 	
-	private native int cache_init(int size);
-	private native int cache_put(int handler, int hash, Bitmap bitmap);
-	private native Bitmap cache_get(int handler, int hash);
-	private native Bitmap cache_get(int handler, int hash, int format);
-	private native int cache_search(int handler, int hash, BitmapStructure info);
-	private native int cache_copy(int handler, int hash, Bitmap output);
-	private native int cache_uninit(int handler);
+	private native long cache_init(int size);
+	private native int cache_put(long handler, int hash, Bitmap bitmap);
+	private native Bitmap cache_get(long handler, int hash);
+	private native Bitmap cache_get(long handler, int hash, int format);
+	private native int cache_search(long handler, int hash, BitmapStructure info);
+	private native int cache_copy(long handler, int hash, Bitmap output);
+	private native int cache_uninit(long handler);
 	
 	static {
 		System.loadLibrary("cache");

@@ -12,23 +12,23 @@
 
 static jobject createBitmap(JNIEnv *env, int width, int height, int format);
 
-static jint NC_CacheInit(JNIEnv *env, jobject object, jint size);
-static jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap);
-static jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash);
-static jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jint format);
-static jint NC_CacheUnInit(JNIEnv *env, jobject object, jint handler);
-static jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap);
-static jint NC_CacheSearch(JNIEnv *env, jobject object, jint handler, jint hash, jobject info);
+static jlong NC_CacheInit(JNIEnv *env, jobject object, jint size);
+static jint NC_CachePut(JNIEnv *env, jobject object, jlong handler, jint hash, jobject bitmap);
+static jobject NC_CacheGet(JNIEnv *env, jobject object, jlong handler, jint hash);
+static jobject NC_ExCacheGet(JNIEnv *env, jobject object, jlong handler, jint hash, jint format);
+static jint NC_CacheUnInit(JNIEnv *env, jobject object, jlong handler);
+static jint NC_CacheCopy(JNIEnv *env, jobject object, jlong handler, jint hash, jobject bitmap);
+static jint NC_CacheSearch(JNIEnv *env, jobject object, jlong handler, jint hash, jobject info);
 
 
 static JNINativeMethod gMethods[] = {
-	{"cache_init", "(I)I",(void*)NC_CacheInit},
-	{"cache_put", "(IILandroid/graphics/Bitmap;)I",(void*)NC_CachePut},
-	{"cache_get", "(II)Landroid/graphics/Bitmap;",(void*)NC_CacheGet},
-	{"cache_get", "(III)Landroid/graphics/Bitmap;",(void*)NC_ExCacheGet},
-	{"cache_uninit", "(I)I",(void*)NC_CacheUnInit},
-	{"cache_copy", "(IILandroid/graphics/Bitmap;)I",(void*)NC_CacheCopy},
-	{"cache_search", "(IILcom/guo/android_extend/cache/BitmapStructure;)I",(void*)NC_CacheSearch},
+	{"cache_init", "(I)J",(void*)NC_CacheInit},
+	{"cache_put", "(JILandroid/graphics/Bitmap;)I",(void*)NC_CachePut},
+	{"cache_get", "(JI)Landroid/graphics/Bitmap;",(void*)NC_CacheGet},
+	{"cache_get", "(JII)Landroid/graphics/Bitmap;",(void*)NC_ExCacheGet},
+	{"cache_uninit", "(J)I",(void*)NC_CacheUnInit},
+	{"cache_copy", "(JILandroid/graphics/Bitmap;)I",(void*)NC_CacheCopy},
+	{"cache_search", "(JILcom/guo/android_extend/cache/BitmapStructure;)I",(void*)NC_CacheSearch},
 };
 
 const char* JNI_NATIVE_INTERFACE_CLASS = "com/guo/android_extend/cache/BitmapCache";
@@ -71,15 +71,15 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
    jint nRes = env->UnregisterNatives(cls);
 }
 
-jint NC_CacheInit(JNIEnv *env, jobject object, jint size)
+jlong NC_CacheInit(JNIEnv *env, jobject object, jint size)
 {
 	if (size > 0) {
-		return (jint)CreateCache(size);
+		return (jlong)CreateCache(size);
 	}
 	return GOK;
 }
 
-jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap)
+jint NC_CachePut(JNIEnv *env, jobject object, jlong handler, jint hash, jobject bitmap)
 {
 	jint ret;
 	AndroidBitmapInfo  info;
@@ -95,7 +95,7 @@ jint NC_CachePut(JNIEnv *env, jobject object, jint handler, jint hash, jobject b
 	return ret;
 }
 
-jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jint target)
+jobject NC_ExCacheGet(JNIEnv *env, jobject object, jlong handler, jint hash, jint target)
 {
 	int width, height, format;
 	unsigned char * pData;
@@ -147,7 +147,7 @@ jobject NC_ExCacheGet(JNIEnv *env, jobject object, jint handler, jint hash, jint
 	return bitmap;
 }
 
-jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash)
+jobject NC_CacheGet(JNIEnv *env, jobject object, jlong handler, jint hash)
 {
 	int width, height, format;
 	unsigned char * pData;
@@ -175,13 +175,13 @@ jobject NC_CacheGet(JNIEnv *env, jobject object, jint handler, jint hash)
 	return bitmap;
 }
 
-jint NC_CacheUnInit(JNIEnv *env, jobject object, jint handler)
+jint NC_CacheUnInit(JNIEnv *env, jobject object, jlong handler)
 {
 	return ReleaseCache((unsigned long)handler);
 }
 
 
-jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject bitmap)
+jint NC_CacheCopy(JNIEnv *env, jobject object, jlong handler, jint hash, jobject bitmap)
 {
 	jint ret = GOK;
 	int width, height, format;
@@ -228,7 +228,7 @@ jint NC_CacheCopy(JNIEnv *env, jobject object, jint handler, jint hash, jobject 
 	return ret;
 }
 
-jint NC_CacheSearch(JNIEnv *env, jobject object, jint handler, jint hash, jobject info)
+jint NC_CacheSearch(JNIEnv *env, jobject object, jlong handler, jint hash, jobject info)
 {
 	jint ret = NOT_FIND;
 	int width, height, format;

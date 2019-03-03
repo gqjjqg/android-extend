@@ -19,7 +19,7 @@
 
 static void rb_set_parent(LPRB_NODE rb, LPRB_NODE p)
 {
-	rb->rb_parent_color = (rb->rb_parent_color & 3) | (unsigned long)p;
+	rb->rb_parent_color = (rb->rb_parent_color & 3) | (INT)p;
 }
 
 static void rb_set_color(LPRB_NODE rb, int color)
@@ -162,7 +162,7 @@ void rb_init_node(LPRB_NODE rb)
 
 void rb_link_node(LPRB_NODE  node, LPRB_NODE  parent, LPRB_NODE * rb_link)
 {
-	node->rb_parent_color = (unsigned long )parent;
+	node->rb_parent_color = (INT)parent;
 	node->rb_left = node->rb_right = NULL;
 
 	*rb_link = node;

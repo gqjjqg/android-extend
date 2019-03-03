@@ -1,8 +1,14 @@
 #ifndef	_RBTREE_H
 #define	_RBTREE_H
 
+#ifndef INT64
+#define INT unsigned long
+#else
+#define INT unsigned long long
+#endif
+
 typedef struct rb_node_t {
-	unsigned long  rb_parent_color;
+	INT rb_parent_color;
 	struct rb_node_t *rb_right;
 	struct rb_node_t *rb_left;
 }__attribute__((aligned(sizeof(long)))) RB_NODE, *LPRB_NODE;
