@@ -31,8 +31,8 @@ MESSAGE("module cache:${LIB_SRC}")
 
 IF (${CMAKE_BUILD_TYPE} MATCHES "Release")
 MESSAGE("Release SET jni.ver")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--version-script=${PROJECT_SOURCE_DIR}/jni.ver")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--version-script=${PROJECT_SOURCE_DIR}/jni.ver")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--version-script=${PROJECT_SOURCE_DIR}/../jni.ver")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--version-script=${PROJECT_SOURCE_DIR}/../jni.ver")
 ENDIF()
 
 ADD_LIBRARY(image SHARED ${LIB_SRC})	   
