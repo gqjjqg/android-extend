@@ -17,11 +17,11 @@ public class ImageConverter {
 	public final static int CP_PAF_BGR24 = 0x201;
 
 
-	private native int image_init(int width, int height, int format);
-	private native int image_convert(int handler, Bitmap bitmap, byte[] data);
-	private native int image_uninit(int handler);
+	private native long image_init(int width, int height, int format);
+	private native int image_convert(long handler, Bitmap bitmap, byte[] data);
+	private native int image_uninit(long handler);
 	
-	private int handle;
+	private long handle;
 	
 	static {
 		System.loadLibrary("image");

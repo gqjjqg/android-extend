@@ -3,11 +3,9 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := serial
-LOCAL_SRC_FILES := serial.cpp
+LOCAL_SRC_FILES := src\android\serial_adapter.cpp
 
-#LOCAL_SHARED_LIBRARIES := libarcsoft_handsigns libmpbase
-
-LOCAL_STATIC_LIBRARIES := device loger
+LOCAL_STATIC_LIBRARIES := device logger
 
 LOCAL_LDLIBS:= -llog 
 

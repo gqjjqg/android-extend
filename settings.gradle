@@ -1,1 +1,1 @@
-include ':android-extend'
+include ':android-extend', ':samples'
