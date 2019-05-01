@@ -19,6 +19,7 @@ gen/
 *.swp
 *~.nib
 local.properties
+jcenter.properties
 .classpath
 .settings/
 .loadpath
