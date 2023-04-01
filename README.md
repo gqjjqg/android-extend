@@ -5,15 +5,18 @@ create useful widget for android.
 [![Build Status](https://travis-ci.com/gqjjqg/android-extend.svg?branch=master)](https://travis-ci.com/gqjjqg/android-extend)
 [![](https://jitpack.io/v/gqjjqg/android-extend.svg)](https://jitpack.io/#gqjjqg/android-extend)
 
-[ ![Download](https://api.bintray.com/packages/gqjjqg/maven/android-extend/images/download.svg) ](https://bintray.com/gqjjqg/maven/android-extend/_latestVersion)
-
-
 ## Getting Started
 [Widget List](http://gqjjqg.github.io/development/project/2014/06/16/android-widget-extend.html) |
 [Sample Code](https://github.com/gqjjqg/samples) 
 
-Gradle Usage:  
-	compile 'com.guo.android_extend:android-extend:+'  
+Gradle Usage: 
+
+```
+dependencies {
+    implementation 'com.github.gqjjqg:android-extend:v1.0.7'
+}
+```
+
 	
 1. 横向listview、旋转按钮、扩展imageview 等自定义控件
 2. camera view,支持修改图像数据和手动渲染数据
